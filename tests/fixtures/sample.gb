@@ -1,0 +1,36 @@
+LOCUS       SAMPLE_SEQ                300 bp    DNA     linear   UNK 
+DEFINITION  Sample sequence for GIAE testing.
+ACCESSION   SAMPLE001
+VERSION     SAMPLE001.1
+KEYWORDS    test; sample.
+SOURCE      Test organism
+  ORGANISM  Test organism
+            Bacteria; Proteobacteria.
+FEATURES             Location/Qualifiers
+     source          1..300
+                     /organism="Test organism"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:12345"
+     gene            1..90
+                     /gene="testA"
+                     /locus_tag="TEST_0001"
+     CDS             1..90
+                     /gene="testA"
+                     /locus_tag="TEST_0001"
+                     /product="hypothetical protein TestA"
+                     /translation="MRVRVRVRVRVRVRVRVRVRVRVRVRVRVR"
+     gene            100..198
+                     /gene="testB"
+                     /locus_tag="TEST_0002"
+     CDS             100..198
+                     /gene="testB"
+                     /locus_tag="TEST_0002"
+                     /product="DNA-binding protein TestB"
+                     /translation="TYTYTYTYTYTYTYTYTYTYTYTYTYTYTYTY"
+ORIGIN
+        1 atgcgtacgt acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac
+       61 gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac
+      121 gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac
+      181 gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac
+      241 gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac gtacgtacgt acgtacgtac
+//
