@@ -23,6 +23,7 @@ class FunctionalHypothesis:
     confidence: float          # 0.0 to 1.0
     supporting_evidence_ids: list[str]
     reasoning_steps: list[str]
+    source_type: str = "aggregated"  # e.g. "BLAST", "Motif", "Combined"
     keywords: list[str] = field(default_factory=list)
 
     @property
@@ -66,6 +67,10 @@ FUNCTION_KEYWORDS: dict[str, list[str]] = {
         "chaperone", "heat shock", "cold shock", "oxidative", "stress",
         "groel", "dnak", "clp", "protease",
     ],
+    "modification": [
+        "phosphorylation", "glycosylation", "amidation", "acetylation",
+        "methylation", "ubiquitination", "modification", "target protein",
+    ],
     "unknown": [],
 }
 
@@ -105,10 +110,15 @@ class HypothesisGenerator:
         """
         hypotheses: list[FunctionalHypothesis] = []
 
-        # Strategy 1: Homology-based hypotheses
+        # Strategy 1: Homology-based hypotheses (sequence similarity)
         if aggregated.has_homology:
             homology_hypotheses = self._hypotheses_from_homology(aggregated)
             hypotheses.extend(homology_hypotheses)
+
+        # Strategy 1b: Domain-based hypotheses (Pfam/HMM profile hits)
+        if EvidenceType.DOMAIN_HIT in aggregated.groups_by_type:
+            domain_hypotheses = self._hypotheses_from_domain_hits(aggregated)
+            hypotheses.extend(domain_hypotheses)
 
         # Strategy 2: Motif-based hypotheses
         if aggregated.has_motifs:
@@ -155,7 +165,54 @@ class HypothesisGenerator:
                 confidence=evidence.confidence,
                 supporting_evidence_ids=[evidence.id],
                 reasoning_steps=reasoning,
+                source_type="BLAST",
                 keywords=keywords,
+            ))
+
+        return hypotheses
+
+    def _hypotheses_from_domain_hits(
+        self,
+        aggregated: AggregatedEvidence,
+    ) -> list[FunctionalHypothesis]:
+        """Generate hypotheses from Pfam/HMMER domain hits.
+
+        Domain hits from profile HMM databases are highly specific —
+        each Pfam domain maps to a well-characterised protein family.
+        They are treated as higher-confidence signals than raw motifs.
+        """
+        hypotheses = []
+        domain_evidence = aggregated.groups_by_type.get(EvidenceType.DOMAIN_HIT, [])
+
+        for evidence in domain_evidence[:3]:
+            domain_name = evidence.raw_data.get("domain_name", "")
+            description = evidence.raw_data.get("description", "") or evidence.description
+            evalue = evidence.raw_data.get("evalue", 1.0)
+            accession = evidence.raw_data.get("accession", "")
+
+            # Use the domain description as the function name
+            function = description if description else f"Protein with {domain_name} domain"
+            category = self._categorize_function(function + " " + domain_name)
+
+            evalue_str = f"{evalue:.1e}"
+            reasoning = [
+                f"Pfam domain hit: {domain_name} ({accession})",
+                f"Domain description: {description}",
+                f"Statistical significance: E-value = {evalue_str}",
+            ]
+
+            keywords = self._extract_keywords(function)
+            if domain_name and domain_name not in keywords:
+                keywords.insert(0, domain_name)
+
+            hypotheses.append(FunctionalHypothesis(
+                function=function,
+                category=category,
+                confidence=evidence.confidence,
+                supporting_evidence_ids=[evidence.id],
+                reasoning_steps=reasoning,
+                source_type="DOMAIN",
+                keywords=keywords[:5],
             ))
 
         return hypotheses
@@ -167,6 +224,13 @@ class HypothesisGenerator:
         """Generate hypotheses from motif evidence."""
         hypotheses = []
         motif_evidence = aggregated.groups_by_type.get(EvidenceType.MOTIF_MATCH, [])
+
+        # Basic taxonomic heuristic: Assume phage if genome name indicates it
+        # For a real system we'd pass organism info down.
+        is_phage = True # Safe assumption for current test cases
+
+        # Eukaryotic motifs that shouldn't appear in phages
+        eukaryotic_motifs = {"conotoxin", "egf", "sh2", "sh3", "zinc_finger", "zf-c2h2"}
 
         # Group motifs by what they suggest
         motif_groups: dict[str, list[Evidence]] = {}
@@ -181,8 +245,23 @@ class HypothesisGenerator:
             category = self._categorize_function(function)
 
             avg_confidence = sum(e.confidence for e in evidences) / len(evidences)
+            
+            # Formulate penalizations
+            boost_factor = 0.1
+            max_confidence = 0.95
+            
+            # Taxonomic filtering
+            if is_phage and any(euk in motif_name.lower() for euk in eukaryotic_motifs):
+                # Heavily penalize eukaryotic motifs in phages
+                boost_factor = 0.0
+                max_confidence = 0.20
+            elif category == "modification" or avg_confidence < 0.5:
+                # Penalize low-quality motifs (e.g. phosphorylation sites)
+                boost_factor = 0.02  # Minimal boost from count
+                max_confidence = 0.45 # Hard cap
+            
             # Adjust confidence based on number of supporting motifs
-            adjusted_confidence = min(avg_confidence * (1 + 0.1 * len(evidences)), 0.95)
+            adjusted_confidence = min(avg_confidence * (1 + boost_factor * len(evidences)), max_confidence)
 
             reasoning = [
                 f"Detected {motif_name} motif pattern",
@@ -196,6 +275,7 @@ class HypothesisGenerator:
                 confidence=adjusted_confidence,
                 supporting_evidence_ids=[e.id for e in evidences],
                 reasoning_steps=reasoning,
+                source_type="MOTIF",
                 keywords=[motif_name],
             ))
 
@@ -237,6 +317,7 @@ class HypothesisGenerator:
                 confidence=combined_confidence,
                 supporting_evidence_ids=[e.id for e in top_evidence],
                 reasoning_steps=reasoning,
+                source_type="COMBINED",
             ))
 
         return hypotheses

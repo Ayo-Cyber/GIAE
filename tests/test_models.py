@@ -122,6 +122,32 @@ class TestInterpretation:
         assert "70%" in explanation
         assert "Low sequence coverage" in explanation
 
+    def test_serialization(self) -> None:
+        """Test Interpretation serialization round-trip."""
+        original = Interpretation(
+            gene_id="gene_001",
+            hypothesis="Helicase",
+            confidence_score=0.7,
+            confidence_level=ConfidenceLevel.MODERATE,
+            supporting_evidence_ids=["ev_1"],
+            reasoning_chain=["Domain match found"],
+        )
+        data = original.to_dict()
+        restored = Interpretation.from_dict(data)
+        
+        assert restored.id == original.id
+        assert restored.hypothesis == original.hypothesis
+        assert restored.confidence_score == original.confidence_score
+
+    def test_get_summary(self) -> None:
+        """Test getting interpretation summary."""
+        interpretation = Interpretation(
+            gene_id="g_1", hypothesis="XYZ", confidence_score=0.5,
+            confidence_level=ConfidenceLevel.MODERATE, supporting_evidence_ids=[], reasoning_chain=["1"]
+        )
+        assert "XYZ" in interpretation.get_summary()
+        assert "50%" in interpretation.get_summary()
+
 
 class TestProtein:
     """Tests for the Protein model."""
@@ -169,6 +195,24 @@ class TestGene:
         with pytest.raises(ValueError):
             GeneLocation(start=400, end=100, strand=Strand.FORWARD)
 
+    def test_add_evidence_and_interpretation(self) -> None:
+        gene = Gene(name="test", location=GeneLocation(start=1, end=10, strand=Strand.FORWARD), sequence="A"*10)
+        
+        ev = Evidence(
+            evidence_type=EvidenceType.MOTIF_MATCH, gene_id=gene.id,
+            description="test", confidence=0.5, raw_data={},
+            provenance=EvidenceProvenance(tool_name="test", tool_version="1.0")
+        )
+        gene.add_evidence(ev)
+        assert len(gene.evidence) == 1
+        
+        interp = Interpretation(
+            gene_id=gene.id, hypothesis="test", confidence_score=0.5,
+            confidence_level=ConfidenceLevel.MODERATE, supporting_evidence_ids=[], reasoning_chain=["1"]
+        )
+        gene.add_interpretation(interp)
+        assert len(gene.interpretations) == 1
+
 
 class TestGenome:
     """Tests for the Genome model."""
@@ -205,3 +249,10 @@ class TestGenome:
                 source_file=Path("test.xyz"),
                 file_format="xyz",  # Invalid
             )
+
+    def test_add_gene(self) -> None:
+        genome = Genome(name="Test", sequence="A"*100, source_file=Path("test.gb"), file_format="genbank")
+        gene = Gene(name="g1", location=GeneLocation(1, 10, Strand.FORWARD), sequence="A"*10)
+        genome.add_gene(gene)
+        assert genome.gene_count == 1
+        assert len(genome.genes) == 1

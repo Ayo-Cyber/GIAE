@@ -14,6 +14,7 @@ from giae.analysis.orf_finder import ORFFinder
 from giae.analysis.motif import MotifScanner
 from giae.engine.aggregator import EvidenceAggregator, AggregatedEvidence
 from giae.engine.hypothesis import HypothesisGenerator, FunctionalHypothesis
+from giae.engine.conflict import ConflictResolver, ConflictReport, ConflictSeverity
 from giae.engine.confidence import ConfidenceScorer, ConfidenceReport
 from giae.models.genome import Genome
 from giae.models.gene import Gene
@@ -23,6 +24,13 @@ from giae.models.interpretation import (
     ConfidenceLevel,
     CompetingHypothesis,
 )
+from giae.engine.plugin import PluginManager
+from giae.engine.novelty import NoveltyScorer, NovelGeneReport
+from giae.analysis.hmmer import HmmerPlugin
+from giae.analysis.ai import EsmPlugin
+from giae.analysis.blast_local import BlastLocalPlugin
+from pathlib import Path
+import os
 
 
 @dataclass
@@ -62,6 +70,7 @@ class GenomeInterpretationSummary:
     failed_genes: int
     processing_time_seconds: float
     results: list[InterpretationResult]
+    novel_gene_report: NovelGeneReport | None = None
 
     @property
     def success_rate(self) -> float:
@@ -107,6 +116,89 @@ class Interpreter:
     confidence_scorer: ConfidenceScorer = field(default_factory=ConfidenceScorer)
     find_orfs: bool = True
     use_uniprot: bool = True  # Enable UniProt API for homology search
+    conflict_threshold: float = 0.15
+    use_interpro: bool = True
+    conflict_resolver: ConflictResolver = field(init=False)
+    plugin_manager: PluginManager = field(init=False)
+    novelty_scorer: NoveltyScorer = field(init=False)
+
+    def __post_init__(self) -> None:
+        """Initialize components."""
+        self.conflict_resolver = ConflictResolver(self.conflict_threshold)
+        self.novelty_scorer = NoveltyScorer()
+
+        # Auto-load PROSITE patterns if available
+        self._load_prosite_data()
+
+        # Initialize plugins
+        self.plugin_manager = PluginManager()
+
+        # Register HMMER plugin
+        # Default path: ~/.giae/hmmer/pfam.hmm
+        hmmer_db = Path.home() / ".giae" / "hmmer" / "pfam.hmm"
+        self.plugin_manager.register(HmmerPlugin(hmmer_db))
+
+        # Register ESM-2 plugin
+        self.plugin_manager.register(EsmPlugin())
+
+        # Register Local BLAST plugin
+        # Default path: ~/.giae/blast/swissprot
+        blast_db = Path.home() / ".giae" / "blast" / "swissprot"
+        self.plugin_manager.register(BlastLocalPlugin(blast_db))
+
+    def _load_prosite_data(self) -> None:
+        """Auto-load PROSITE patterns from bundled data or user directory."""
+        import logging
+        import importlib.resources
+
+        logger = logging.getLogger(__name__)
+
+        # 1. Try bundled package data using importlib.resources
+        try:
+            # This works when installed via pip (wheel or sdist)
+            # The data is logically packaged under 'giae.data.prosite'
+            bundled_res = importlib.resources.files("giae").joinpath("data", "prosite", "prosite.dat")
+            # importlib.resources gives a Traversable, which might be in a zip.
+            # MotifScanner requires a string/Path to a real file.
+            import importlib.resources.abc
+            
+            # Using as_file ensures it's extracted to a temp file if in a zip,
+            # or just returns the path if it's on disk.
+            with importlib.resources.as_file(bundled_res) as bundled_path:
+                if bundled_path.exists():
+                    try:
+                        count = self.motif_scanner.load_prosite(str(bundled_path))
+                        logger.info(f"Loaded {count} PROSITE patterns from bundled data ({bundled_path})")
+                        return
+                    except Exception as e:
+                        logger.debug(f"Failed to load bundled PROSITE data: {e}")
+        except Exception as e:
+            logger.debug(f"importlib.resources failed to find PROSITE: {e}")
+
+        # 2. Try user-downloaded data (~/.giae/prosite/prosite.dat)
+        user_path = Path.home() / ".giae" / "prosite" / "prosite.dat"
+        if user_path.exists():
+            try:
+                count = self.motif_scanner.load_prosite(str(user_path))
+                logger.info(f"Loaded {count} PROSITE patterns from {user_path}")
+                return
+            except Exception as e:
+                logger.debug(f"Failed to load user PROSITE data: {e}")
+
+        # 3. Try project data directory (development mode fallback)
+        # __file__ is src/giae/engine/interpreter.py
+        # root is src/giae/engine/../../.. -> repository root
+        project_path = Path(__file__).parent.parent.parent.parent / "data" / "prosite" / "prosite.dat"
+        if project_path.exists():
+            try:
+                count = self.motif_scanner.load_prosite(str(project_path))
+                logger.info(f"Loaded {count} PROSITE patterns from project data")
+                return
+            except Exception as e:
+                logger.debug(f"Failed to load project PROSITE data: {e}")
+
+        # Fall back to builtin motifs (already loaded by default)
+        logger.warning("No PROSITE database found! Falling back to 8 builtin motifs. Interpretation quality will be low.")
 
     def interpret_genome(self, genome: Genome) -> GenomeInterpretationSummary:
         """
@@ -157,7 +249,7 @@ class Interpreter:
         )
         failed = sum(1 for r in results if not r.success)
 
-        return GenomeInterpretationSummary(
+        summary = GenomeInterpretationSummary(
             genome_id=genome.id,
             genome_name=genome.name,
             total_genes=len(genome.genes),
@@ -170,6 +262,11 @@ class Interpreter:
             results=results,
         )
 
+        # Identify novel/uncharacterised genes as research opportunities
+        summary.novel_gene_report = self.novelty_scorer.analyze(genome, summary)
+
+        return summary
+
     def interpret_gene(self, gene: Gene) -> InterpretationResult:
         """
         Interpret a single gene.
@@ -181,8 +278,13 @@ class Interpreter:
             InterpretationResult with interpretation or error.
         """
         try:
-            # Step 1: Extract evidence (motifs only without BLAST)
+            # Step 1: Extract evidence (motifs and plugins)
             evidence = self._extract_evidence(gene)
+            
+            # Run plugins
+            plugin_evidence = self.plugin_manager.scan_gene(gene)
+            evidence.extend(plugin_evidence)
+            
             for e in evidence:
                 gene.add_evidence(e)
 
@@ -232,18 +334,39 @@ class Interpreter:
                     ),
                 ))
 
+            # Step 6: Check for conflicts
+            conflict = self.conflict_resolver.check_conflicts(hypotheses)
+            
+            final_hypothesis = best_hypothesis.function
+            final_confidence = best_report.adjusted_score
+            final_level = best_report.confidence_level.value
+            uncertainty_sources = [s.value for s in best_report.uncertainty_sources]
+            reasoning = best_hypothesis.reasoning_steps.copy()
+
+            if conflict.severity in (ConflictSeverity.MODERATE, ConflictSeverity.HIGH):
+                # Downgrade confidence on conflict
+                final_confidence *= 0.8  # Penalty
+                uncertainty_sources.append("conflicting_evidence")
+                reasoning.append(f"Output flagged: {conflict.description}")
+                
+                # If severe, explicitly mark hypothesis as Ambiguous
+                if conflict.severity == ConflictSeverity.HIGH:
+                    final_hypothesis = f"{conflict.description}"
+                    final_level = "low"
+
             interpretation = Interpretation(
                 gene_id=gene.id,
-                hypothesis=best_hypothesis.function,
-                confidence_score=best_report.adjusted_score,
-                confidence_level=best_report.confidence_level,
+                hypothesis=final_hypothesis,
+                confidence_score=final_confidence,
+                confidence_level=ConfidenceLevel(final_level),
                 supporting_evidence_ids=best_hypothesis.supporting_evidence_ids,
-                reasoning_chain=best_hypothesis.reasoning_steps,
+                reasoning_chain=reasoning,
                 competing_hypotheses=competing,
-                uncertainty_sources=[s.value for s in best_report.uncertainty_sources],
+                uncertainty_sources=uncertainty_sources,
                 metadata={
                     "category": best_hypothesis.category,
-                    "keywords": best_hypothesis.keywords,
+                    "keyword": best_hypothesis.keywords,
+                    "conflict_severity": conflict.severity.name,
                 },
             )
 
@@ -286,6 +409,16 @@ class Interpreter:
                 evidence.extend(uniprot_evidence)
             except Exception:
                 pass  # Network error, skip UniProt
+
+        # InterPro/HMMER web API domain search (if enabled)
+        if self.use_interpro and gene.protein:
+            try:
+                from giae.analysis.interpro import InterProClient
+                interpro_client = InterProClient(timeout=45, max_hits=5)
+                domain_evidence = interpro_client.analyze_gene(gene)
+                evidence.extend(domain_evidence)
+            except Exception:
+                pass  # Network error, skip InterPro
 
         return evidence
 

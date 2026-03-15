@@ -278,12 +278,24 @@ class PROSITEDatabase:
             # Determine category based on description
             category = self._categorize_entry(entry)
 
+            # Determine weight
+            weight = 0.85
+            if entry.skip_flag:
+                weight = 0.6
+            
+            # Penalize known noisy patterns
+            desc_lower = entry.description.lower()
+            if "phosphorylation" in desc_lower or "kinase" in desc_lower:
+                weight = 0.3
+            elif "myristyl" in desc_lower or "glycosylation" in desc_lower or "amidation" in desc_lower:
+                weight = 0.4
+            
             patterns.append(MotifPattern(
                 name=entry.id.lower(),
                 pattern=entry.regex,
                 description=entry.description,
                 category=category,
-                confidence_weight=0.7 if entry.skip_flag else 0.85,
+                confidence_weight=weight,
             ))
 
         return patterns
@@ -295,6 +307,8 @@ class PROSITEDatabase:
         if any(kw in desc_lower for kw in ["phosphorylation", "kinase"]):
             return "modification"
         elif any(kw in desc_lower for kw in ["glycosylation", "glycan"]):
+            return "modification"
+        elif any(kw in desc_lower for kw in ["myristyl", "amidation"]):
             return "modification"
         elif any(kw in desc_lower for kw in ["zinc", "metal", "iron", "copper"]):
             return "domain"

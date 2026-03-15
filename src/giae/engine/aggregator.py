@@ -63,6 +63,7 @@ class EvidenceWeights:
     orf_prediction: float = 0.6
     domain_hit: float = 0.9
     sequence_feature: float = 0.5
+    structural_homology: float = 0.95
 
     def get_weight(self, evidence_type: EvidenceType) -> float:
         """Get weight for an evidence type."""
@@ -72,6 +73,7 @@ class EvidenceWeights:
             EvidenceType.ORF_PREDICTION: self.orf_prediction,
             EvidenceType.DOMAIN_HIT: self.domain_hit,
             EvidenceType.SEQUENCE_FEATURE: self.sequence_feature,
+            EvidenceType.STRUCTURAL_HOMOLOGY: self.structural_homology,
         }
         return weight_map.get(evidence_type, 0.5)
 

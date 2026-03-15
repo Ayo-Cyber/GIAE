@@ -88,7 +88,7 @@ BUILTIN_MOTIFS: list[MotifPattern] = [
         pattern=r"^M[LIVA]{1,3}[^P]{5,15}[AVILM][^P]{0,5}[ASG][^P]{0,3}[ASG]",
         description="N-terminal signal peptide",
         category="signal",
-        confidence_weight=0.6,
+        confidence_weight=0.4,
     ),
     # Membrane proteins
     MotifPattern(
@@ -96,16 +96,9 @@ BUILTIN_MOTIFS: list[MotifPattern] = [
         pattern=r"[LIVMFYW]{5,}[AGSTC][LIVMFYW]{10,}",
         description="Transmembrane helix",
         category="topology",
-        confidence_weight=0.5,
-    ),
-    # Common bacterial motifs
-    MotifPattern(
-        name="phosphorylation_site",
-        pattern=r"[RK].{0,2}[ST][^P]",
-        description="Potential phosphorylation site",
-        category="modification",
         confidence_weight=0.4,
     ),
+    # Common bacterial motifs
     MotifPattern(
         name="gram_negative_lipobox",
         pattern=r"[LVI][ASTVI][GAS]C",

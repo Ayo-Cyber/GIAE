@@ -22,6 +22,7 @@ class EvidenceType(Enum):
     ORF_PREDICTION = "orf_prediction"
     DOMAIN_HIT = "domain_hit"
     SEQUENCE_FEATURE = "sequence_feature"
+    STRUCTURAL_HOMOLOGY = "structural_homology"
 
 
 @dataclass

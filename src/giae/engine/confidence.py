@@ -143,6 +143,23 @@ class ConfidenceScorer:
                 uncertainty_sources.append(UncertaintySource.LOW_SEQUENCE_IDENTITY)
                 negative_factors.append("Moderate sequence identity to known proteins")
 
+        # Check for domain hits (Pfam/HMM — high specificity profiles)
+        if EvidenceType.DOMAIN_HIT in aggregated.groups_by_type:
+            domain_hits = aggregated.groups_by_type[EvidenceType.DOMAIN_HIT]
+            best_domain = max(domain_hits, key=lambda e: e.confidence)
+            if best_domain.confidence >= 0.85:
+                raw_score += 0.08
+                domain_name = best_domain.raw_data.get("domain_name", "domain")
+                positive_factors.append(
+                    f"High-confidence Pfam domain hit: {domain_name} ({best_domain.confidence:.0%})"
+                )
+            elif best_domain.confidence >= 0.70:
+                raw_score += 0.04
+                domain_name = best_domain.raw_data.get("domain_name", "domain")
+                positive_factors.append(f"Pfam domain hit: {domain_name}")
+            else:
+                positive_factors.append("Weak Pfam domain signal detected")
+
         # Check for hypothetical protein hits (lower confidence)
         if "hypothetical" in hypothesis.function.lower():
             raw_score -= 0.15
@@ -151,6 +168,20 @@ class ConfidenceScorer:
 
         # Cap the score
         adjusted_score = max(0.0, min(1.0, raw_score))
+
+        # Enforce strict cap for nonspecific motifs (e.g. phosphorylation)
+        if hypothesis.category == "modification":
+            if adjusted_score > 0.45:
+                adjusted_score = 0.45
+                negative_factors.append("Likely nonspecific motif pattern")
+                uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
+
+        # Cap confidence if evidence is ONLY based on motifs
+        if aggregated.type_diversity == 1 and aggregated.has_motifs:
+            if adjusted_score > 0.85:
+                adjusted_score = 0.85
+                negative_factors.append("Prediction based entirely on sequence motifs without homology")
+                uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
 
         # Always add the experimental validation uncertainty
         uncertainty_sources.append(UncertaintySource.NO_EXPERIMENTAL_VALIDATION)

@@ -105,6 +105,12 @@ class Gene:
         """Validate gene data after initialization."""
         self.sequence = self.sequence.upper()
 
+        # Normalise IUPAC ambiguity codes to N before validation
+        iupac_ambiguous = set("RYWSKMBDHV")
+        if iupac_ambiguous & set(self.sequence):
+            import re
+            self.sequence = re.sub(r"[RYWSKMBDHV]", "N", self.sequence)
+
         valid_bases = {"A", "T", "G", "C", "N"}
         invalid = set(self.sequence) - valid_bases
         if invalid:

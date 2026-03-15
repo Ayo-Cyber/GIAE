@@ -134,6 +134,33 @@ class TestHypothesisGenerator:
         assert "ATP" in generator._motif_to_function("atp_binding_p_loop")
         assert "DNA" in generator._motif_to_function("helix_turn_helix")
 
+    def test_merge_similar(self) -> None:
+        """Test merging of similar hypotheses."""
+        generator = HypothesisGenerator()
+        h1 = FunctionalHypothesis("Kinase", "metabolism", 0.5, ["ev1"], ["r1"])
+        h2 = FunctionalHypothesis("Kinase XYZ", "metabolism", 0.4, ["ev2"], ["r2"])
+        h3 = FunctionalHypothesis("Transporter", "transport", 0.8, ["ev3"], ["r3"])
+        
+        merged = generator._merge_similar([h1, h2, h3])
+        assert len(merged) == 2
+        
+    def test_combined_evidence(self) -> None:
+        """Test generating from multiple evidence types."""
+        generator = HypothesisGenerator()
+        ev1 = create_test_evidence("g1", EvidenceType.BLAST_HOMOLOGY, 0.9)
+        ev1.description = "DNA polymerase III"
+        ev2 = create_test_evidence("g1", EvidenceType.MOTIF_MATCH, 0.8)
+        ev2.description = "polymerase domain"
+        
+        aggregated = AggregatedEvidence("g1", {
+            EvidenceType.BLAST_HOMOLOGY: [ev1],
+            EvidenceType.MOTIF_MATCH: [ev2]
+        }, {}, 1.7, 2, 2)
+        
+        hyps = generator._hypotheses_from_combined(aggregated)
+        assert len(hyps) > 0
+        assert hyps[0].source_type == "COMBINED"
+
 
 class TestConfidenceScorer:
     """Tests for ConfidenceScorer."""
@@ -197,13 +224,28 @@ class TestConfidenceScorer:
 
         assert UncertaintySource.HYPOTHETICAL_HOMOLOG in report.uncertainty_sources
 
+    def test_score_batch_and_explain(self) -> None:
+        """Test batch scoring and explaining differences."""
+        h1 = FunctionalHypothesis("Kinase", "metabolism", 0.9, ["ev1"], ["r1"])
+        h2 = FunctionalHypothesis("Phosphatase", "metabolism", 0.4, ["ev2"], ["r2"])
+        
+        aggregated = AggregatedEvidence("g1", {}, {}, 1.0, 1, 1)
+        scorer = ConfidenceScorer()
+        
+        reports = scorer.score_batch([h1, h2], aggregated)
+        assert len(reports) == 2
+        
+        explanation = scorer.explain_differences(reports)
+        assert "Comparison" in explanation
+        assert "Hypothesis 1" in explanation
+
 
 class TestInterpreter:
     """Tests for the main Interpreter."""
 
     def test_interpret_gene(self) -> None:
         """Test interpreting a single gene."""
-        interpreter = Interpreter()
+        interpreter = Interpreter(use_uniprot=False)
         gene = create_test_gene()
 
         result = interpreter.interpret_gene(gene)
@@ -214,7 +256,7 @@ class TestInterpreter:
 
     def test_quick_interpret(self) -> None:
         """Test quick interpretation of a sequence."""
-        interpreter = Interpreter()
+        interpreter = Interpreter(use_uniprot=False)
 
         # Sequence with P-loop motif
         sequence = "MKVLIGXXXXGKSFAMKKKKKKKKKK"
@@ -236,7 +278,7 @@ class TestIntegration:
         fixtures_dir = Path(__file__).parent / "fixtures"
         genome = parse_genome(fixtures_dir / "sample.gb")
 
-        interpreter = Interpreter()
+        interpreter = Interpreter(use_uniprot=False)
         summary = interpreter.interpret_genome(genome)
 
         assert summary.genome_id == genome.id
