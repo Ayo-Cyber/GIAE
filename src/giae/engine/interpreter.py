@@ -10,8 +10,14 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
+import logging
+import os
+from pathlib import Path
+
+from giae.analysis.cache import DiskCache
 from giae.analysis.orf_finder import ORFFinder
 from giae.analysis.motif import MotifScanner
+from giae.analysis.throttle import configure_throttle
 from giae.engine.aggregator import EvidenceAggregator, AggregatedEvidence
 from giae.engine.hypothesis import HypothesisGenerator, FunctionalHypothesis
 from giae.engine.conflict import ConflictResolver, ConflictReport, ConflictSeverity
@@ -29,8 +35,8 @@ from giae.engine.novelty import NoveltyScorer, NovelGeneReport
 from giae.analysis.hmmer import HmmerPlugin
 from giae.analysis.ai import EsmPlugin
 from giae.analysis.blast_local import BlastLocalPlugin
-from pathlib import Path
-import os
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -45,6 +51,7 @@ class InterpretationResult:
     aggregated_evidence: AggregatedEvidence | None
     success: bool
     error_message: str | None = None
+    skipped_layers: list[str] = field(default_factory=list)
 
     @property
     def summary(self) -> str:
@@ -118,14 +125,23 @@ class Interpreter:
     use_uniprot: bool = True  # Enable UniProt API for homology search
     conflict_threshold: float = 0.15
     use_interpro: bool = True
+    use_cache: bool = True  # Enable disk caching of API responses
+    max_api_concurrent: int = 3  # Max simultaneous API calls
     conflict_resolver: ConflictResolver = field(init=False)
     plugin_manager: PluginManager = field(init=False)
     novelty_scorer: NoveltyScorer = field(init=False)
+    cache: DiskCache = field(init=False)
 
     def __post_init__(self) -> None:
         """Initialize components."""
         self.conflict_resolver = ConflictResolver(self.conflict_threshold)
         self.novelty_scorer = NoveltyScorer()
+
+        # Initialize API cache
+        self.cache = DiskCache(enabled=self.use_cache)
+
+        # Configure API rate limiting
+        configure_throttle(self.max_api_concurrent)
 
         # Auto-load PROSITE patterns if available
         self._load_prosite_data()
@@ -279,8 +295,8 @@ class Interpreter:
         """
         try:
             # Step 1: Extract evidence (motifs and plugins)
-            evidence = self._extract_evidence(gene)
-            
+            evidence, skipped_layers = self._extract_evidence(gene)
+
             # Run plugins
             plugin_evidence = self.plugin_manager.scan_gene(gene)
             evidence.extend(plugin_evidence)
@@ -298,6 +314,7 @@ class Interpreter:
                     confidence_reports=[],
                     aggregated_evidence=None,
                     success=True,
+                    skipped_layers=skipped_layers,
                 )
 
             aggregated = self.aggregator.aggregate(gene)
@@ -314,6 +331,7 @@ class Interpreter:
                     confidence_reports=[],
                     aggregated_evidence=aggregated,
                     success=True,
+                    skipped_layers=skipped_layers,
                 )
 
             # Step 4: Score confidence
@@ -378,6 +396,7 @@ class Interpreter:
                 confidence_reports=confidence_reports,
                 aggregated_evidence=aggregated,
                 success=True,
+                skipped_layers=skipped_layers,
             )
 
         except Exception as e:
@@ -392,9 +411,14 @@ class Interpreter:
                 error_message=str(e),
             )
 
-    def _extract_evidence(self, gene: Gene) -> list[Evidence]:
-        """Extract evidence from a gene using available analyzers."""
+    def _extract_evidence(self, gene: Gene) -> tuple[list[Evidence], list[str]]:
+        """Extract evidence from a gene using available analyzers.
+
+        Returns:
+            Tuple of (evidence_list, skipped_layers).
+        """
         evidence: list[Evidence] = []
+        skipped: list[str] = []
 
         # Motif scanning (always available)
         motif_evidence = self.motif_scanner.analyze_gene(gene)
@@ -404,23 +428,25 @@ class Interpreter:
         if self.use_uniprot and gene.protein:
             try:
                 from giae.analysis.uniprot import UniProtClient
-                client = UniProtClient(max_results=3, timeout=15)
+                client = UniProtClient(max_results=3, timeout=15, cache=self.cache)
                 uniprot_evidence = client.analyze_gene(gene)
                 evidence.extend(uniprot_evidence)
-            except Exception:
-                pass  # Network error, skip UniProt
+            except Exception as exc:
+                logger.warning("UniProt search failed for %s: %s", gene.display_name, exc)
+                skipped.append("UniProt")
 
         # InterPro/HMMER web API domain search (if enabled)
         if self.use_interpro and gene.protein:
             try:
                 from giae.analysis.interpro import InterProClient
-                interpro_client = InterProClient(timeout=45, max_hits=5)
+                interpro_client = InterProClient(timeout=45, max_hits=5, cache=self.cache)
                 domain_evidence = interpro_client.analyze_gene(gene)
                 evidence.extend(domain_evidence)
-            except Exception:
-                pass  # Network error, skip InterPro
+            except Exception as exc:
+                logger.warning("InterPro search failed for %s: %s", gene.display_name, exc)
+                skipped.append("InterPro")
 
-        return evidence
+        return evidence, skipped
 
     def quick_interpret(self, sequence: str, sequence_type: str = "protein") -> str:
         """

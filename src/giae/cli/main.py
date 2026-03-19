@@ -91,10 +91,12 @@ def parse(input_file: Path, output_format: str) -> None:
               help="Skip UniProt API calls (faster, offline)")
 @click.option("--no-interpro", is_flag=True,
               help="Skip InterPro/HMMER domain search (faster, offline)")
+@click.option("--no-cache", is_flag=True,
+              help="Disable disk caching of API responses")
 @click.pass_context
 def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
               output_format: str, workers: int, no_uniprot: bool,
-              no_interpro: bool) -> None:
+              no_interpro: bool, no_cache: bool) -> None:
     """Interpret a genome and generate functional predictions.
 
     This is the main command that runs the full interpretation pipeline.
@@ -115,7 +117,11 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
         console.print()
 
         # Run interpretation
-        interpreter = Interpreter(use_uniprot=not no_uniprot, use_interpro=not no_interpro)
+        interpreter = Interpreter(
+            use_uniprot=not no_uniprot,
+            use_interpro=not no_interpro,
+            use_cache=not no_cache,
+        )
 
         if verbose:
             motif_count = len(interpreter.motif_scanner.motifs)
@@ -233,6 +239,17 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
 
         # Wire in novel gene discovery (novelty scorer needs the full summary)
         summary.novel_gene_report = interpreter.novelty_scorer.analyze(genome, summary)
+
+        # Warn about skipped evidence layers
+        skipped_counts: dict[str, int] = {}
+        for r in summary.results:
+            for layer in r.skipped_layers:
+                skipped_counts[layer] = skipped_counts.get(layer, 0) + 1
+        for layer, count in skipped_counts.items():
+            console.print(
+                f"[yellow]Warning: {layer} layer failed for {count}/{len(summary.results)} "
+                f"genes (network error or timeout)[/yellow]"
+            )
 
         # Output results
         if output_format == "json":

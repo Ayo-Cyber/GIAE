@@ -7,14 +7,18 @@ using UniProt's REST API - no local database required.
 from __future__ import annotations
 
 import json
+import logging
 import urllib.request
 import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any
 
+from giae.analysis.cache import DiskCache
+from giae.analysis.throttle import throttled_urlopen
 from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
 from giae.models.gene import Gene
 
+logger = logging.getLogger(__name__)
 
 UNIPROT_API_BASE = "https://rest.uniprot.org"
 
@@ -57,6 +61,7 @@ class UniProtClient:
 
     timeout: int = 30
     max_results: int = 5
+    cache: DiskCache | None = None
 
     def search_sequence(self, sequence: str) -> list[UniProtHit]:
         """
@@ -76,8 +81,15 @@ class UniProtClient:
         if len(sequence) < 10:
             return []
 
+        # Check cache first
+        cache_key = sequence
+        if self.cache:
+            cached = self.cache.get("uniprot", cache_key)
+            if cached is not None:
+                logger.debug("UniProt cache hit for sequence %s...", sequence[:20])
+                return self._parse_results(cached)
+
         # Use UniProt's sequence search endpoint
-        # This performs a BLAST-like search on their servers
         url = f"{UNIPROT_API_BASE}/uniprotkb/search"
         params = {
             "query": f"sequence:{sequence[:100]}",  # Use first 100 aa
@@ -86,23 +98,22 @@ class UniProtClient:
             "size": str(self.max_results),
         }
 
-        try:
-            query_string = urllib.parse.urlencode(params)
-            full_url = f"{url}?{query_string}"
+        query_string = urllib.parse.urlencode(params)
+        full_url = f"{url}?{query_string}"
 
-            request = urllib.request.Request(
-                full_url,
-                headers={"Accept": "application/json"},
-            )
+        request = urllib.request.Request(
+            full_url,
+            headers={"Accept": "application/json"},
+        )
 
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
+        with throttled_urlopen(request, timeout=self.timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
 
-            return self._parse_results(data)
+        # Cache the raw API response
+        if self.cache:
+            self.cache.put("uniprot", cache_key, data)
 
-        except Exception:
-            # Network error or API issue - return empty
-            return []
+        return self._parse_results(data)
 
     def search_by_keyword(self, keyword: str) -> list[UniProtHit]:
         """
@@ -122,22 +133,18 @@ class UniProtClient:
             "size": str(self.max_results),
         }
 
-        try:
-            query_string = urllib.parse.urlencode(params)
-            full_url = f"{url}?{query_string}"
+        query_string = urllib.parse.urlencode(params)
+        full_url = f"{url}?{query_string}"
 
-            request = urllib.request.Request(
-                full_url,
-                headers={"Accept": "application/json"},
-            )
+        request = urllib.request.Request(
+            full_url,
+            headers={"Accept": "application/json"},
+        )
 
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
+        with throttled_urlopen(request, timeout=self.timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
 
-            return self._parse_results(data)
-
-        except Exception:
-            return []
+        return self._parse_results(data)
 
     def lookup_accession(self, accession: str) -> UniProtHit | None:
         """
@@ -155,23 +162,19 @@ class UniProtClient:
             "format": "json",
         }
 
-        try:
-            query_string = urllib.parse.urlencode(params)
-            full_url = f"{url}?{query_string}"
+        query_string = urllib.parse.urlencode(params)
+        full_url = f"{url}?{query_string}"
 
-            request = urllib.request.Request(
-                full_url,
-                headers={"Accept": "application/json"},
-            )
+        request = urllib.request.Request(
+            full_url,
+            headers={"Accept": "application/json"},
+        )
 
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                data = json.loads(response.read().decode("utf-8"))
+        with throttled_urlopen(request, timeout=self.timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
 
-            hits = self._parse_single_result(data)
-            return hits[0] if hits else None
-
-        except Exception:
-            return None
+        hits = self._parse_single_result(data)
+        return hits[0] if hits else None
 
     def _parse_results(self, data: dict) -> list[UniProtHit]:
         """Parse UniProt API results."""

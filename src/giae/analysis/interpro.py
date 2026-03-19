@@ -14,6 +14,8 @@ import urllib.parse
 from dataclasses import dataclass, field
 from typing import Any
 
+from giae.analysis.cache import DiskCache
+from giae.analysis.throttle import throttled_urlopen
 from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
 from giae.models.gene import Gene
 
@@ -84,6 +86,7 @@ class InterProClient:
     timeout: int = 60
     max_hits: int = 5
     database: str = "pfam"
+    cache: DiskCache | None = None
 
     def search_sequence(self, sequence: str) -> list[DomainHit]:
         """
@@ -99,31 +102,38 @@ class InterProClient:
         if len(sequence) < 20:
             return []
 
+        # Check cache first
+        if self.cache:
+            cached = self.cache.get("interpro", sequence)
+            if cached is not None:
+                logger.debug("InterPro cache hit for sequence %s...", sequence[:20])
+                return self._parse_response(cached)
+
         fasta = f">query\n{sequence}"
-        data = urllib.parse.urlencode({
+        post_data = urllib.parse.urlencode({
             "seqdb": self.database,
             "seq": fasta,
         }).encode("utf-8")
 
-        try:
-            request = urllib.request.Request(
-                EBI_HMMER_URL,
-                data=data,
-                headers={
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json",
-                },
-            )
+        request = urllib.request.Request(
+            EBI_HMMER_URL,
+            data=post_data,
+            headers={
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json",
+            },
+        )
 
-            with urllib.request.urlopen(request, timeout=self.timeout) as response:
-                raw = response.read().decode("utf-8")
+        with throttled_urlopen(request, timeout=self.timeout) as response:
+            raw = response.read().decode("utf-8")
 
-            result = json.loads(raw)
-            return self._parse_response(result)
+        result = json.loads(raw)
 
-        except Exception as e:
-            logger.debug(f"InterPro search failed: {e}")
-            return []
+        # Cache the raw API response
+        if self.cache:
+            self.cache.put("interpro", sequence, result)
+
+        return self._parse_response(result)
 
     def _parse_response(self, data: dict[str, Any]) -> list[DomainHit]:
         """
