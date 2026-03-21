@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="docs/assets/logo.png" alt="GIAE Logo" width="300"/>
-</p>
+<img src="docs/assets/logo.png" align="right" alt="GIAE Logo" width="200"/>
 
 # GIAE — Genome Interpretation & Annotation Engine
 
