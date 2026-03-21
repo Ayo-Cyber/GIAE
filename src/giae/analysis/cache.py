@@ -1,4 +1,4 @@
-"""Disk-based API response cache for GIAE.
+"""SQLite-based API response cache for GIAE.
 
 Caches API responses (UniProt, InterPro) keyed by sequence hash
 to avoid redundant network calls. Uses only Python stdlib.
@@ -9,7 +9,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
+import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -17,42 +17,55 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CACHE_DIR = Path.home() / ".giae" / "cache"
-DEFAULT_TTL_SECONDS = 7 * 86400  # 7 days
+DEFAULT_CACHE_DIR = Path.home() / ".giae"
+DEFAULT_CACHE_FILE = DEFAULT_CACHE_DIR / "cache.db"
+DEFAULT_TTL_SECONDS = 30 * 86400  # 30 days
 
 
 @dataclass
 class DiskCache:
     """
-    Thread-safe, file-based cache for API responses.
+    SQLite-backed cache for API responses.
 
-    Stores JSON-serializable data on disk, keyed by a hash of the
-    input (typically a protein sequence). Entries expire after a
-    configurable TTL.
+    Stores JSON-serializable data in a local database, keyed by a hash
+    of the input (typically a protein sequence).
 
     Attributes:
-        cache_dir: Root directory for cache files.
-        ttl_seconds: Time-to-live in seconds (default 7 days).
+        cache_file: Path to the SQLite database file.
+        ttl_seconds: Time-to-live in seconds (default 30 days).
         enabled: Whether caching is active.
     """
 
-    cache_dir: Path = field(default_factory=lambda: DEFAULT_CACHE_DIR)
+    cache_file: Path = field(default_factory=lambda: DEFAULT_CACHE_FILE)
     ttl_seconds: int = DEFAULT_TTL_SECONDS
     enabled: bool = True
 
     def __post_init__(self) -> None:
+        """Initialize the database schema."""
         if self.enabled:
-            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            self.cache_file.parent.mkdir(parents=True, exist_ok=True)
+            with self._connect() as conn:
+                conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS api_cache (
+                        key TEXT PRIMARY KEY,
+                        namespace TEXT,
+                        data TEXT,
+                        timestamp REAL
+                    )
+                    """
+                )
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_namespace ON api_cache(namespace)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_timestamp ON api_cache(timestamp)")
+
+    def _connect(self) -> sqlite3.Connection:
+        """Create a new SQLite connection."""
+        return sqlite3.connect(self.cache_file, timeout=10.0)
 
     @staticmethod
     def hash_key(value: str) -> str:
         """Create a SHA-256 hash of the input string."""
         return hashlib.sha256(value.strip().upper().encode("utf-8")).hexdigest()
-
-    def _entry_path(self, namespace: str, key_hash: str) -> Path:
-        """Build the file path for a cache entry: cache_dir/namespace/ab/abcdef....json"""
-        prefix = key_hash[:2]
-        return self.cache_dir / namespace / prefix / f"{key_hash}.json"
 
     def get(self, namespace: str, key: str) -> Any | None:
         """
@@ -69,28 +82,30 @@ class DiskCache:
             return None
 
         key_hash = self.hash_key(key)
-        path = self._entry_path(namespace, key_hash)
-
-        if not path.exists():
-            return None
-
+        
         try:
-            raw = path.read_text(encoding="utf-8")
-            entry = json.loads(raw)
-            timestamp = entry.get("timestamp", 0)
-
-            if time.time() - timestamp > self.ttl_seconds:
-                # Expired — remove silently
-                path.unlink(missing_ok=True)
-                logger.debug("Cache expired for %s/%s", namespace, key_hash[:8])
-                return None
-
-            logger.debug("Cache hit for %s/%s", namespace, key_hash[:8])
-            return entry.get("data")
-
-        except (json.JSONDecodeError, OSError, KeyError):
-            # Corrupt entry — remove and return miss
-            path.unlink(missing_ok=True)
+            with self._connect() as conn:
+                cursor = conn.execute(
+                    "SELECT data, timestamp FROM api_cache WHERE key = ? AND namespace = ?",
+                    (key_hash, namespace),
+                )
+                row = cursor.fetchone()
+                
+                if not row:
+                    return None
+                
+                data_str, timestamp = row
+                
+                # Check expiration
+                if time.time() - timestamp > self.ttl_seconds:
+                    conn.execute("DELETE FROM api_cache WHERE key = ?", (key_hash,))
+                    return None
+                
+                return json.loads(data_str)
+                
+        except (sqlite3.Error, json.JSONDecodeError) as e:
+            key_preview = str(key_hash)
+            logger.debug("Cache read failed for %s: %s", key_preview[:8], e)
             return None
 
     def put(self, namespace: str, key: str, data: Any) -> None:
@@ -106,20 +121,20 @@ class DiskCache:
             return
 
         key_hash = self.hash_key(key)
-        path = self._entry_path(namespace, key_hash)
-        path.parent.mkdir(parents=True, exist_ok=True)
-
-        entry = {
-            "timestamp": time.time(),
-            "data": data,
-        }
-
+        
         try:
-            tmp_path = path.with_suffix(".tmp")
-            tmp_path.write_text(json.dumps(entry), encoding="utf-8")
-            tmp_path.replace(path)  # Atomic on POSIX
-        except OSError as e:
-            logger.debug("Cache write failed: %s", e)
+            data_str = json.dumps(data)
+            with self._connect() as conn:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO api_cache (key, namespace, data, timestamp)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (key_hash, namespace, data_str, time.time()),
+                )
+        except (sqlite3.Error, TypeError) as e:
+            key_preview = str(key_hash)
+            logger.debug("Cache write failed for %s: %s", key_preview[:8], e)
 
     def clear(self, namespace: str | None = None) -> int:
         """
@@ -131,41 +146,30 @@ class DiskCache:
         Returns:
             Number of entries removed.
         """
-        count = 0
-        if namespace:
-            target = self.cache_dir / namespace
-        else:
-            target = self.cache_dir
-
-        if not target.exists():
+        try:
+            with self._connect() as conn:
+                if namespace:
+                    cursor = conn.execute("DELETE FROM api_cache WHERE namespace = ?", (namespace,))
+                else:
+                    cursor = conn.execute("DELETE FROM api_cache")
+                return cursor.rowcount
+        except sqlite3.Error:
             return 0
-
-        for json_file in target.rglob("*.json"):
-            try:
-                json_file.unlink()
-                count += 1
-            except OSError:
-                pass
-
-        # Clean up empty directories
-        for dirpath in sorted(target.rglob("*"), reverse=True):
-            if dirpath.is_dir():
-                try:
-                    dirpath.rmdir()
-                except OSError:
-                    pass  # Not empty
-
-        return count
 
     def stats(self) -> dict[str, int]:
         """Return entry counts per namespace."""
         result: dict[str, int] = {}
-        if not self.cache_dir.exists():
+        if not self.cache_file.exists():
             return result
 
-        for ns_dir in self.cache_dir.iterdir():
-            if ns_dir.is_dir():
-                count = sum(1 for _ in ns_dir.rglob("*.json"))
-                if count:
-                    result[ns_dir.name] = count
+        try:
+            with self._connect() as conn:
+                cursor = conn.execute(
+                    "SELECT namespace, COUNT(*) FROM api_cache GROUP BY namespace"
+                )
+                for ns, count in cursor.fetchall():
+                    result[ns] = count
+        except sqlite3.Error:
+            pass
+            
         return result

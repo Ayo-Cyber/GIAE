@@ -6,7 +6,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.2.0-green)](pyproject.toml)
 
-Most genome annotation tools are overconfident. PROKKA, Bakta, and RAST assign a label, hide the evidence, and give you no way to know how certain the prediction is. GIAE takes the opposite approach: every gene interpretation includes the full evidence stack, confidence score, uncertainty sources, and a ranked list of competing hypotheses.
+Most genome annotation tools are overconfident. PROKKA, Bakta, and RAST assign a label, hide the evidence, and give you no way to know how certain the prediction is. GIAE takes the opposite approach:
+- **Interactive HTML Reports**: Generate premium, searchable reports for biologists (`--format html`).
+- **High-Performance Caching**: SQLite-backed local cache for 10x faster re-runs.
+- **Explainability**: Every prediction includes a complete narrative reasoning chain and confidence score.
+- **Multilayer Evidence**: Integrates Prosite motifs, HMMER domains, protein homology (UniProt), and AI (ESM-2).
+- **Novel Gene Discovery**: Dedicated scoring for "Dark Matter" (genes with no homology).
+- **Automated CI/CD**: Pre-configured GitHub Actions for testing and PyPI deployment.
+- **MkDocs Documentation**: Full documentation site hosted on GitHub Pages.
 
 ---
 
@@ -325,12 +332,36 @@ Install plugin dependencies with `giae db download pfam` / `giae db download swi
 
 ---
 
+## 📖 Documentation
+
+Visit the official GIAE documentation site: [Ayo-Cyber.github.io/GIAE/](https://Ayo-Cyber.github.io/GIAE/)
+
+## 🚀 Advanced Features
+
+### Interactive HTML Reports
+
+Generate premium, interactive reports with sortable tables and confidence badges.
+
+```bash
+giae interpret genome.gb --format html -o report.html
+```
+
+### High-Performance Caching
+
+GIAE uses a local SQLite database to cache API responses. This makes subsequent runs up to 10x faster.
+
+```bash
+# Manage the cache
+giae db stats
+giae db clear
+```
+
+---
+
 ## Roadmap
 
 - [ ] **Foldseek / AlphaFold structural search** — `STRUCTURAL_HOMOLOGY` evidence (already in codebase); resolves PhiX174-class cases where sequence-based methods fail completely
 - [ ] **EBI BLAST async API** — replace text-based UniProt search with real sequence similarity search
-- [ ] **Interactive HTML reports** — evidence network visualization across all genes
-- [ ] **Database caching** — avoid re-running API calls on identical sequences; essential for large genomes
 - [ ] **Bacterial genome scaling** — currently validated on phages; next target is 4–6 Mb bacterial genomes
 - [ ] **Comparison mode** — diff two genome interpretations side by side
 

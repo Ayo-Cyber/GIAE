@@ -83,7 +83,7 @@ def parse(input_file: Path, output_format: str) -> None:
 @click.option("--output", "-o", type=click.Path(path_type=Path),
               help="Output file path")
 @click.option("--format", "-f", "output_format", default="report",
-              type=click.Choice(["report", "json"]),
+              type=click.Choice(["report", "json", "html"]),
               help="Output format")
 @click.option("--workers", "-w", default=1, type=click.IntRange(1, 16),
               help="Number of parallel workers (default: 1)")
@@ -260,6 +260,15 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                 console.print(f"[green]Results written to:[/green] {output}")
             else:
                 click.echo(json_output)
+        elif output_format == "html":
+            from giae.output.html_report import HTMLReportGenerator
+            generator = HTMLReportGenerator()
+            html_output = generator.generate(genome, summary)
+            if output:
+                output.write_text(html_output)
+                console.print(f"[green]HTML report written to:[/green] {output}")
+            else:
+                click.echo(html_output)
         else:
             from giae.output.report import ReportGenerator
             generator = ReportGenerator()

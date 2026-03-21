@@ -1,0 +1,54 @@
+site_name: GIAE
+site_description: Genome Interpretation & Annotation Engine - An Explainable, Evidence-Centric Framework for Genomic Interpretation
+site_url: https://Ayo-Cyber.github.io/GIAE/
+repo_url: https://github.com/Ayo-Cyber/GIAE
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - Tutorials:
+    - Phage Annotation: tutorials/phage.md
+  - API Reference: api.md
+  - Roadmap: roadmap.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
