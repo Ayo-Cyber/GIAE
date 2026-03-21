@@ -6,7 +6,7 @@ Produces Markdown reports explaining interpretation results.
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from giae.engine.interpreter import GenomeInterpretationSummary
@@ -145,7 +145,7 @@ GIAE analyzed **{summary.total_genes} genes** and generated interpretations for 
 
         return "\n".join(lines)
 
-    def _format_interpretation(self, result, brief: bool = False) -> str:
+    def _format_interpretation(self, result: Any, brief: bool = False) -> str:
         """Format a single gene interpretation."""
         interp = result.interpretation
         gene_name = result.gene_name or result.gene_id

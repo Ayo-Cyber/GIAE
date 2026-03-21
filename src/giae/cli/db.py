@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group(name="db")
-def db_cli():
+def db_cli() -> None:
     """Manage local databases for GIAE plugins."""
     pass
 
@@ -24,7 +24,7 @@ def db_cli():
 @db_cli.command(name="download")
 @click.argument("name", type=click.Choice(["swissprot", "pfam", "esm", "prosite"]))
 @click.option("--force", is_flag=True, help="Force re-download")
-def download_db(name: str, force: bool):
+def download_db(name: str, force: bool) -> None:
     """Download and prepare local databases."""
     base_dir = Path.home() / ".giae"
     base_dir.mkdir(parents=True, exist_ok=True)
@@ -39,7 +39,7 @@ def download_db(name: str, force: bool):
         _setup_prosite_db(base_dir / "prosite", force)
 
 
-def _setup_blast_db(path: Path, force: bool):
+def _setup_blast_db(path: Path, force: bool) -> None:
     """Setup BLAST database."""
     path.mkdir(parents=True, exist_ok=True)
     db_name = "swissprot"
@@ -90,7 +90,7 @@ def _setup_blast_db(path: Path, force: bool):
             fasta_path.unlink()
 
 
-def _setup_hmmer_db(path: Path, force: bool):
+def _setup_hmmer_db(path: Path, force: bool) -> None:
     """Setup HMMER database."""
     path.mkdir(parents=True, exist_ok=True)
     db_name = "pfam.hmm"
@@ -112,14 +112,14 @@ def _setup_hmmer_db(path: Path, force: bool):
     # We can't easily fake an HMM file without running hmmbuild on a sequence.
 
 
-def _setup_esm_model(path: Path, _force: bool):
+def _setup_esm_model(path: Path, _force: bool) -> None:
     """Setup ESM-2 model."""
     path.mkdir(parents=True, exist_ok=True)
     click.echo("ESM-2 models are handled automatically by 'fair-esm' cache.")
     click.echo("This command is a placeholder for pre-downloading models.")
 
 
-def _setup_prosite_db(path: Path, force: bool):
+def _setup_prosite_db(path: Path, force: bool) -> None:
     """Download PROSITE pattern database from ExPASy."""
     path.mkdir(parents=True, exist_ok=True)
     target = path / "prosite.dat"
@@ -148,7 +148,7 @@ def _setup_prosite_db(path: Path, force: bool):
 
 
 @db_cli.command(name="status")
-def db_status():
+def db_status() -> None:
     """Show status of local databases."""
     base_dir = Path.home() / ".giae"
 

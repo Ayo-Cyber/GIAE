@@ -50,18 +50,18 @@ class AnalysisPlugin(ABC):
 class PluginManager:
     """Manages discovery and execution of analysis plugins."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._plugins: list[AnalysisPlugin] = []
         self._discover_plugins()
 
-    def _discover_plugins(self):
+    def _discover_plugins(self) -> None:
         """Discover and load available plugins."""
         # Built-in plugins could be registered here
         # For this refactor, we will manually register the new HMMER plugin
         # later when it is implemented.
         pass
 
-    def register(self, plugin: AnalysisPlugin):
+    def register(self, plugin: AnalysisPlugin) -> None:
         """Register a plugin instance."""
         if plugin.is_available():
             self._plugins.append(plugin)

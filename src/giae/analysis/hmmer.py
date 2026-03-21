@@ -6,6 +6,7 @@ Provides high-sensitivity domain detection using profile HMMs.
 
 import logging
 from pathlib import Path
+from typing import Optional
 
 from giae.engine.plugin import AnalysisPlugin
 from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
@@ -20,7 +21,7 @@ class HmmerPlugin(AnalysisPlugin):
     Requires 'hmmer' optional usage.
     """
 
-    def __init__(self, database_path: Path = None):
+    def __init__(self, database_path: Optional[Path] = None) -> None:
         self.db_path = database_path
         self._available = False
         self._lib = None
@@ -49,20 +50,20 @@ class HmmerPlugin(AnalysisPlugin):
         if not self._available or not self.db_path or not self.db_path.exists():
             return []
 
-        if not gene.protein_sequence:
+        if not (gene.protein and gene.protein.sequence):
             return []
 
         evidences = []
         try:
             # We use pyhmmer's easel to digitize the sequence
-            alphabet = self._lib.easel.Alphabet.amino()
-            seq_bytes = gene.protein_sequence.encode("utf-8")
-            sequence = self._lib.easel.Sequence(name=gene.id.encode("utf-8"), sequence=seq_bytes)
+            alphabet = self._lib.easel.Alphabet.amino()  # type: ignore[union-attr]
+            seq_bytes = gene.protein.sequence.encode("utf-8")  # type: ignore[union-attr]
+            sequence = self._lib.easel.Sequence(name=gene.id.encode("utf-8"), sequence=seq_bytes)  # type: ignore[union-attr]
             digitized = sequence.digitize(alphabet)
 
             # Load HMM db
-            with self._lib.plan7.HMMFile(self.db_path) as hmm_file:
-                pipeline = self._lib.plan7.Pipeline(alphabet)
+            with self._lib.plan7.HMMFile(self.db_path) as hmm_file:  # type: ignore[union-attr]
+                pipeline = self._lib.plan7.Pipeline(alphabet)  # type: ignore[union-attr]
 
                 # Iterate over HMMs in the database
                 for hmm in hmm_file:
@@ -77,7 +78,6 @@ class HmmerPlugin(AnalysisPlugin):
                                 Evidence(
                                     gene_id=gene.id,
                                     evidence_type=EvidenceType.DOMAIN_HIT,
-                                    source="hmmer",
                                     description=f"HMM Hit: {hmm.name.decode('utf-8')}",
                                     confidence=min(domain.score / 50.0, 1.0),  # Rough normalization
                                     raw_data={
@@ -90,7 +90,7 @@ class HmmerPlugin(AnalysisPlugin):
                                     },
                                     provenance=EvidenceProvenance(
                                         tool_name="hmmer",
-                                        tool_version=self._lib.__version__,
+                                        tool_version=self._lib.__version__,  # type: ignore[union-attr]
                                         database=str(self.db_path),
                                     ),
                                 )

@@ -127,6 +127,7 @@ def parse_genome(file_path: Path | str) -> Genome:
     from giae.parsers.fasta import FastaParser
     from giae.parsers.genbank import GenBankParser
 
+    parser: BaseParser
     if file_format == "fasta":
         parser = FastaParser()
     elif file_format == "genbank":

@@ -90,8 +90,6 @@ class GenBankParser(BaseParser):
         """Extract metadata from a GenBank record."""
         annotations = record.annotations
 
-        # Extract organism
-        organism = annotations.get("organism")
 
         # Extract taxonomy id from source features
         taxonomy_id = None
@@ -107,7 +105,7 @@ class GenBankParser(BaseParser):
 
         # Extract references
         references = []
-        refs = annotations.get("references", [])
+        refs: object = annotations.get("references", [])
         if isinstance(refs, list):
             for ref in refs:
                 ref_dict = {
@@ -125,7 +123,7 @@ class GenBankParser(BaseParser):
         return GenomeMetadata(
             organism=str(annotations.get("organism")) if annotations.get("organism") else None,
             taxonomy_id=taxonomy_id,
-            assembly_accession=str(annotations.get("accessions", [""])[0]),
+            assembly_accession=str(annotations.get("accessions", [""])[0]) if isinstance(annotations.get("accessions", [""]), list) else "",
             definition=record.description,
             keywords=cast(list[str], annotations.get("keywords", [])),
             references=references,
@@ -186,9 +184,9 @@ class GenBankParser(BaseParser):
 
         # Extract sequence
         try:
-            sequence = str(feature.extract(record.seq)).upper()
+            sequence = str(feature.extract(record.seq)).upper()  # type: ignore[no-untyped-call]
         except Exception:
-            sequence = str(record.seq[start:end]).upper()
+            sequence = str(record.seq[start:end]).upper()  # type: ignore[index]
 
         # Extract identifiers
         gene_name = qualifiers.get("gene", [None])[0]
@@ -237,9 +235,9 @@ class GenBankParser(BaseParser):
 
         # Extract sequence
         try:
-            sequence = str(feature.extract(record.seq)).upper()
+            sequence = str(feature.extract(record.seq)).upper()  # type: ignore[no-untyped-call]
         except Exception:
-            sequence = str(record.seq[start:end]).upper()
+            sequence = str(record.seq[start:end]).upper()  # type: ignore[index]
 
         # Extract identifiers
         gene_name = qualifiers.get("gene", [None])[0]

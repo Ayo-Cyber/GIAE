@@ -48,7 +48,7 @@ class EsmPlugin(AnalysisPlugin):
     def is_available(self) -> bool:
         return self._available
 
-    def load_model(self):
+    def load_model(self) -> None:
         """Load the massive model into memory/GPU."""
         if not self._available or self._model:
             return
@@ -69,7 +69,7 @@ class EsmPlugin(AnalysisPlugin):
         if not self._available:
             return []
 
-        if not gene.protein_sequence:
+        if not (gene.protein and gene.protein.sequence):
             return []
 
         # For V12 demo, we strictly only run on failed/low confidence genes if configured
@@ -77,7 +77,7 @@ class EsmPlugin(AnalysisPlugin):
         # Actually, running ESM-2 on everything is expensive.
         # But this is "offline, deep-learning powered".
 
-        evidences = []
+        evidences: list[Evidence] = []
 
         try:
             # Mock implementation for now as we don't have the 3GB model

@@ -363,7 +363,7 @@ class HypothesisGenerator:
         aggregated: AggregatedEvidence,
     ) -> list[FunctionalHypothesis]:
         """Generate hypotheses from multiple evidence types."""
-        hypotheses = []
+        hypotheses: list[FunctionalHypothesis] = []
 
         # Get best evidence from each type
         top_evidence = aggregated.get_top_evidence(5)
@@ -484,9 +484,9 @@ class HypothesisGenerator:
 
             if len(similar_ids) > 1:
                 # Merge similar hypotheses
-                all_evidence_ids = []
-                all_reasoning = []
-                total_confidence = 0
+                all_evidence_ids: list[str] = []
+                all_reasoning: list[str] = []
+                total_confidence: float = 0.0
 
                 for idx in similar_ids:
                     h = hypotheses[idx]

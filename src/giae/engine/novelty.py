@@ -10,6 +10,7 @@ a structured, prioritized research agenda.
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -206,7 +207,7 @@ class NoveltyScorer:
     def _evaluate(
         self,
         result: InterpretationResult,
-        gene_map: dict,
+        gene_map: Mapping[str, object],
     ) -> NovelGeneCandidate | None:
         """Evaluate a single interpretation result for novelty."""
         # Skip results that errored — those are bugs, not discoveries
@@ -291,7 +292,7 @@ class NoveltyScorer:
             return len(protein.sequence)
         loc = getattr(gene, "location", None)
         if loc:
-            return max(0, (loc.end - loc.start) // 3)
+            return int(max(0, (loc.end - loc.start) // 3))
         return 0
 
     @staticmethod

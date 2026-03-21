@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import xml.etree.ElementTree as ET
 from pathlib import Path
+from typing import Optional
 
 from giae.engine.plugin import AnalysisPlugin
 from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
@@ -23,7 +24,7 @@ class BlastLocalPlugin(AnalysisPlugin):
     Requires 'blastp' executable in PATH.
     """
 
-    def __init__(self, database_path: Path = None):
+    def __init__(self, database_path: Optional[Path] = None) -> None:
         if database_path is None:
             # Default to bundled or user-downloaded DB
             self.db_path = Path.home() / ".giae" / "blast" / "swissprot"
@@ -86,13 +87,13 @@ class BlastLocalPlugin(AnalysisPlugin):
             root = ET.fromstring(process.stdout)
 
             for hit in root.findall(".//Hit"):
-                hit_def = hit.find("Hit_def").text
-                hit_id = hit.find("Hit_id").text
+                hit_def = hit.find("Hit_def").text  # type: ignore[union-attr]
+                hit_id = hit.find("Hit_id").text  # type: ignore[union-attr]
                 hsp = hit.find(".//Hsp")
 
-                evalue = float(hsp.find("Hsp_evalue").text)
-                identity = int(hsp.find("Hsp_identity").text)
-                align_len = int(hsp.find("Hsp_align-len").text)
+                evalue = float(hsp.find("Hsp_evalue").text)  # type: ignore[union-attr]
+                identity = int(hsp.find("Hsp_identity").text)  # type: ignore[union-attr]
+                align_len = int(hsp.find("Hsp_align-len").text)  # type: ignore[union-attr]
                 identity_pct = identity / align_len
 
                 # Filter weak hits
@@ -103,7 +104,7 @@ class BlastLocalPlugin(AnalysisPlugin):
                     Evidence(
                         gene_id=gene.id,
                         evidence_type=EvidenceType.BLAST_HOMOLOGY,
-                        description=hit_def,
+                        description=hit_def or "",
                         confidence=min(identity_pct, 1.0),
                         raw_data={
                             "evalue": evalue,

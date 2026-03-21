@@ -170,9 +170,7 @@ class Interpreter:
         try:
             # This works when installed via pip (wheel or sdist)
             # The data is logically packaged under 'giae.data.prosite'
-            bundled_res = importlib.resources.files("giae").joinpath(
-                "data", "prosite", "prosite.dat"
-            )
+            bundled_res = importlib.resources.files("giae") / "data" / "prosite" / "prosite.dat"
             # importlib.resources gives a Traversable, which might be in a zip.
             # MotifScanner requires a string/Path to a real file.
             import importlib.resources.abc

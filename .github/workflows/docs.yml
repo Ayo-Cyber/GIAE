@@ -23,6 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          pip install -e ".[dev]"
           pip install mkdocs-material mkdocstrings[python]
 
       - name: Build documentation
