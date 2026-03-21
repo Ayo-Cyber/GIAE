@@ -7,31 +7,77 @@ by scanning for open reading frames.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Iterator
 from uuid import uuid4
 
 from giae.models.gene import Gene, GeneLocation, Strand
 from giae.models.protein import Protein
 
-
 # Standard genetic code (codon -> amino acid)
 CODON_TABLE = {
-    "TTT": "F", "TTC": "F", "TTA": "L", "TTG": "L",
-    "TCT": "S", "TCC": "S", "TCA": "S", "TCG": "S",
-    "TAT": "Y", "TAC": "Y", "TAA": "*", "TAG": "*",
-    "TGT": "C", "TGC": "C", "TGA": "*", "TGG": "W",
-    "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
-    "CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
-    "CAT": "H", "CAC": "H", "CAA": "Q", "CAG": "Q",
-    "CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R",
-    "ATT": "I", "ATC": "I", "ATA": "I", "ATG": "M",
-    "ACT": "T", "ACC": "T", "ACA": "T", "ACG": "T",
-    "AAT": "N", "AAC": "N", "AAA": "K", "AAG": "K",
-    "AGT": "S", "AGC": "S", "AGA": "R", "AGG": "R",
-    "GTT": "V", "GTC": "V", "GTA": "V", "GTG": "V",
-    "GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
-    "GAT": "D", "GAC": "D", "GAA": "E", "GAG": "E",
-    "GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
+    "TTT": "F",
+    "TTC": "F",
+    "TTA": "L",
+    "TTG": "L",
+    "TCT": "S",
+    "TCC": "S",
+    "TCA": "S",
+    "TCG": "S",
+    "TAT": "Y",
+    "TAC": "Y",
+    "TAA": "*",
+    "TAG": "*",
+    "TGT": "C",
+    "TGC": "C",
+    "TGA": "*",
+    "TGG": "W",
+    "CTT": "L",
+    "CTC": "L",
+    "CTA": "L",
+    "CTG": "L",
+    "CCT": "P",
+    "CCC": "P",
+    "CCA": "P",
+    "CCG": "P",
+    "CAT": "H",
+    "CAC": "H",
+    "CAA": "Q",
+    "CAG": "Q",
+    "CGT": "R",
+    "CGC": "R",
+    "CGA": "R",
+    "CGG": "R",
+    "ATT": "I",
+    "ATC": "I",
+    "ATA": "I",
+    "ATG": "M",
+    "ACT": "T",
+    "ACC": "T",
+    "ACA": "T",
+    "ACG": "T",
+    "AAT": "N",
+    "AAC": "N",
+    "AAA": "K",
+    "AAG": "K",
+    "AGT": "S",
+    "AGC": "S",
+    "AGA": "R",
+    "AGG": "R",
+    "GTT": "V",
+    "GTC": "V",
+    "GTA": "V",
+    "GTG": "V",
+    "GCT": "A",
+    "GCC": "A",
+    "GCA": "A",
+    "GCG": "A",
+    "GAT": "D",
+    "GAC": "D",
+    "GAA": "E",
+    "GAG": "E",
+    "GGT": "G",
+    "GGC": "G",
+    "GGA": "G",
+    "GGG": "G",
 }
 
 START_CODONS = {"ATG", "GTG", "TTG"}  # Common bacterial start codons
@@ -43,7 +89,7 @@ class ORFResult:
     """Result of ORF detection."""
 
     start: int  # 0-based position
-    end: int    # 0-based, exclusive
+    end: int  # 0-based, exclusive
     strand: Strand
     frame: int  # Reading frame (0, 1, or 2)
     nucleotide_sequence: str
@@ -114,14 +160,16 @@ class ORFFinder:
                 # Convert to forward strand coordinates
                 new_start = len(sequence) - orf.end
                 new_end = len(sequence) - orf.start
-                orfs.append(ORFResult(
-                    start=new_start,
-                    end=new_end,
-                    strand=Strand.REVERSE,
-                    frame=orf.frame,
-                    nucleotide_sequence=orf.nucleotide_sequence,
-                    protein_sequence=orf.protein_sequence,
-                ))
+                orfs.append(
+                    ORFResult(
+                        start=new_start,
+                        end=new_end,
+                        strand=Strand.REVERSE,
+                        frame=orf.frame,
+                        nucleotide_sequence=orf.nucleotide_sequence,
+                        protein_sequence=orf.protein_sequence,
+                    )
+                )
 
         # Sort by position
         orfs.sort(key=lambda o: o.start)
@@ -141,7 +189,7 @@ class ORFFinder:
         pos = frame
 
         while pos < seq_len - 2:
-            codon = sequence[pos:pos + 3]
+            codon = sequence[pos : pos + 3]
 
             if codon in self.start_codons:
                 # Found a start codon, look for stop
@@ -151,7 +199,7 @@ class ORFFinder:
                 # Translate until stop or end
                 i = pos
                 while i < seq_len - 2:
-                    c = sequence[i:i + 3]
+                    c = sequence[i : i + 3]
                     if len(c) < 3:
                         break
 
@@ -162,14 +210,16 @@ class ORFFinder:
                         # Found complete ORF
                         orf_end = i + 3
                         if orf_end - orf_start >= self.min_length:
-                            orfs.append(ORFResult(
-                                start=orf_start,
-                                end=orf_end,
-                                strand=strand,
-                                frame=frame,
-                                nucleotide_sequence=sequence[orf_start:orf_end],
-                                protein_sequence="".join(orf_seq),
-                            ))
+                            orfs.append(
+                                ORFResult(
+                                    start=orf_start,
+                                    end=orf_end,
+                                    strand=strand,
+                                    frame=frame,
+                                    nucleotide_sequence=sequence[orf_start:orf_end],
+                                    protein_sequence="".join(orf_seq),
+                                )
+                            )
                         break
                     i += 3
                 else:
@@ -177,14 +227,16 @@ class ORFFinder:
                     if self.include_partial:
                         orf_end = (seq_len - frame) // 3 * 3 + frame
                         if orf_end - orf_start >= self.min_length:
-                            orfs.append(ORFResult(
-                                start=orf_start,
-                                end=orf_end,
-                                strand=strand,
-                                frame=frame,
-                                nucleotide_sequence=sequence[orf_start:orf_end],
-                                protein_sequence="".join(orf_seq),
-                            ))
+                            orfs.append(
+                                ORFResult(
+                                    start=orf_start,
+                                    end=orf_end,
+                                    strand=strand,
+                                    frame=frame,
+                                    nucleotide_sequence=sequence[orf_start:orf_end],
+                                    protein_sequence="".join(orf_seq),
+                                )
+                            )
 
             pos += 3
 

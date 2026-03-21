@@ -6,35 +6,32 @@ and confidence scoring to produce complete interpretations.
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any
-
-import logging
-import os
 from pathlib import Path
 
-from giae.analysis.cache import DiskCache
-from giae.analysis.orf_finder import ORFFinder
-from giae.analysis.motif import MotifScanner
-from giae.analysis.throttle import configure_throttle
-from giae.engine.aggregator import EvidenceAggregator, AggregatedEvidence
-from giae.engine.hypothesis import HypothesisGenerator, FunctionalHypothesis
-from giae.engine.conflict import ConflictResolver, ConflictReport, ConflictSeverity
-from giae.engine.confidence import ConfidenceScorer, ConfidenceReport
-from giae.models.genome import Genome
-from giae.models.gene import Gene
-from giae.models.evidence import Evidence
-from giae.models.interpretation import (
-    Interpretation,
-    ConfidenceLevel,
-    CompetingHypothesis,
-)
-from giae.engine.plugin import PluginManager
-from giae.engine.novelty import NoveltyScorer, NovelGeneReport
-from giae.analysis.hmmer import HmmerPlugin
 from giae.analysis.ai import EsmPlugin
 from giae.analysis.blast_local import BlastLocalPlugin
+from giae.analysis.cache import DiskCache
+from giae.analysis.hmmer import HmmerPlugin
+from giae.analysis.motif import MotifScanner
+from giae.analysis.orf_finder import ORFFinder
+from giae.analysis.throttle import configure_throttle
+from giae.engine.aggregator import AggregatedEvidence, EvidenceAggregator
+from giae.engine.confidence import ConfidenceReport, ConfidenceScorer
+from giae.engine.conflict import ConflictResolver, ConflictSeverity
+from giae.engine.hypothesis import FunctionalHypothesis, HypothesisGenerator
+from giae.engine.novelty import NovelGeneReport, NoveltyScorer
+from giae.engine.plugin import PluginManager
+from giae.models.evidence import Evidence
+from giae.models.gene import Gene
+from giae.models.genome import Genome
+from giae.models.interpretation import (
+    CompetingHypothesis,
+    ConfidenceLevel,
+    Interpretation,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -164,8 +161,8 @@ class Interpreter:
 
     def _load_prosite_data(self) -> None:
         """Auto-load PROSITE patterns from bundled data or user directory."""
-        import logging
         import importlib.resources
+        import logging
 
         logger = logging.getLogger(__name__)
 
@@ -173,18 +170,22 @@ class Interpreter:
         try:
             # This works when installed via pip (wheel or sdist)
             # The data is logically packaged under 'giae.data.prosite'
-            bundled_res = importlib.resources.files("giae").joinpath("data", "prosite", "prosite.dat")
+            bundled_res = importlib.resources.files("giae").joinpath(
+                "data", "prosite", "prosite.dat"
+            )
             # importlib.resources gives a Traversable, which might be in a zip.
             # MotifScanner requires a string/Path to a real file.
             import importlib.resources.abc
-            
+
             # Using as_file ensures it's extracted to a temp file if in a zip,
             # or just returns the path if it's on disk.
             with importlib.resources.as_file(bundled_res) as bundled_path:
                 if bundled_path.exists():
                     try:
                         count = self.motif_scanner.load_prosite(str(bundled_path))
-                        logger.info(f"Loaded {count} PROSITE patterns from bundled data ({bundled_path})")
+                        logger.info(
+                            f"Loaded {count} PROSITE patterns from bundled data ({bundled_path})"
+                        )
                         return
                     except Exception as e:
                         logger.debug(f"Failed to load bundled PROSITE data: {e}")
@@ -204,7 +205,9 @@ class Interpreter:
         # 3. Try project data directory (development mode fallback)
         # __file__ is src/giae/engine/interpreter.py
         # root is src/giae/engine/../../.. -> repository root
-        project_path = Path(__file__).parent.parent.parent.parent / "data" / "prosite" / "prosite.dat"
+        project_path = (
+            Path(__file__).parent.parent.parent.parent / "data" / "prosite" / "prosite.dat"
+        )
         if project_path.exists():
             try:
                 count = self.motif_scanner.load_prosite(str(project_path))
@@ -214,7 +217,9 @@ class Interpreter:
                 logger.debug(f"Failed to load project PROSITE data: {e}")
 
         # Fall back to builtin motifs (already loaded by default)
-        logger.warning("No PROSITE database found! Falling back to 8 builtin motifs. Interpretation quality will be low.")
+        logger.warning(
+            "No PROSITE database found! Falling back to 8 builtin motifs. Interpretation quality will be low."
+        )
 
     def interpret_genome(self, genome: Genome) -> GenomeInterpretationSummary:
         """
@@ -250,18 +255,21 @@ class Interpreter:
         processing_time = (end_time - start_time).total_seconds()
 
         high_conf = sum(
-            1 for r in results
+            1
+            for r in results
             if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.HIGH
         )
         mod_conf = sum(
-            1 for r in results
+            1
+            for r in results
             if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.MODERATE
         )
         low_conf = sum(
-            1 for r in results
-            if r.interpretation and r.interpretation.confidence_level in (
-                ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE
-            )
+            1
+            for r in results
+            if r.interpretation
+            and r.interpretation.confidence_level
+            in (ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE)
         )
         failed = sum(1 for r in results if not r.success)
 
@@ -300,7 +308,7 @@ class Interpreter:
             # Run plugins
             plugin_evidence = self.plugin_manager.scan_gene(gene)
             evidence.extend(plugin_evidence)
-            
+
             for e in evidence:
                 gene.add_evidence(e)
 
@@ -343,18 +351,20 @@ class Interpreter:
 
             # Create competing hypotheses from alternatives
             competing = []
-            for i, h in enumerate(hypotheses[1:], 1):
-                competing.append(CompetingHypothesis(
-                    hypothesis=h.function,
-                    confidence=h.confidence,
-                    reason_not_preferred=(
-                        f"Lower confidence ({h.confidence:.0%}) than primary hypothesis"
-                    ),
-                ))
+            for _i, h in enumerate(hypotheses[1:], 1):
+                competing.append(
+                    CompetingHypothesis(
+                        hypothesis=h.function,
+                        confidence=h.confidence,
+                        reason_not_preferred=(
+                            f"Lower confidence ({h.confidence:.0%}) than primary hypothesis"
+                        ),
+                    )
+                )
 
             # Step 6: Check for conflicts
             conflict = self.conflict_resolver.check_conflicts(hypotheses)
-            
+
             final_hypothesis = best_hypothesis.function
             final_confidence = best_report.adjusted_score
             final_level = best_report.confidence_level.value
@@ -366,7 +376,7 @@ class Interpreter:
                 final_confidence *= 0.8  # Penalty
                 uncertainty_sources.append("conflicting_evidence")
                 reasoning.append(f"Output flagged: {conflict.description}")
-                
+
                 # If severe, explicitly mark hypothesis as Ambiguous
                 if conflict.severity == ConflictSeverity.HIGH:
                     final_hypothesis = f"{conflict.description}"
@@ -428,6 +438,7 @@ class Interpreter:
         if self.use_uniprot and gene.protein:
             try:
                 from giae.analysis.uniprot import UniProtClient
+
                 client = UniProtClient(max_results=3, timeout=15, cache=self.cache)
                 uniprot_evidence = client.analyze_gene(gene)
                 evidence.extend(uniprot_evidence)
@@ -439,6 +450,7 @@ class Interpreter:
         if self.use_interpro and gene.protein:
             try:
                 from giae.analysis.interpro import InterProClient
+
                 interpro_client = InterProClient(timeout=45, max_hits=5, cache=self.cache)
                 domain_evidence = interpro_client.analyze_gene(gene)
                 evidence.extend(domain_evidence)
@@ -469,6 +481,7 @@ class Interpreter:
 
         if sequence_type == "protein":
             from giae.models.protein import Protein
+
             gene.protein = Protein(gene_id=gene.id, sequence=sequence)
 
         result = self.interpret_gene(gene)

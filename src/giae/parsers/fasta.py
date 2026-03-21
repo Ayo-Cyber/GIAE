@@ -90,8 +90,8 @@ class FastaParser(BaseParser):
 
         # Description is everything after the ID in the header
         description = record.description
-        if description.startswith(record.id):
-            description = description[len(record.id):].strip()
+        if record.id and description.startswith(record.id):
+            description = description[len(record.id) :].strip()
 
         # Parse organism from description if present (common format: [Organism name])
         organism = None
@@ -99,7 +99,7 @@ class FastaParser(BaseParser):
             start = description.rfind("[")
             end = description.rfind("]")
             if start < end:
-                organism = description[start + 1:end]
+                organism = description[start + 1 : end]
 
         sequence = str(record.seq).upper()
 
@@ -112,7 +112,7 @@ class FastaParser(BaseParser):
             raise ParserError(
                 f"Invalid characters in sequence: {invalid}. "
                 f"FASTA should contain nucleotides only.",
-                file_path
+                file_path,
             )
 
         metadata = GenomeMetadata(
@@ -121,7 +121,7 @@ class FastaParser(BaseParser):
         )
 
         return Genome(
-            name=name,
+            name=str(name),
             description=description,
             sequence=sequence,
             source_file=file_path,

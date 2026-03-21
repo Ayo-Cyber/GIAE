@@ -4,10 +4,8 @@ Plugin architecture for GIAE.
 Defines the interface for extension plugins (HMMER, ESM-2, BLAST).
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, List, Optional
-import importlib
 import logging
+from abc import ABC, abstractmethod
 
 from giae.models.evidence import Evidence
 from giae.models.gene import Gene
@@ -36,7 +34,7 @@ class AnalysisPlugin(ABC):
         pass
 
     @abstractmethod
-    def scan(self, gene: Gene) -> List[Evidence]:
+    def scan(self, gene: Gene) -> list[Evidence]:
         """
         Scan a gene and return evidence.
 
@@ -53,7 +51,7 @@ class PluginManager:
     """Manages discovery and execution of analysis plugins."""
 
     def __init__(self):
-        self._plugins: List[AnalysisPlugin] = []
+        self._plugins: list[AnalysisPlugin] = []
         self._discover_plugins()
 
     def _discover_plugins(self):
@@ -71,7 +69,7 @@ class PluginManager:
         else:
             logger.debug(f"Plugin {plugin.name} unavailable (dependencies missing)")
 
-    def scan_gene(self, gene: Gene) -> List[Evidence]:
+    def scan_gene(self, gene: Gene) -> list[Evidence]:
         """Run all registered plugins on a gene."""
         results = []
         for plugin in self._plugins:
@@ -83,6 +81,6 @@ class PluginManager:
         return results
 
     @property
-    def active_plugins(self) -> List[str]:
+    def active_plugins(self) -> list[str]:
         """List names of active plugins."""
         return [p.name for p in self._plugins]

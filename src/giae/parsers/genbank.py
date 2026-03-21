@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import contextlib
 from pathlib import Path
+from typing import cast
 
 from Bio import SeqIO
 from Bio.SeqFeature import SeqFeature
@@ -50,7 +52,7 @@ class GenBankParser(BaseParser):
             ParserError: If parsing fails.
         """
         try:
-            records = list(SeqIO.parse(file_path, "genbank"))
+            records = list(SeqIO.parse(file_path, "genbank"))  # type: ignore[no-untyped-call]
         except Exception as e:
             raise ParserError(f"Failed to parse GenBank file: {e}", file_path) from e
 
@@ -69,7 +71,7 @@ class GenBankParser(BaseParser):
 
         # Create base genome
         genome = Genome(
-            name=record.name or record.id,
+            name=str(record.name) if record.name else str(record.id),
             description=record.description,
             sequence=str(record.seq).upper(),
             source_file=file_path,
@@ -91,8 +93,7 @@ class GenBankParser(BaseParser):
         # Extract organism
         organism = annotations.get("organism")
 
-        # Extract taxonomy info
-        taxonomy = annotations.get("taxonomy", [])
+        # Extract taxonomy id from source features
         taxonomy_id = None
         for feature in record.features:
             if feature.type == "source":
@@ -100,33 +101,33 @@ class GenBankParser(BaseParser):
                 db_xref = qualifiers.get("db_xref", [])
                 for xref in db_xref:
                     if xref.startswith("taxon:"):
-                        try:
+                        with contextlib.suppress(ValueError):
                             taxonomy_id = int(xref.split(":")[1])
-                        except ValueError:
-                            pass
                 break
 
         # Extract references
         references = []
-        for ref in annotations.get("references", []):
-            ref_dict = {
-                "title": ref.title if hasattr(ref, "title") else None,
-                "authors": ref.authors if hasattr(ref, "authors") else None,
-                "journal": ref.journal if hasattr(ref, "journal") else None,
-                "pubmed_id": ref.pubmed_id if hasattr(ref, "pubmed_id") else None,
-            }
-            if any(ref_dict.values()):
-                references.append(ref_dict)
+        refs = annotations.get("references", [])
+        if isinstance(refs, list):
+            for ref in refs:
+                ref_dict = {
+                    "title": getattr(ref, "title", None),
+                    "authors": getattr(ref, "authors", None),
+                    "journal": getattr(ref, "journal", None),
+                    "pubmed_id": getattr(ref, "pubmed_id", None),
+                }
+                if any(ref_dict.values()):
+                    references.append(ref_dict)
 
         # Extract dbxrefs
         dbxrefs = record.dbxrefs if hasattr(record, "dbxrefs") else []
 
         return GenomeMetadata(
-            organism=organism,
+            organism=str(annotations.get("organism")) if annotations.get("organism") else None,
             taxonomy_id=taxonomy_id,
-            assembly_accession=annotations.get("accessions", [None])[0],
+            assembly_accession=str(annotations.get("accessions", [""])[0]),
             definition=record.description,
-            keywords=annotations.get("keywords", []),
+            keywords=cast(list[str], annotations.get("keywords", [])),
             references=references,
             dbxrefs=list(dbxrefs),
         )
@@ -134,7 +135,7 @@ class GenBankParser(BaseParser):
     def _extract_genes(self, record: SeqRecord) -> list[Gene]:
         """Extract gene features from a GenBank record."""
         genes: list[Gene] = []
-        gene_counter = 0
+        gene_counter: int = 0
 
         # Create a lookup for CDS features by locus_tag
         cds_by_locus: dict[str, SeqFeature] = {}
@@ -148,9 +149,7 @@ class GenBankParser(BaseParser):
         for feature in record.features:
             if feature.type == "gene":
                 gene_counter += 1
-                gene = self._feature_to_gene(
-                    feature, record, gene_counter, cds_by_locus
-                )
+                gene = self._feature_to_gene(feature, record, cds_by_locus)
                 if gene:
                     genes.append(gene)
 
@@ -169,7 +168,6 @@ class GenBankParser(BaseParser):
         self,
         feature: SeqFeature,
         record: SeqRecord,
-        counter: int,
         cds_lookup: dict[str, SeqFeature],
     ) -> Gene | None:
         """Convert a gene feature to a Gene object."""
@@ -178,9 +176,11 @@ class GenBankParser(BaseParser):
         # Extract location
         try:
             location = feature.location
+            if location is None:
+                return None
             start = int(location.start)
             end = int(location.end)
-            strand = Strand.FORWARD if location.strand >= 0 else Strand.REVERSE
+            strand = Strand.FORWARD if int(location.strand) >= 0 else Strand.REVERSE
         except (AttributeError, TypeError):
             return None
 
@@ -227,9 +227,11 @@ class GenBankParser(BaseParser):
         # Extract location
         try:
             location = feature.location
+            if location is None:
+                return None
             start = int(location.start)
             end = int(location.end)
-            strand = Strand.FORWARD if location.strand >= 0 else Strand.REVERSE
+            strand = Strand.FORWARD if int(location.strand) >= 0 else Strand.REVERSE
         except (AttributeError, TypeError):
             return None
 

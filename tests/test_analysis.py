@@ -2,10 +2,9 @@
 
 import pytest
 
-from giae.analysis.orf_finder import ORFFinder, ORFResult, CODON_TABLE
-from giae.analysis.motif import MotifScanner, MotifPattern, BUILTIN_MOTIFS
-from giae.analysis.homology import HomologyAnalyzer, BlastNotFoundError
-from giae.models.gene import Strand
+from giae.analysis.homology import BlastNotFoundError, HomologyAnalyzer
+from giae.analysis.motif import MotifPattern, MotifScanner
+from giae.analysis.orf_finder import ORFFinder
 
 
 class TestORFFinder:

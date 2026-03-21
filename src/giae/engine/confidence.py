@@ -6,14 +6,13 @@ sources for interpretations.
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 from giae.engine.aggregator import AggregatedEvidence
 from giae.engine.hypothesis import FunctionalHypothesis
-from giae.models.interpretation import ConfidenceLevel
 from giae.models.evidence import EvidenceType
+from giae.models.interpretation import ConfidenceLevel
 
 
 class UncertaintySource(Enum):
@@ -122,9 +121,7 @@ class ConfidenceScorer:
         # Adjust based on evidence count
         if aggregated.evidence_count >= 5:
             raw_score += 0.05
-            positive_factors.append(
-                f"Strong evidence support ({aggregated.evidence_count} items)"
-            )
+            positive_factors.append(f"Strong evidence support ({aggregated.evidence_count} items)")
         elif aggregated.evidence_count <= 2:
             raw_score -= 0.1
             uncertainty_sources.append(UncertaintySource.LIMITED_EVIDENCE)
@@ -136,9 +133,7 @@ class ConfidenceScorer:
             max_identity = max(e.confidence for e in homology)
             if max_identity >= self.strong_hit_threshold:
                 raw_score += 0.05
-                positive_factors.append(
-                    f"Strong sequence homology ({max_identity:.0%} identity)"
-                )
+                positive_factors.append(f"Strong sequence homology ({max_identity:.0%} identity)")
             else:
                 uncertainty_sources.append(UncertaintySource.LOW_SEQUENCE_IDENTITY)
                 negative_factors.append("Moderate sequence identity to known proteins")
@@ -170,18 +165,18 @@ class ConfidenceScorer:
         adjusted_score = max(0.0, min(1.0, raw_score))
 
         # Enforce strict cap for nonspecific motifs (e.g. phosphorylation)
-        if hypothesis.category == "modification":
-            if adjusted_score > 0.45:
-                adjusted_score = 0.45
-                negative_factors.append("Likely nonspecific motif pattern")
-                uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
+        if hypothesis.category == "modification" and adjusted_score > 0.45:
+            adjusted_score = 0.45
+            negative_factors.append("Likely nonspecific motif pattern")
+            uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
 
         # Cap confidence if evidence is ONLY based on motifs
-        if aggregated.type_diversity == 1 and aggregated.has_motifs:
-            if adjusted_score > 0.85:
-                adjusted_score = 0.85
-                negative_factors.append("Prediction based entirely on sequence motifs without homology")
-                uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
+        if aggregated.type_diversity == 1 and aggregated.has_motifs and adjusted_score > 0.85:
+            adjusted_score = 0.85
+            negative_factors.append(
+                "Prediction based entirely on sequence motifs without homology"
+            )
+            uncertainty_sources.append(UncertaintySource.WEAK_MOTIF_MATCH)
 
         # Always add the experimental validation uncertainty
         uncertainty_sources.append(UncertaintySource.NO_EXPERIMENTAL_VALIDATION)
@@ -227,8 +222,8 @@ class ConfidenceScorer:
 
         lines = ["Hypothesis Comparison:", ""]
 
-        for i, report in enumerate(reports, 1):
-            lines.append(f"Hypothesis {i}: {report.confidence_level.value}")
+        for _i, report in enumerate(reports, 1):
+            lines.append(f"Hypothesis {_i}: {report.confidence_level.value}")
 
             if report.positive_factors:
                 lines.append(f"  Strengths: {', '.join(report.positive_factors[:2])}")

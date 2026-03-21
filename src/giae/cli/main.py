@@ -5,18 +5,22 @@ Provides command-line interface for genome interpretation.
 
 from __future__ import annotations
 
-import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from giae.engine.interpreter import GenomeInterpretationSummary, InterpretationResult
+    from giae.models.genome import Genome
 
 import click
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, MofNCompleteColumn
+from rich.progress import BarColumn, MofNCompleteColumn, Progress, SpinnerColumn, TextColumn
+from rich.table import Table
 
 from giae import __version__
+from giae.cli.db import db_cli
 
 console = Console()
 
@@ -51,15 +55,20 @@ def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
 
 @cli.command()
 @click.argument("input_file", type=click.Path(exists=True, path_type=Path))
-@click.option("--format", "-f", "output_format", default="summary",
-              type=click.Choice(["summary", "json", "detailed"]),
-              help="Output format")
+@click.option(
+    "--format",
+    "-f",
+    "output_format",
+    default="summary",
+    type=click.Choice(["summary", "json", "detailed"]),
+    help="Output format",
+)
 def parse(input_file: Path, output_format: str) -> None:
     """Parse a genome file and show basic information.
 
     Supports FASTA and GenBank formats.
     """
-    from giae.parsers import parse_genome, ParserError
+    from giae.parsers import ParserError, parse_genome
 
     try:
         with console.status("[bold green]Parsing genome file..."):
@@ -67,6 +76,7 @@ def parse(input_file: Path, output_format: str) -> None:
 
         if output_format == "json":
             from giae.output.json_export import export_genome_json
+
             click.echo(export_genome_json(genome, include_sequence=False))
         elif output_format == "detailed":
             _print_genome_detailed(genome)
@@ -75,34 +85,49 @@ def parse(input_file: Path, output_format: str) -> None:
 
     except ParserError as e:
         console.print(f"[red]Error parsing file:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 @cli.command()
 @click.argument("input_file", type=click.Path(exists=True, path_type=Path))
-@click.option("--output", "-o", type=click.Path(path_type=Path),
-              help="Output file path")
-@click.option("--format", "-f", "output_format", default="report",
-              type=click.Choice(["report", "json", "html"]),
-              help="Output format")
-@click.option("--workers", "-w", default=1, type=click.IntRange(1, 16),
-              help="Number of parallel workers (default: 1)")
-@click.option("--no-uniprot", is_flag=True,
-              help="Skip UniProt API calls (faster, offline)")
-@click.option("--no-interpro", is_flag=True,
-              help="Skip InterPro/HMMER domain search (faster, offline)")
-@click.option("--no-cache", is_flag=True,
-              help="Disable disk caching of API responses")
+@click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
+@click.option(
+    "--format",
+    "-f",
+    "output_format",
+    default="report",
+    type=click.Choice(["report", "json", "html"]),
+    help="Output format",
+)
+@click.option(
+    "--workers",
+    "-w",
+    default=1,
+    type=click.IntRange(1, 16),
+    help="Number of parallel workers (default: 1)",
+)
+@click.option("--no-uniprot", is_flag=True, help="Skip UniProt API calls (faster, offline)")
+@click.option(
+    "--no-interpro", is_flag=True, help="Skip InterPro/HMMER domain search (faster, offline)"
+)
+@click.option("--no-cache", is_flag=True, help="Disable disk caching of API responses")
 @click.pass_context
-def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
-              output_format: str, workers: int, no_uniprot: bool,
-              no_interpro: bool, no_cache: bool) -> None:
+def interpret(
+    ctx: click.Context,
+    input_file: Path,
+    output: Path | None,
+    output_format: str,
+    workers: int,
+    no_uniprot: bool,
+    no_interpro: bool,
+    no_cache: bool,
+) -> None:
     """Interpret a genome and generate functional predictions.
 
     This is the main command that runs the full interpretation pipeline.
     """
-    from giae.parsers import parse_genome, ParserError
     from giae.engine.interpreter import Interpreter
+    from giae.parsers import ParserError, parse_genome
 
     verbose = ctx.obj.get("verbose", False) if ctx.obj else False
 
@@ -141,7 +166,6 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
             console=console,
         ) as progress:
             # Parse first to get gene count
-            from giae.analysis.orf_finder import ORFFinder
             if not genome.genes and genome.file_format == "fasta" and interpreter.find_orfs:
                 orfs = interpreter.orf_finder.find_orfs(genome.sequence)
                 genes = interpreter.orf_finder.orfs_to_genes(orfs)
@@ -157,7 +181,8 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
             if workers > 1 and genome.gene_count > 1:
                 # Parallel interpretation
                 from concurrent.futures import ThreadPoolExecutor, as_completed
-                results = []
+
+                parallel_results = []
                 with ThreadPoolExecutor(max_workers=workers) as executor:
                     futures = {
                         executor.submit(interpreter.interpret_gene, gene): gene
@@ -166,26 +191,46 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                     for future in as_completed(futures):
                         gene = futures[future]
                         result = future.result()
-                        results.append((gene, result))
+                        parallel_results.append((gene, result))
                         progress.update(
-                            task, advance=1,
+                            task,
+                            advance=1,
                             gene_name=gene.display_name or gene.id,
                         )
 
                 # Attach interpretations in order
                 from datetime import datetime, timezone
+
                 from giae.models.interpretation import ConfidenceLevel
+
                 start_time = datetime.now(timezone.utc)
-                for gene, result in results:
+                for gene, result in parallel_results:
                     if result.interpretation:
                         gene.add_interpretation(result.interpretation)
 
-                all_results = [r for _, r in results]
+                all_results = [r for _, r in parallel_results]
                 # Build summary manually for parallel case
                 from giae.engine.interpreter import GenomeInterpretationSummary
-                high_conf = sum(1 for r in all_results if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.HIGH)
-                mod_conf = sum(1 for r in all_results if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.MODERATE)
-                low_conf = sum(1 for r in all_results if r.interpretation and r.interpretation.confidence_level in (ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE))
+
+                high_conf = sum(
+                    1
+                    for r in all_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level == ConfidenceLevel.HIGH
+                )
+                mod_conf = sum(
+                    1
+                    for r in all_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level == ConfidenceLevel.MODERATE
+                )
+                low_conf = sum(
+                    1
+                    for r in all_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level
+                    in (ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE)
+                )
                 summary = GenomeInterpretationSummary(
                     genome_id=genome.id,
                     genome_name=genome.name,
@@ -200,19 +245,17 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                 )
             else:
                 # Sequential interpretation with progress updates
-                from datetime import datetime, timezone
                 from giae.models.interpretation import ConfidenceLevel
-                from giae.engine.interpreter import GenomeInterpretationSummary
 
                 start_time = datetime.now(timezone.utc)
-                results = []
+                sequential_results: list[InterpretationResult] = []
                 for gene in genome.genes:
                     progress.update(
                         task,
                         gene_name=gene.display_name or gene.id,
                     )
                     result = interpreter.interpret_gene(gene)
-                    results.append(result)
+                    sequential_results.append(result)
                     if result.interpretation:
                         gene.add_interpretation(result.interpretation)
                     progress.advance(task)
@@ -220,21 +263,37 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                 end_time = datetime.now(timezone.utc)
                 processing_time = (end_time - start_time).total_seconds()
 
-                high_conf = sum(1 for r in results if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.HIGH)
-                mod_conf = sum(1 for r in results if r.interpretation and r.interpretation.confidence_level == ConfidenceLevel.MODERATE)
-                low_conf = sum(1 for r in results if r.interpretation and r.interpretation.confidence_level in (ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE))
+                high_conf = sum(
+                    1
+                    for r in sequential_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level == ConfidenceLevel.HIGH
+                )
+                mod_conf = sum(
+                    1
+                    for r in sequential_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level == ConfidenceLevel.MODERATE
+                )
+                low_conf = sum(
+                    1
+                    for r in sequential_results
+                    if r.interpretation
+                    and r.interpretation.confidence_level
+                    in (ConfidenceLevel.LOW, ConfidenceLevel.SPECULATIVE)
+                )
 
                 summary = GenomeInterpretationSummary(
                     genome_id=genome.id,
                     genome_name=genome.name,
                     total_genes=len(genome.genes),
-                    interpreted_genes=sum(1 for r in results if r.interpretation),
+                    interpreted_genes=sum(1 for r in sequential_results if r.interpretation),
                     high_confidence_count=high_conf,
                     moderate_confidence_count=mod_conf,
                     low_confidence_count=low_conf,
-                    failed_genes=sum(1 for r in results if not r.success),
+                    failed_genes=sum(1 for r in sequential_results if not r.success),
                     processing_time_seconds=processing_time,
-                    results=results,
+                    results=sequential_results,
                 )
 
         # Wire in novel gene discovery (novelty scorer needs the full summary)
@@ -254,6 +313,7 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
         # Output results
         if output_format == "json":
             from giae.output.json_export import export_interpretation_json
+
             json_output = export_interpretation_json(summary)
             if output:
                 output.write_text(json_output)
@@ -262,6 +322,7 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                 click.echo(json_output)
         elif output_format == "html":
             from giae.output.html_report import HTMLReportGenerator
+
             generator = HTMLReportGenerator()
             html_output = generator.generate(genome, summary)
             if output:
@@ -271,8 +332,9 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
                 click.echo(html_output)
         else:
             from giae.output.report import ReportGenerator
-            generator = ReportGenerator()
-            report = generator.generate(genome, summary)
+
+            text_generator = ReportGenerator()
+            report = text_generator.generate(genome, summary)
 
             if output:
                 output.write_text(report)
@@ -285,17 +347,22 @@ def interpret(ctx: click.Context, input_file: Path, output: Optional[Path],
 
     except ParserError as e:
         console.print(f"[red]Error parsing file:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
     except Exception as e:
         console.print(f"[red]Error during interpretation:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 @cli.command()
 @click.argument("sequence", type=str)
-@click.option("--type", "-t", "seq_type", default="protein",
-              type=click.Choice(["protein", "nucleotide"]),
-              help="Sequence type")
+@click.option(
+    "--type",
+    "-t",
+    "seq_type",
+    default="protein",
+    type=click.Choice(["protein", "nucleotide"]),
+    help="Sequence type",
+)
 def quick(sequence: str, seq_type: str) -> None:
     """Quick interpretation of a raw sequence.
 
@@ -316,8 +383,8 @@ def analyze(input_file: Path) -> None:
 
     Shows evidence extraction results without hypothesis generation.
     """
-    from giae.parsers import parse_genome
     from giae.analysis.motif import MotifScanner
+    from giae.parsers import parse_genome
 
     genome = parse_genome(input_file)
     scanner = MotifScanner()
@@ -385,21 +452,26 @@ Version: {__version__}
     console.print(Panel(info_text, title="About GIAE"))
 
 
-def _print_genome_summary(genome) -> None:
+def _print_genome_summary(genome: Genome) -> None:
     """Print a brief genome summary."""
-    console.print(Panel(f"""
+    console.print(
+        Panel(
+            f"""
 [bold]{genome.name}[/bold]
-{genome.description or 'No description'}
+{genome.description or "No description"}
 
 Length: {genome.length:,} bp
 GC Content: {genome.gc_content}%
 Genes: {genome.gene_count}
 Source: {genome.source_file.name}
 Format: {genome.file_format}
-""", title="Genome Summary"))
+""",
+            title="Genome Summary",
+        )
+    )
 
 
-def _print_genome_detailed(genome) -> None:
+def _print_genome_detailed(genome: Genome) -> None:
     """Print detailed genome information."""
     _print_genome_summary(genome)
 
@@ -429,7 +501,7 @@ def _print_genome_detailed(genome) -> None:
         console.print(table)
 
 
-def _print_interpretation_summary(summary) -> None:
+def _print_interpretation_summary(summary: GenomeInterpretationSummary) -> None:
     """Print interpretation summary statistics."""
     novel = summary.novel_gene_report
 
@@ -445,7 +517,9 @@ Novel Gene Discovery:
             novel_lines += f"\n  Top Target:   {top.display_name} ({top.priority_label})"
 
     console.print()
-    console.print(Panel(f"""
+    console.print(
+        Panel(
+            f"""
 [bold]Interpretation Complete[/bold]
 
 Total Genes: {summary.total_genes}
@@ -458,10 +532,13 @@ Confidence Breakdown:
   Failed:   {summary.failed_genes}{novel_lines}
 
 Processing Time: {summary.processing_time_seconds:.2f}s
-""", title="Summary", border_style="green"))
+""",
+            title="Summary",
+            border_style="green",
+        )
+    )
 
 
-from giae.cli.db import db_cli
 cli.add_command(db_cli)
 
 if __name__ == "__main__":

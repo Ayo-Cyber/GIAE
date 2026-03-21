@@ -1,8 +1,8 @@
 """Analysis modules for evidence extraction."""
 
+from giae.analysis.homology import BlastHit, HomologyAnalyzer
+from giae.analysis.motif import MotifMatch, MotifScanner
 from giae.analysis.orf_finder import ORFFinder, ORFResult
-from giae.analysis.homology import HomologyAnalyzer, BlastHit
-from giae.analysis.motif import MotifScanner, MotifMatch
 from giae.analysis.prosite import (
     PROSITEDatabase,
     PROSITEEntry,

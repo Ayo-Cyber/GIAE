@@ -17,9 +17,9 @@ from uuid import uuid4
 class ConfidenceLevel(Enum):
     """Qualitative confidence levels for interpretations."""
 
-    HIGH = "high"          # Strong, consistent evidence
+    HIGH = "high"  # Strong, consistent evidence
     MODERATE = "moderate"  # Good evidence with some uncertainty
-    LOW = "low"            # Limited or conflicting evidence
+    LOW = "low"  # Limited or conflicting evidence
     SPECULATIVE = "speculative"  # Minimal evidence, hypothesis only
 
 

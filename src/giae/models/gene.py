@@ -36,7 +36,7 @@ class GeneLocation:
     """Precise genomic location of a gene."""
 
     start: int  # 0-based, inclusive
-    end: int    # 0-based, exclusive
+    end: int  # 0-based, exclusive
     strand: Strand
 
     def __post_init__(self) -> None:
@@ -109,6 +109,7 @@ class Gene:
         iupac_ambiguous = set("RYWSKMBDHV")
         if iupac_ambiguous & set(self.sequence):
             import re
+
             self.sequence = re.sub(r"[RYWSKMBDHV]", "N", self.sequence)
 
         valid_bases = {"A", "T", "G", "C", "N"}

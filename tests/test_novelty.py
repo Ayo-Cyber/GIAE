@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from giae.engine.novelty import NoveltyScorer, NovelGeneReport, NovelGeneCandidate
-
+from giae.engine.novelty import NovelGeneCandidate, NovelGeneReport, NoveltyScorer
 
 # ── Helpers ─────────────────────────────────────────────────────────────────
+
 
 def _make_result(
     gene_id: str,
@@ -22,7 +22,11 @@ def _make_result(
     """Build a minimal mock InterpretationResult."""
     from types import SimpleNamespace
 
-    agg = SimpleNamespace(evidence_count=evidence_count) if aggregated_evidence is None else aggregated_evidence
+    agg = (
+        SimpleNamespace(evidence_count=evidence_count)
+        if aggregated_evidence is None
+        else aggregated_evidence
+    )
 
     if interpretation is None and confidence is not None:
         interp = SimpleNamespace(
@@ -46,11 +50,13 @@ def _make_result(
 
 def _make_genome(genes: list):
     from types import SimpleNamespace
+
     return SimpleNamespace(genes=genes)
 
 
 def _make_gene(gene_id: str, protein_length: int = 100):
     from types import SimpleNamespace
+
     protein = SimpleNamespace(sequence="M" * protein_length)
     location = SimpleNamespace(start=0, end=protein_length * 3)
     return SimpleNamespace(id=gene_id, protein=protein, location=location)
@@ -58,10 +64,12 @@ def _make_gene(gene_id: str, protein_length: int = 100):
 
 def _make_summary(results: list):
     from types import SimpleNamespace
+
     return SimpleNamespace(results=results)
 
 
 # ── NoveltyScorer tests ─────────────────────────────────────────────────────
+
 
 class TestNoveltyScorer:
     def setup_method(self):
@@ -104,8 +112,7 @@ class TestNoveltyScorer:
 
     def test_conflict_gene_flagged(self):
         gene = _make_gene("g1", 150)
-        result = _make_result("g1", evidence_count=4, confidence=0.35,
-                              conflict_severity="HIGH")
+        result = _make_result("g1", evidence_count=4, confidence=0.35, conflict_severity="HIGH")
         genome = _make_genome([gene])
         summary = _make_summary([result])
 
@@ -180,33 +187,49 @@ class TestNoveltyScorer:
 
     def test_novel_gene_candidate_display_name_uses_name(self):
         c = NovelGeneCandidate(
-            gene_id="g1", gene_name="cI", protein_length=100,
-            novelty_score=0.9, category="dark_matter",
-            reason="test", evidence_count=0,
+            gene_id="g1",
+            gene_name="cI",
+            protein_length=100,
+            novelty_score=0.9,
+            category="dark_matter",
+            reason="test",
+            evidence_count=0,
         )
         assert c.display_name == "cI"
 
     def test_novel_gene_candidate_display_name_falls_back_to_id(self):
         c = NovelGeneCandidate(
-            gene_id="g1", gene_name=None, protein_length=100,
-            novelty_score=0.9, category="dark_matter",
-            reason="test", evidence_count=0,
+            gene_id="g1",
+            gene_name=None,
+            protein_length=100,
+            novelty_score=0.9,
+            category="dark_matter",
+            reason="test",
+            evidence_count=0,
         )
         assert c.display_name == "g1"
 
     def test_priority_label_high(self):
         c = NovelGeneCandidate(
-            gene_id="g1", gene_name=None, protein_length=100,
-            novelty_score=0.85, category="dark_matter",
-            reason="test", evidence_count=0,
+            gene_id="g1",
+            gene_name=None,
+            protein_length=100,
+            novelty_score=0.85,
+            category="dark_matter",
+            reason="test",
+            evidence_count=0,
         )
         assert c.priority_label == "HIGH PRIORITY"
 
     def test_priority_label_medium(self):
         c = NovelGeneCandidate(
-            gene_id="g1", gene_name=None, protein_length=100,
-            novelty_score=0.60, category="weak_evidence",
-            reason="test", evidence_count=1,
+            gene_id="g1",
+            gene_name=None,
+            protein_length=100,
+            novelty_score=0.60,
+            category="weak_evidence",
+            reason="test",
+            evidence_count=1,
         )
         assert c.priority_label == "MEDIUM PRIORITY"
 
@@ -222,8 +245,10 @@ class TestNoveltyScorer:
 
     def test_dark_matter_fraction_zero_total(self):
         report = NovelGeneReport(
-            total_novel=0, dark_matter_count=0,
-            weak_evidence_count=0, conflict_count=0,
+            total_novel=0,
+            dark_matter_count=0,
+            weak_evidence_count=0,
+            conflict_count=0,
             candidates=[],
         )
         assert report.dark_matter_fraction == 0.0

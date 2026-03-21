@@ -7,8 +7,8 @@ import pytest
 from giae.analysis.interpro import DomainHit, InterProClient
 from giae.models.evidence import EvidenceType
 
-
 # ── DomainHit unit tests ────────────────────────────────────────────────────
+
 
 class TestDomainHit:
     def test_confidence_very_significant(self):
@@ -51,6 +51,7 @@ class TestDomainHit:
 
 
 # ── InterProClient parsing tests ────────────────────────────────────────────
+
 
 class TestInterProClientParsing:
     def setup_method(self):
@@ -104,10 +105,20 @@ class TestInterProClientParsing:
         data = {
             "results": {
                 "hits": [
-                    {"name": "Strong", "acc": "PF00001", "desc": "Strong hit",
-                     "score": 200.0, "evalue": 1e-10},
-                    {"name": "Weak", "acc": "PF00002", "desc": "Weak hit",
-                     "score": 5.0, "evalue": 0.05},
+                    {
+                        "name": "Strong",
+                        "acc": "PF00001",
+                        "desc": "Strong hit",
+                        "score": 200.0,
+                        "evalue": 1e-10,
+                    },
+                    {
+                        "name": "Weak",
+                        "acc": "PF00002",
+                        "desc": "Weak hit",
+                        "score": 5.0,
+                        "evalue": 0.05,
+                    },
                 ]
             }
         }
@@ -120,10 +131,20 @@ class TestInterProClientParsing:
         data = {
             "results": {
                 "hits": [
-                    {"name": "Second", "acc": "PF00002", "desc": "B",
-                     "score": 100.0, "evalue": 1e-8},
-                    {"name": "First", "acc": "PF00001", "desc": "A",
-                     "score": 200.0, "evalue": 1e-20},
+                    {
+                        "name": "Second",
+                        "acc": "PF00002",
+                        "desc": "B",
+                        "score": 100.0,
+                        "evalue": 1e-8,
+                    },
+                    {
+                        "name": "First",
+                        "acc": "PF00001",
+                        "desc": "A",
+                        "score": 200.0,
+                        "evalue": 1e-20,
+                    },
                 ]
             }
         }
@@ -142,8 +163,13 @@ class TestInterProClientParsing:
     def test_parse_response_respects_max_hits(self):
         client = InterProClient(max_hits=2)
         hits_data = [
-            {"name": f"Dom{i}", "acc": f"PF0000{i}", "desc": f"Domain {i}",
-             "score": 100.0, "evalue": 10 ** -(i + 5)}
+            {
+                "name": f"Dom{i}",
+                "acc": f"PF0000{i}",
+                "desc": f"Domain {i}",
+                "score": 100.0,
+                "evalue": 10 ** -(i + 5),
+            }
             for i in range(5)
         ]
         data = {"results": {"hits": hits_data}}

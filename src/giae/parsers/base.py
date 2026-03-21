@@ -79,7 +79,7 @@ def detect_format(file_path: Path) -> str:
 
     # Try to detect by content
     try:
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             first_line = f.readline().strip()
 
         if first_line.startswith(">"):

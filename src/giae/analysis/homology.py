@@ -6,16 +6,13 @@ and generate evidence for gene function prediction.
 
 from __future__ import annotations
 
-import json
 import subprocess
 import tempfile
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
 from xml.etree import ElementTree
 
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
 
 
@@ -117,7 +114,7 @@ class HomologyAnalyzer:
         """Check if BLAST+ is available on this system."""
         return self._blast_path is not None
 
-    def search(self, sequence: str, gene_id: str | None = None) -> list[BlastHit]:
+    def search(self, sequence: str, _gene_id: str | None = None) -> list[BlastHit]:
         """
         Search for homologous sequences.
 
@@ -135,25 +132,37 @@ class HomologyAnalyzer:
         if not self.is_available:
             raise BlastNotFoundError()
 
-        # Create temporary files for query and output
-        with tempfile.NamedTemporaryFile(mode="w", suffix=".fasta", delete=False) as query_file:
-            query_file.write(f">query\n{sequence}\n")
-            query_path = Path(query_file.name)
+        query_path: Path | None = None
+        output_path: Path | None = None
 
         try:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".fasta", delete=False) as query_file:
+                query_file.write(f">query\n{sequence}\n")
+                query_path = Path(query_file.name)
+
             with tempfile.NamedTemporaryFile(mode="w", suffix=".xml", delete=False) as out_file:
                 output_path = Path(out_file.name)
 
             # Run BLAST
+            if not self._blast_path:
+                raise BlastNotFoundError()
+
             cmd = [
-                self._blast_path,  # type: ignore
-                "-query", str(query_path),
-                "-db", self.database,
-                "-outfmt", "5",  # XML output
-                "-evalue", str(self.evalue_threshold),
-                "-max_target_seqs", str(self.max_hits),
-                "-num_threads", str(self.num_threads),
-                "-out", str(output_path),
+                str(self._blast_path),
+                "-query",
+                str(query_path),
+                "-db",
+                self.database,
+                "-outfmt",
+                "5",  # XML output
+                "-evalue",
+                str(self.evalue_threshold),
+                "-max_target_seqs",
+                str(self.max_hits),
+                "-num_threads",
+                str(self.num_threads),
+                "-out",
+                str(output_path),
             ]
 
             result = subprocess.run(
@@ -171,8 +180,10 @@ class HomologyAnalyzer:
 
         finally:
             # Cleanup temp files
-            query_path.unlink(missing_ok=True)
-            output_path.unlink(missing_ok=True)
+            if query_path:
+                query_path.unlink(missing_ok=True)
+            if output_path:
+                output_path.unlink(missing_ok=True)
 
     def _parse_blast_xml(self, xml_path: Path) -> list[BlastHit]:
         """Parse BLAST XML output format 5."""
@@ -209,22 +220,24 @@ class HomologyAnalyzer:
                 query_len = query_to - query_from + 1
                 query_coverage = (query_len / align_len * 100) if align_len > 0 else 0
 
-                hits.append(BlastHit(
-                    hit_id=hit_id,
-                    hit_description=hit_def,
-                    hit_accession=hit_accession,
-                    e_value=evalue,
-                    bit_score=bit_score,
-                    identity_percent=round(identity_percent, 1),
-                    query_coverage=round(query_coverage, 1),
-                    alignment_length=align_len,
-                    mismatches=mismatches,
-                    gap_opens=gap_opens,
-                    query_start=query_from,
-                    query_end=query_to,
-                    hit_start=hit_from,
-                    hit_end=hit_to,
-                ))
+                hits.append(
+                    BlastHit(
+                        hit_id=hit_id,
+                        hit_description=hit_def,
+                        hit_accession=hit_accession,
+                        e_value=evalue,
+                        bit_score=bit_score,
+                        identity_percent=round(float(identity_percent), 1),
+                        query_coverage=round(float(query_coverage), 1),
+                        alignment_length=align_len,
+                        mismatches=mismatches,
+                        gap_opens=gap_opens,
+                        query_start=query_from,
+                        query_end=query_to,
+                        hit_start=hit_from,
+                        hit_end=hit_to,
+                    )
+                )
 
         except ElementTree.ParseError as e:
             raise RuntimeError(f"Failed to parse BLAST XML: {e}") from e
@@ -265,9 +278,7 @@ class HomologyAnalyzer:
             evidence = Evidence(
                 evidence_type=EvidenceType.BLAST_HOMOLOGY,
                 gene_id=gene_id,
-                description=(
-                    f"{hit.identity_percent:.0f}% identity to {hit.hit_description[:80]}"
-                ),
+                description=(f"{hit.identity_percent:.0f}% identity to {hit.hit_description[:80]}"),
                 confidence=confidence,
                 raw_data={
                     "hit_id": hit.hit_id,

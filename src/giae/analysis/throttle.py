@@ -13,7 +13,6 @@ import time
 import urllib.error
 import urllib.request
 from http.client import HTTPResponse
-from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -86,13 +85,15 @@ def throttled_urlopen(
                         try:
                             wait = min(float(retry_after), 60.0)
                         except ValueError:
-                            wait = min(2 ** attempt * 2.0, 30.0)
+                            wait = min(2**attempt * 2.0, 30.0)
                     else:
-                        wait = min(2 ** attempt * 2.0, 30.0)
+                        wait = min(2**attempt * 2.0, 30.0)
 
                     logger.warning(
                         "API rate limited (429). Retrying in %.1fs (attempt %d/%d)",
-                        wait, attempt + 1, max_retries,
+                        wait,
+                        attempt + 1,
+                        max_retries,
                     )
                     last_error = e
                     time.sleep(wait)
@@ -101,10 +102,13 @@ def throttled_urlopen(
             except urllib.error.URLError as e:
                 # Network error — retry once with backoff
                 if attempt < max_retries - 1:
-                    wait = min(2 ** attempt * 1.0, 10.0)
+                    wait = min(2**attempt * 1.0, 10.0)
                     logger.debug(
                         "Network error: %s. Retrying in %.1fs (attempt %d/%d)",
-                        e.reason, wait, attempt + 1, max_retries,
+                        e.reason,
+                        wait,
+                        attempt + 1,
+                        max_retries,
                     )
                     last_error = e
                     time.sleep(wait)

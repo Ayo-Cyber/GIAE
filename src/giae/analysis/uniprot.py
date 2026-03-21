@@ -8,14 +8,13 @@ from __future__ import annotations
 
 import json
 import logging
-import urllib.request
 import urllib.parse
-from dataclasses import dataclass, field
-from typing import Any
+import urllib.request
+from dataclasses import dataclass
 
 from giae.analysis.cache import DiskCache
 from giae.analysis.throttle import throttled_urlopen
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)

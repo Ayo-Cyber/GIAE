@@ -5,13 +5,11 @@ Provides structural and functional predictions for "dark matter" proteins
 using deep learning embeddings.
 """
 
-from pathlib import Path
-from typing import List, Any
 import logging
 
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
-from giae.models.gene import Gene
 from giae.engine.plugin import AnalysisPlugin
+from giae.models.evidence import Evidence
+from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)
 
@@ -28,10 +26,11 @@ class EsmPlugin(AnalysisPlugin):
         self._model = None
         self._batch_converter = None
         self._device = None
-        
+
         try:
-            import torch
             import esm
+            import torch
+
             self._available = True
             self._esm = esm
             self._torch = torch
@@ -65,7 +64,7 @@ class EsmPlugin(AnalysisPlugin):
             logger.error(f"Failed to load ESM-2 model: {e}")
             self._available = False
 
-    def scan(self, gene: Gene) -> List[Evidence]:
+    def scan(self, gene: Gene) -> list[Evidence]:
         """Generate functional embeddings and predictions."""
         if not self._available:
             return []
@@ -77,9 +76,9 @@ class EsmPlugin(AnalysisPlugin):
         # But PluginManager runs all. We can filter here or in the PluginManager.
         # Actually, running ESM-2 on everything is expensive.
         # But this is "offline, deep-learning powered".
-        
+
         evidences = []
-        
+
         try:
             # Mock implementation for now as we don't have the 3GB model
             # In a real scenario, this would:
@@ -90,5 +89,5 @@ class EsmPlugin(AnalysisPlugin):
 
         except Exception as e:
             logger.error(f"ESM-2 prediction failed for {gene.id}: {e}")
-        
+
         return evidences

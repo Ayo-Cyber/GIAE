@@ -6,10 +6,9 @@ to Python regex format for use with the motif scanner.
 
 from __future__ import annotations
 
-import re
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator
 
 from giae.analysis.motif import MotifPattern
 
@@ -22,7 +21,7 @@ class PROSITEEntry:
     accession: str
     description: str
     pattern: str  # Original PROSITE notation
-    regex: str    # Converted Python regex
+    regex: str  # Converted Python regex
     skip_flag: bool = False  # High-frequency patterns to skip
     entry_type: str = "PATTERN"  # PATTERN, MATRIX, or RULE
 
@@ -70,7 +69,7 @@ def prosite_to_regex(pattern: str) -> str:
             if i < len(pattern) and pattern[i] == "(":
                 end = pattern.find(")", i)
                 if end != -1:
-                    quantifier = pattern[i + 1:end]
+                    quantifier = pattern[i + 1 : end]
                     if "," in quantifier:
                         # Range: x(2,4) -> .{2,4}
                         result.append(f".{{{quantifier}}}")
@@ -87,7 +86,7 @@ def prosite_to_regex(pattern: str) -> str:
             # Character class [ABC]
             end = pattern.find("]", i)
             if end != -1:
-                char_class = pattern[i:end + 1]
+                char_class = pattern[i : end + 1]
                 result.append(char_class)
                 i = end + 1
             else:
@@ -97,7 +96,7 @@ def prosite_to_regex(pattern: str) -> str:
             # Negated class {ABC} -> [^ABC]
             end = pattern.find("}", i)
             if end != -1:
-                chars = pattern[i + 1:end]
+                chars = pattern[i + 1 : end]
                 result.append(f"[^{chars}]")
                 i = end + 1
             else:
@@ -120,7 +119,7 @@ def prosite_to_regex(pattern: str) -> str:
             if i < len(pattern) and pattern[i] == "(":
                 end = pattern.find(")", i)
                 if end != -1:
-                    quantifier = pattern[i + 1:end]
+                    quantifier = pattern[i + 1 : end]
                     if "," in quantifier:
                         result.append(f"{char}{{{quantifier}}}")
                     else:
@@ -154,7 +153,7 @@ def parse_prosite_file(filepath: Path) -> Iterator[PROSITEEntry]:
     skip_flag = False
     entry_type = "PATTERN"
 
-    with open(filepath, "r", encoding="latin-1") as f:
+    with open(filepath, encoding="latin-1") as f:
         for line in f:
             line = line.rstrip("\n\r")
 
@@ -282,21 +281,27 @@ class PROSITEDatabase:
             weight = 0.85
             if entry.skip_flag:
                 weight = 0.6
-            
+
             # Penalize known noisy patterns
             desc_lower = entry.description.lower()
             if "phosphorylation" in desc_lower or "kinase" in desc_lower:
                 weight = 0.3
-            elif "myristyl" in desc_lower or "glycosylation" in desc_lower or "amidation" in desc_lower:
+            elif (
+                "myristyl" in desc_lower
+                or "glycosylation" in desc_lower
+                or "amidation" in desc_lower
+            ):
                 weight = 0.4
-            
-            patterns.append(MotifPattern(
-                name=entry.id.lower(),
-                pattern=entry.regex,
-                description=entry.description,
-                category=category,
-                confidence_weight=weight,
-            ))
+
+            patterns.append(
+                MotifPattern(
+                    name=entry.id.lower(),
+                    pattern=entry.regex,
+                    description=entry.description,
+                    category=category,
+                    confidence_weight=weight,
+                )
+            )
 
         return patterns
 
@@ -304,15 +309,15 @@ class PROSITEDatabase:
         """Categorize an entry based on its description."""
         desc_lower = entry.description.lower()
 
-        if any(kw in desc_lower for kw in ["phosphorylation", "kinase"]):
+        if (
+            any(kw in desc_lower for kw in ["phosphorylation", "kinase"])
+            or any(kw in desc_lower for kw in ["glycosylation", "glycan"])
+            or any(kw in desc_lower for kw in ["myristyl", "amidation"])
+        ):
             return "modification"
-        elif any(kw in desc_lower for kw in ["glycosylation", "glycan"]):
-            return "modification"
-        elif any(kw in desc_lower for kw in ["myristyl", "amidation"]):
-            return "modification"
-        elif any(kw in desc_lower for kw in ["zinc", "metal", "iron", "copper"]):
-            return "domain"
-        elif any(kw in desc_lower for kw in ["dna", "rna", "nucleic"]):
+        elif any(kw in desc_lower for kw in ["zinc", "metal", "iron", "copper"]) or any(
+            kw in desc_lower for kw in ["dna", "rna", "nucleic"]
+        ):
             return "domain"
         elif any(kw in desc_lower for kw in ["membrane", "transmembrane"]):
             return "topology"

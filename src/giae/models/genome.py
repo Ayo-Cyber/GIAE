@@ -6,14 +6,15 @@ a complete genomic sequence with its annotations.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from uuid import uuid4
 
-from giae.models.gene import Gene
 from giae.models.evidence import Evidence
+from giae.models.gene import Gene
 from giae.models.interpretation import Interpretation
 
 
@@ -122,10 +123,7 @@ class Genome:
 
     def get_genes_in_region(self, start: int, end: int) -> list[Gene]:
         """Get all genes overlapping a genomic region."""
-        return [
-            g for g in self.genes
-            if g.location.start < end and g.location.end > start
-        ]
+        return [g for g in self.genes if g.location.start < end and g.location.end > start]
 
     def iter_genes(self) -> Iterator[Gene]:
         """Iterate over genes in order of genomic position."""

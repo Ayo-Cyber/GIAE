@@ -4,12 +4,13 @@ Database management commands for GIAE.
 Handles downloading and formatting of local databases for plugins.
 """
 
-import click
 import logging
-from pathlib import Path
 import shutil
 import subprocess
 import urllib.request
+from pathlib import Path
+
+import click
 
 logger = logging.getLogger(__name__)
 
@@ -43,30 +44,43 @@ def _setup_blast_db(path: Path, force: bool):
     path.mkdir(parents=True, exist_ok=True)
     db_name = "swissprot"
     target = path / db_name
-    
+
     if (target.parent / (db_name + ".pin")).exists() and not force:
         click.echo(f"BLAST database usage: {target}")
         click.echo("Already installed. Use --force to reinstall.")
         return
 
     click.echo("Downloading E. coli Reference Proteome from UniProt...")
-    
+
     if not shutil.which("makeblastdb"):
         click.echo("Error: 'makeblastdb' not found. Please install NCBI BLAST+.")
         return
 
     # Download a real subset: E. coli K12 reference proteome from UniProt
-    url = "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28proteome%3AUP000000625%29"
+    url = (
+        "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28proteome%3AUP000000625%29"
+    )
     fasta_path = path / "swissprot.fasta"
-    
+
     try:
         urllib.request.urlretrieve(url, fasta_path)
         click.echo(f"Downloaded {fasta_path.stat().st_size / 1024 / 1024:.1f} MB of sequences.")
-        
+
         click.echo("Running makeblastdb...")
         subprocess.run(
-            ["makeblastdb", "-in", str(fasta_path), "-dbtype", "prot", "-out", str(target), "-title", "SwissProt (E. coli ref)"],
-            check=True, capture_output=True
+            [
+                "makeblastdb",
+                "-in",
+                str(fasta_path),
+                "-dbtype",
+                "prot",
+                "-out",
+                str(target),
+                "-title",
+                "SwissProt (E. coli ref)",
+            ],
+            check=True,
+            capture_output=True,
         )
         click.echo(f"Database created at: {target}")
     except Exception as e:
@@ -81,7 +95,7 @@ def _setup_hmmer_db(path: Path, force: bool):
     path.mkdir(parents=True, exist_ok=True)
     db_name = "pfam.hmm"
     target = path / db_name
-    
+
     if target.exists() and not force:
         click.echo(f"HMM database usage: {target}")
         click.echo("Already installed. Use --force to reinstall.")
@@ -98,7 +112,7 @@ def _setup_hmmer_db(path: Path, force: bool):
     # We can't easily fake an HMM file without running hmmbuild on a sequence.
 
 
-def _setup_esm_model(path: Path, force: bool):
+def _setup_esm_model(path: Path, _force: bool):
     """Setup ESM-2 model."""
     path.mkdir(parents=True, exist_ok=True)
     click.echo("ESM-2 models are handled automatically by 'fair-esm' cache.")
@@ -124,6 +138,7 @@ def _setup_prosite_db(path: Path, force: bool):
 
         # Verify the file
         from giae.analysis.prosite import parse_prosite_file
+
         count = sum(1 for _ in parse_prosite_file(target))
         click.echo(f"Verified: {count} patterns available.")
     except Exception as e:

@@ -14,8 +14,8 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from giae.models.genome import Genome
     from giae.engine.interpreter import GenomeInterpretationSummary, InterpretationResult
+    from giae.models.genome import Genome
 
 
 # Suggested experimental approaches keyed by discovery context
@@ -158,8 +158,8 @@ class NoveltyScorer:
 
     def analyze(
         self,
-        genome: "Genome",
-        summary: "GenomeInterpretationSummary",
+        genome: Genome,
+        summary: GenomeInterpretationSummary,
     ) -> NovelGeneReport:
         """
         Identify novel gene candidates from genome interpretation results.
@@ -205,7 +205,7 @@ class NoveltyScorer:
 
     def _evaluate(
         self,
-        result: "InterpretationResult",
+        result: InterpretationResult,
         gene_map: dict,
     ) -> NovelGeneCandidate | None:
         """Evaluate a single interpretation result for novelty."""
@@ -217,9 +217,7 @@ class NoveltyScorer:
         protein_length = self._protein_length(gene)
 
         evidence_count = (
-            result.aggregated_evidence.evidence_count
-            if result.aggregated_evidence
-            else 0
+            result.aggregated_evidence.evidence_count if result.aggregated_evidence else 0
         )
 
         conflict_severity = None
@@ -230,8 +228,7 @@ class NoveltyScorer:
         if evidence_count == 0:
             score = self._dark_matter_score(protein_length)
             experiments = (
-                _EXPERIMENTS["dark_long"] if protein_length > 150
-                else _EXPERIMENTS["dark_short"]
+                _EXPERIMENTS["dark_long"] if protein_length > 150 else _EXPERIMENTS["dark_short"]
             )
             return NovelGeneCandidate(
                 gene_id=result.gene_id,

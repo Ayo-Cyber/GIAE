@@ -82,7 +82,7 @@ class DiskCache:
             return None
 
         key_hash = self.hash_key(key)
-        
+
         try:
             with self._connect() as conn:
                 cursor = conn.execute(
@@ -90,19 +90,19 @@ class DiskCache:
                     (key_hash, namespace),
                 )
                 row = cursor.fetchone()
-                
+
                 if not row:
                     return None
-                
+
                 data_str, timestamp = row
-                
+
                 # Check expiration
                 if time.time() - timestamp > self.ttl_seconds:
                     conn.execute("DELETE FROM api_cache WHERE key = ?", (key_hash,))
                     return None
-                
+
                 return json.loads(data_str)
-                
+
         except (sqlite3.Error, json.JSONDecodeError) as e:
             key_preview = str(key_hash)
             logger.debug("Cache read failed for %s: %s", key_preview[:8], e)
@@ -121,7 +121,7 @@ class DiskCache:
             return
 
         key_hash = self.hash_key(key)
-        
+
         try:
             data_str = json.dumps(data)
             with self._connect() as conn:
@@ -171,5 +171,5 @@ class DiskCache:
                     result[ns] = count
         except sqlite3.Error:
             pass
-            
+
         return result

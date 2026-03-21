@@ -1,7 +1,8 @@
 """Unit tests for the Conflict Resolution Engine."""
 
-from giae.engine.conflict import ConflictResolver, ConflictReport, ConflictSeverity
+from giae.engine.conflict import ConflictResolver, ConflictSeverity
 from giae.engine.hypothesis import FunctionalHypothesis
+
 
 def make_hypothesis(function: str, confidence: float, source_type: str) -> FunctionalHypothesis:
     return FunctionalHypothesis(
@@ -10,17 +11,17 @@ def make_hypothesis(function: str, confidence: float, source_type: str) -> Funct
         source_type=source_type,
         category="unknown",
         supporting_evidence_ids=[],
-        reasoning_steps=[]
+        reasoning_steps=[],
     )
+
 
 def test_no_conflict_single_hypothesis():
     resolver = ConflictResolver()
-    hypotheses = [
-        make_hypothesis("Kinase", 0.9, "combined")
-    ]
+    hypotheses = [make_hypothesis("Kinase", 0.9, "combined")]
     report = resolver.check_conflicts(hypotheses)
     assert report.severity == ConflictSeverity.NONE
     assert report.recommended_action == "none"
+
 
 def test_no_conflict_dominant_hypothesis():
     resolver = ConflictResolver(confidence_threshold=0.1)
@@ -32,6 +33,7 @@ def test_no_conflict_dominant_hypothesis():
     assert report.severity == ConflictSeverity.NONE
     assert "dominant" in report.description
 
+
 def test_low_conflict_similar_functions():
     resolver = ConflictResolver(confidence_threshold=0.1)
     hypotheses = [
@@ -41,6 +43,7 @@ def test_low_conflict_similar_functions():
     report = resolver.check_conflicts(hypotheses)
     assert report.severity == ConflictSeverity.LOW
     assert report.recommended_action == "merge"
+
 
 def test_high_conflict_different_functions():
     resolver = ConflictResolver(confidence_threshold=0.1)

@@ -4,17 +4,15 @@ Local BLAST+ integration.
 Provides high-speed, offline homology search against local databases.
 """
 
-import subprocess
-import shutil
 import logging
-from pathlib import Path
-from typing import List, Any
+import shutil
+import subprocess
 import xml.etree.ElementTree as ET
-from io import StringIO
+from pathlib import Path
 
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
-from giae.models.gene import Gene
 from giae.engine.plugin import AnalysisPlugin
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
+from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)
 
@@ -49,11 +47,11 @@ class BlastLocalPlugin(AnalysisPlugin):
         # We relax the DB check for initialization, but scan checks it.
         return self._available
 
-    def scan(self, gene: Gene) -> List[Evidence]:
+    def scan(self, gene: Gene) -> list[Evidence]:
         """Run blastp locally."""
         if not self._available:
             return []
-            
+
         # Check if DB files exist (extensions .phr, .pin, .psq)
         # Typically checking for .pin is enough proxy
         if not (self.db_path.parent / (self.db_path.name + ".pin")).exists():
@@ -68,55 +66,56 @@ class BlastLocalPlugin(AnalysisPlugin):
             # Run blastp
             cmd = [
                 "blastp",
-                "-query", "-",
-                "-db", str(self.db_path),
-                "-outfmt", "5",  # XML output
-                "-evalue", "1e-5",
-                "-max_target_seqs", "10"
+                "-query",
+                "-",
+                "-db",
+                str(self.db_path),
+                "-outfmt",
+                "5",  # XML output
+                "-evalue",
+                "1e-5",
+                "-max_target_seqs",
+                "10",
             ]
-            
+
             process = subprocess.run(
-                cmd,
-                input=gene.protein.sequence,
-                text=True,
-                capture_output=True,
-                check=True
+                cmd, input=gene.protein.sequence, text=True, capture_output=True, check=True
             )
-            
+
             # Parse XML
             root = ET.fromstring(process.stdout)
-            
+
             for hit in root.findall(".//Hit"):
                 hit_def = hit.find("Hit_def").text
                 hit_id = hit.find("Hit_id").text
                 hsp = hit.find(".//Hsp")
-                
+
                 evalue = float(hsp.find("Hsp_evalue").text)
                 identity = int(hsp.find("Hsp_identity").text)
                 align_len = int(hsp.find("Hsp_align-len").text)
                 identity_pct = identity / align_len
-                
+
                 # Filter weak hits
-                if align_len < 30: # Short alignment
+                if align_len < 30:  # Short alignment
                     continue
 
-                evidences.append(Evidence(
-                    gene_id=gene.id,
-                    evidence_type=EvidenceType.BLAST_HOMOLOGY,
-                    description=hit_def,
-                    confidence=min(identity_pct, 1.0),
-                    raw_data={
-                        "evalue": evalue,
-                        "identity": identity_pct,
-                        "hit_id": hit_id,
-                        "align_len": align_len
-                    },
-                    provenance=EvidenceProvenance(
-                        tool_name="blastp",
-                        tool_version="local",
-                        database=self.db_path.name
+                evidences.append(
+                    Evidence(
+                        gene_id=gene.id,
+                        evidence_type=EvidenceType.BLAST_HOMOLOGY,
+                        description=hit_def,
+                        confidence=min(identity_pct, 1.0),
+                        raw_data={
+                            "evalue": evalue,
+                            "identity": identity_pct,
+                            "hit_id": hit_id,
+                            "align_len": align_len,
+                        },
+                        provenance=EvidenceProvenance(
+                            tool_name="blastp", tool_version="local", database=self.db_path.name
+                        ),
                     )
-                ))
+                )
 
         except subprocess.CalledProcessError as e:
             logger.error(f"BLAST execution failed: {e}")

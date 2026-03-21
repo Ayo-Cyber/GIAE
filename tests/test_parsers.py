@@ -1,12 +1,12 @@
 """Tests for GIAE parsers."""
 
-import pytest
 from pathlib import Path
 
-from giae.parsers import parse_genome, detect_format, ParserError
+import pytest
+
+from giae.parsers import detect_format, parse_genome
 from giae.parsers.fasta import FastaParser
 from giae.parsers.genbank import GenBankParser
-
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 

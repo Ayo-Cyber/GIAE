@@ -9,8 +9,8 @@ from datetime import datetime, timezone
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from giae.models.genome import Genome
     from giae.engine.interpreter import GenomeInterpretationSummary
+    from giae.models.genome import Genome
 
 from giae.output.reasoning import ReasoningEngine
 
@@ -76,7 +76,7 @@ class ReportGenerator:
 | Total Genes | {genome.gene_count} |
 | Source File | {genome.source_file.name} |
 | Format | {genome.file_format.upper()} |
-| Organism | {genome.metadata.organism or 'Unknown'} |"""
+| Organism | {genome.metadata.organism or "Unknown"} |"""
 
     def _summary_section(self, summary: GenomeInterpretationSummary) -> str:
         """Generate summary statistics section."""
@@ -100,12 +100,22 @@ GIAE analyzed **{summary.total_genes} genes** and generated interpretations for 
         lines = ["## Gene Interpretations", ""]
 
         # Group by confidence
-        high_conf = [r for r in summary.results if r.interpretation and
-                     r.interpretation.confidence_level.value == "high"]
-        mod_conf = [r for r in summary.results if r.interpretation and
-                    r.interpretation.confidence_level.value == "moderate"]
-        low_conf = [r for r in summary.results if r.interpretation and
-                    r.interpretation.confidence_level.value in ("low", "speculative")]
+        high_conf = [
+            r
+            for r in summary.results
+            if r.interpretation and r.interpretation.confidence_level.value == "high"
+        ]
+        mod_conf = [
+            r
+            for r in summary.results
+            if r.interpretation and r.interpretation.confidence_level.value == "moderate"
+        ]
+        low_conf = [
+            r
+            for r in summary.results
+            if r.interpretation
+            and r.interpretation.confidence_level.value in ("low", "speculative")
+        ]
 
         if high_conf:
             lines.append("### High Confidence Interpretations")
@@ -173,10 +183,11 @@ GIAE analyzed **{summary.total_genes} genes** and generated interpretations for 
         lines.append("")
         return "\n".join(lines)
 
-    def _conflict_summary_section(self, summary: "GenomeInterpretationSummary") -> str:
+    def _conflict_summary_section(self, summary: GenomeInterpretationSummary) -> str:
         """Generate a section highlighting genes with conflicting evidence."""
         conflicted = [
-            r for r in summary.results
+            r
+            for r in summary.results
             if r.interpretation
             and r.interpretation.metadata.get("conflict_severity") in ("HIGH", "MODERATE")
         ]
@@ -204,7 +215,7 @@ GIAE analyzed **{summary.total_genes} genes** and generated interpretations for 
 
         return "\n".join(lines)
 
-    def _novel_genes_section(self, summary: "GenomeInterpretationSummary") -> str:
+    def _novel_genes_section(self, summary: GenomeInterpretationSummary) -> str:
         """Generate a novel gene discovery section."""
         report = summary.novel_gene_report
         if not report or not report.has_novel_genes:
@@ -217,8 +228,8 @@ GIAE analyzed **{summary.total_genes} genes** and generated interpretations for 
             "functional characterisation. Rather than treating these as failures, "
             "GIAE surfaces them as structured research opportunities.",
             "",
-            f"| Category | Count |",
-            f"|----------|-------|",
+            "| Category | Count |",
+            "|----------|-------|",
             f"| Dark matter (zero evidence) | {report.dark_matter_count} |",
             f"| Poorly characterised (weak signal) | {report.weak_evidence_count} |",
             f"| Ambiguous function (conflicting) | {report.conflict_count} |",

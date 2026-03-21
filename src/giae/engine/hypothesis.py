@@ -8,7 +8,6 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from typing import Any
 
 from giae.engine.aggregator import AggregatedEvidence
 from giae.models.evidence import Evidence, EvidenceType
@@ -18,9 +17,9 @@ from giae.models.evidence import Evidence, EvidenceType
 class FunctionalHypothesis:
     """A hypothesis about gene function."""
 
-    function: str              # e.g., "DNA polymerase III alpha subunit"
-    category: str              # e.g., "replication", "metabolism", "transport"
-    confidence: float          # 0.0 to 1.0
+    function: str  # e.g., "DNA polymerase III alpha subunit"
+    category: str  # e.g., "replication", "metabolism", "transport"
+    confidence: float  # 0.0 to 1.0
     supporting_evidence_ids: list[str]
     reasoning_steps: list[str]
     source_type: str = "aggregated"  # e.g. "BLAST", "Motif", "Combined"
@@ -35,41 +34,111 @@ class FunctionalHypothesis:
 # Keywords that suggest functional categories
 FUNCTION_KEYWORDS: dict[str, list[str]] = {
     "replication": [
-        "polymerase", "helicase", "primase", "ligase", "dna", "replication",
-        "dnaa", "dnab", "dnac", "dnan", "topoisomerase", "gyrase",
+        "polymerase",
+        "helicase",
+        "primase",
+        "ligase",
+        "dna",
+        "replication",
+        "dnaa",
+        "dnab",
+        "dnac",
+        "dnan",
+        "topoisomerase",
+        "gyrase",
     ],
     "transcription": [
-        "rna polymerase", "sigma", "transcription", "rnap", "promoter",
-        "terminator", "elongation", "initiation",
+        "rna polymerase",
+        "sigma",
+        "transcription",
+        "rnap",
+        "promoter",
+        "terminator",
+        "elongation",
+        "initiation",
     ],
     "translation": [
-        "ribosom", "trna", "rrna", "aminoacyl", "synthetase", "elongation factor",
-        "initiation factor", "release factor", "translation",
+        "ribosom",
+        "trna",
+        "rrna",
+        "aminoacyl",
+        "synthetase",
+        "elongation factor",
+        "initiation factor",
+        "release factor",
+        "translation",
     ],
     "metabolism": [
-        "kinase", "phosphatase", "dehydrogenase", "oxidase", "reductase",
-        "synthase", "transferase", "hydrolase", "lyase", "isomerase",
-        "ligase", "atp", "nad", "metabolism", "glycolysis", "oxidation",
+        "kinase",
+        "phosphatase",
+        "dehydrogenase",
+        "oxidase",
+        "reductase",
+        "synthase",
+        "transferase",
+        "hydrolase",
+        "lyase",
+        "isomerase",
+        "ligase",
+        "atp",
+        "nad",
+        "metabolism",
+        "glycolysis",
+        "oxidation",
     ],
     "transport": [
-        "transporter", "permease", "channel", "pump", "abc", "mfs",
-        "import", "export", "efflux", "influx", "membrane",
+        "transporter",
+        "permease",
+        "channel",
+        "pump",
+        "abc",
+        "mfs",
+        "import",
+        "export",
+        "efflux",
+        "influx",
+        "membrane",
     ],
     "regulation": [
-        "regulator", "repressor", "activator", "response", "sensor",
-        "histidine kinase", "two-component", "transcription factor",
+        "regulator",
+        "repressor",
+        "activator",
+        "response",
+        "sensor",
+        "histidine kinase",
+        "two-component",
+        "transcription factor",
     ],
     "cell_structure": [
-        "membrane", "cell wall", "peptidoglycan", "lipopolysaccharide",
-        "flagell", "pili", "fimbri", "capsule",
+        "membrane",
+        "cell wall",
+        "peptidoglycan",
+        "lipopolysaccharide",
+        "flagell",
+        "pili",
+        "fimbri",
+        "capsule",
     ],
     "stress_response": [
-        "chaperone", "heat shock", "cold shock", "oxidative", "stress",
-        "groel", "dnak", "clp", "protease",
+        "chaperone",
+        "heat shock",
+        "cold shock",
+        "oxidative",
+        "stress",
+        "groel",
+        "dnak",
+        "clp",
+        "protease",
     ],
     "modification": [
-        "phosphorylation", "glycosylation", "amidation", "acetylation",
-        "methylation", "ubiquitination", "modification", "target protein",
+        "phosphorylation",
+        "glycosylation",
+        "amidation",
+        "acetylation",
+        "methylation",
+        "ubiquitination",
+        "modification",
+        "target protein",
     ],
     "unknown": [],
 }
@@ -137,7 +206,7 @@ class HypothesisGenerator:
         hypotheses.sort(key=lambda h: h.confidence, reverse=True)
         hypotheses = [h for h in hypotheses if h.confidence >= self.min_confidence]
 
-        return hypotheses[:self.max_hypotheses]
+        return hypotheses[: self.max_hypotheses]
 
     def _hypotheses_from_homology(
         self,
@@ -153,21 +222,23 @@ class HypothesisGenerator:
 
             reasoning = [
                 f"BLAST homology hit: {evidence.description}",
-                f"Sequence identity supports functional similarity",
-                f"E-value indicates statistical significance",
+                "Sequence identity supports functional similarity",
+                "E-value indicates statistical significance",
             ]
 
             keywords = self._extract_keywords(evidence.description)
 
-            hypotheses.append(FunctionalHypothesis(
-                function=function,
-                category=category,
-                confidence=evidence.confidence,
-                supporting_evidence_ids=[evidence.id],
-                reasoning_steps=reasoning,
-                source_type="BLAST",
-                keywords=keywords,
-            ))
+            hypotheses.append(
+                FunctionalHypothesis(
+                    function=function,
+                    category=category,
+                    confidence=evidence.confidence,
+                    supporting_evidence_ids=[evidence.id],
+                    reasoning_steps=reasoning,
+                    source_type="BLAST",
+                    keywords=keywords,
+                )
+            )
 
         return hypotheses
 
@@ -205,15 +276,17 @@ class HypothesisGenerator:
             if domain_name and domain_name not in keywords:
                 keywords.insert(0, domain_name)
 
-            hypotheses.append(FunctionalHypothesis(
-                function=function,
-                category=category,
-                confidence=evidence.confidence,
-                supporting_evidence_ids=[evidence.id],
-                reasoning_steps=reasoning,
-                source_type="DOMAIN",
-                keywords=keywords[:5],
-            ))
+            hypotheses.append(
+                FunctionalHypothesis(
+                    function=function,
+                    category=category,
+                    confidence=evidence.confidence,
+                    supporting_evidence_ids=[evidence.id],
+                    reasoning_steps=reasoning,
+                    source_type="DOMAIN",
+                    keywords=keywords[:5],
+                )
+            )
 
         return hypotheses
 
@@ -227,7 +300,7 @@ class HypothesisGenerator:
 
         # Basic taxonomic heuristic: Assume phage if genome name indicates it
         # For a real system we'd pass organism info down.
-        is_phage = True # Safe assumption for current test cases
+        is_phage = True  # Safe assumption for current test cases
 
         # Eukaryotic motifs that shouldn't appear in phages
         eukaryotic_motifs = {"conotoxin", "egf", "sh2", "sh3", "zinc_finger", "zf-c2h2"}
@@ -245,11 +318,11 @@ class HypothesisGenerator:
             category = self._categorize_function(function)
 
             avg_confidence = sum(e.confidence for e in evidences) / len(evidences)
-            
+
             # Formulate penalizations
             boost_factor = 0.1
             max_confidence = 0.95
-            
+
             # Taxonomic filtering
             if is_phage and any(euk in motif_name.lower() for euk in eukaryotic_motifs):
                 # Heavily penalize eukaryotic motifs in phages
@@ -258,10 +331,12 @@ class HypothesisGenerator:
             elif category == "modification" or avg_confidence < 0.5:
                 # Penalize low-quality motifs (e.g. phosphorylation sites)
                 boost_factor = 0.02  # Minimal boost from count
-                max_confidence = 0.45 # Hard cap
-            
+                max_confidence = 0.45  # Hard cap
+
             # Adjust confidence based on number of supporting motifs
-            adjusted_confidence = min(avg_confidence * (1 + boost_factor * len(evidences)), max_confidence)
+            adjusted_confidence = min(
+                avg_confidence * (1 + boost_factor * len(evidences)), max_confidence
+            )
 
             reasoning = [
                 f"Detected {motif_name} motif pattern",
@@ -269,15 +344,17 @@ class HypothesisGenerator:
                 f"Supported by {len(evidences)} motif match(es)",
             ]
 
-            hypotheses.append(FunctionalHypothesis(
-                function=function,
-                category=category,
-                confidence=adjusted_confidence,
-                supporting_evidence_ids=[e.id for e in evidences],
-                reasoning_steps=reasoning,
-                source_type="MOTIF",
-                keywords=[motif_name],
-            ))
+            hypotheses.append(
+                FunctionalHypothesis(
+                    function=function,
+                    category=category,
+                    confidence=adjusted_confidence,
+                    supporting_evidence_ids=[e.id for e in evidences],
+                    reasoning_steps=reasoning,
+                    source_type="MOTIF",
+                    keywords=[motif_name],
+                )
+            )
 
         return hypotheses
 
@@ -308,17 +385,19 @@ class HypothesisGenerator:
             reasoning = [
                 f"Multiple evidence types point to {category} function",
                 f"Supported by {len(top_evidence)} evidence items",
-                f"Cross-validation increases confidence",
+                "Cross-validation increases confidence",
             ]
 
-            hypotheses.append(FunctionalHypothesis(
-                function=function,
-                category=category,
-                confidence=combined_confidence,
-                supporting_evidence_ids=[e.id for e in top_evidence],
-                reasoning_steps=reasoning,
-                source_type="COMBINED",
-            ))
+            hypotheses.append(
+                FunctionalHypothesis(
+                    function=function,
+                    category=category,
+                    confidence=combined_confidence,
+                    supporting_evidence_ids=[e.id for e in top_evidence],
+                    reasoning_steps=reasoning,
+                    source_type="COMBINED",
+                )
+            )
 
         return hypotheses
 
@@ -330,7 +409,7 @@ class HypothesisGenerator:
             cleaned = cleaned.replace(prefix, "")
 
         # Remove organism names (often in square brackets or at end)
-        cleaned = re.sub(r'\[.*?\]', '', cleaned)
+        cleaned = re.sub(r"\[.*?\]", "", cleaned)
 
         # Take first meaningful part
         parts = cleaned.split(",")
@@ -373,7 +452,7 @@ class HypothesisGenerator:
         keywords = []
         text_lower = text.lower()
 
-        for category, category_keywords in FUNCTION_KEYWORDS.items():
+        for _category, category_keywords in FUNCTION_KEYWORDS.items():
             for keyword in category_keywords:
                 if keyword in text_lower and keyword not in keywords:
                     keywords.append(keyword)
@@ -396,7 +475,7 @@ class HypothesisGenerator:
                 continue
 
             similar_ids = [i]
-            for j, h2 in enumerate(hypotheses[i + 1:], start=i + 1):
+            for j, h2 in enumerate(hypotheses[i + 1 :], start=i + 1):
                 if j in used:
                     continue
                 if self._are_similar(h1, h2):
@@ -415,14 +494,16 @@ class HypothesisGenerator:
                     all_reasoning.extend(h.reasoning_steps)
                     total_confidence += h.confidence
 
-                merged.append(FunctionalHypothesis(
-                    function=h1.function,
-                    category=h1.category,
-                    confidence=min(total_confidence / len(similar_ids) * 1.1, 0.95),
-                    supporting_evidence_ids=list(set(all_evidence_ids)),
-                    reasoning_steps=list(dict.fromkeys(all_reasoning)),  # Dedupe
-                    keywords=h1.keywords,
-                ))
+                merged.append(
+                    FunctionalHypothesis(
+                        function=h1.function,
+                        category=h1.category,
+                        confidence=min(total_confidence / len(similar_ids) * 1.1, 0.95),
+                        supporting_evidence_ids=list(set(all_evidence_ids)),
+                        reasoning_steps=list(dict.fromkeys(all_reasoning)),  # Dedupe
+                        keywords=h1.keywords,
+                    )
+                )
             else:
                 merged.append(h1)
 
@@ -437,7 +518,4 @@ class HypothesisGenerator:
             return True
 
         # Similar function names
-        if h1.function.lower() == h2.function.lower():
-            return True
-
-        return False
+        return h1.function.lower() == h2.function.lower()

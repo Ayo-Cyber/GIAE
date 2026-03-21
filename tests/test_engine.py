@@ -1,19 +1,17 @@
 """Tests for GIAE interpretation engine."""
 
-import pytest
-
 from giae.engine.aggregator import (
+    AggregatedEvidence,
     EvidenceAggregator,
     EvidenceWeights,
-    AggregatedEvidence,
 )
-from giae.engine.hypothesis import HypothesisGenerator, FunctionalHypothesis
-from giae.engine.confidence import ConfidenceScorer, ConfidenceReport, UncertaintySource
-from giae.engine.interpreter import Interpreter, InterpretationResult
+from giae.engine.confidence import ConfidenceReport, ConfidenceScorer, UncertaintySource
+from giae.engine.hypothesis import FunctionalHypothesis, HypothesisGenerator
+from giae.engine.interpreter import InterpretationResult, Interpreter
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene, GeneLocation, Strand
-from giae.models.protein import Protein
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
 from giae.models.interpretation import ConfidenceLevel
+from giae.models.protein import Protein
 
 
 def create_test_gene() -> Gene:
@@ -59,12 +57,8 @@ class TestEvidenceAggregator:
     def test_aggregate_with_evidence(self) -> None:
         """Test aggregating a gene with evidence."""
         gene = create_test_gene()
-        gene.add_evidence(
-            create_test_evidence(gene.id, EvidenceType.BLAST_HOMOLOGY, 0.8)
-        )
-        gene.add_evidence(
-            create_test_evidence(gene.id, EvidenceType.MOTIF_MATCH, 0.6)
-        )
+        gene.add_evidence(create_test_evidence(gene.id, EvidenceType.BLAST_HOMOLOGY, 0.8))
+        gene.add_evidence(create_test_evidence(gene.id, EvidenceType.MOTIF_MATCH, 0.6))
 
         aggregator = EvidenceAggregator()
         result = aggregator.aggregate(gene)
@@ -83,14 +77,10 @@ class TestEvidenceAggregator:
     def test_rank_genes(self) -> None:
         """Test ranking genes by evidence strength."""
         gene1 = create_test_gene()
-        gene1.add_evidence(
-            create_test_evidence(gene1.id, EvidenceType.BLAST_HOMOLOGY, 0.9)
-        )
+        gene1.add_evidence(create_test_evidence(gene1.id, EvidenceType.BLAST_HOMOLOGY, 0.9))
 
         gene2 = create_test_gene()
-        gene2.add_evidence(
-            create_test_evidence(gene2.id, EvidenceType.MOTIF_MATCH, 0.3)
-        )
+        gene2.add_evidence(create_test_evidence(gene2.id, EvidenceType.MOTIF_MATCH, 0.3))
 
         aggregator = EvidenceAggregator()
         ranked = aggregator.rank_genes_by_evidence([gene1, gene2])
@@ -140,10 +130,10 @@ class TestHypothesisGenerator:
         h1 = FunctionalHypothesis("Kinase", "metabolism", 0.5, ["ev1"], ["r1"])
         h2 = FunctionalHypothesis("Kinase XYZ", "metabolism", 0.4, ["ev2"], ["r2"])
         h3 = FunctionalHypothesis("Transporter", "transport", 0.8, ["ev3"], ["r3"])
-        
+
         merged = generator._merge_similar([h1, h2, h3])
         assert len(merged) == 2
-        
+
     def test_combined_evidence(self) -> None:
         """Test generating from multiple evidence types."""
         generator = HypothesisGenerator()
@@ -151,12 +141,16 @@ class TestHypothesisGenerator:
         ev1.description = "DNA polymerase III"
         ev2 = create_test_evidence("g1", EvidenceType.MOTIF_MATCH, 0.8)
         ev2.description = "polymerase domain"
-        
-        aggregated = AggregatedEvidence("g1", {
-            EvidenceType.BLAST_HOMOLOGY: [ev1],
-            EvidenceType.MOTIF_MATCH: [ev2]
-        }, {}, 1.7, 2, 2)
-        
+
+        aggregated = AggregatedEvidence(
+            "g1",
+            {EvidenceType.BLAST_HOMOLOGY: [ev1], EvidenceType.MOTIF_MATCH: [ev2]},
+            {},
+            1.7,
+            2,
+            2,
+        )
+
         hyps = generator._hypotheses_from_combined(aggregated)
         assert len(hyps) > 0
         assert hyps[0].source_type == "COMBINED"
@@ -228,13 +222,13 @@ class TestConfidenceScorer:
         """Test batch scoring and explaining differences."""
         h1 = FunctionalHypothesis("Kinase", "metabolism", 0.9, ["ev1"], ["r1"])
         h2 = FunctionalHypothesis("Phosphatase", "metabolism", 0.4, ["ev2"], ["r2"])
-        
+
         aggregated = AggregatedEvidence("g1", {}, {}, 1.0, 1, 1)
         scorer = ConfidenceScorer()
-        
+
         reports = scorer.score_batch([h1, h2], aggregated)
         assert len(reports) == 2
-        
+
         explanation = scorer.explain_differences(reports)
         assert "Comparison" in explanation
         assert "Hypothesis 1" in explanation
@@ -271,8 +265,9 @@ class TestIntegration:
 
     def test_full_pipeline(self) -> None:
         """Test the complete interpretation pipeline."""
-        from giae.parsers import parse_genome
         from pathlib import Path
+
+        from giae.parsers import parse_genome
 
         # Use test fixture
         fixtures_dir = Path(__file__).parent / "fixtures"

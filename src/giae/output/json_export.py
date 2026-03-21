@@ -7,23 +7,24 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
-    from giae.models.genome import Genome
     from giae.engine.interpreter import GenomeInterpretationSummary
+    from giae.models.evidence import Evidence
+    from giae.models.genome import Genome
 
 
 class GIAEJSONEncoder(json.JSONEncoder):
     """Custom JSON encoder for GIAE objects."""
 
-    def default(self, obj: Any) -> Any:
+    def default(self, obj: object) -> Any:
         if isinstance(obj, datetime):
             return obj.isoformat()
         if hasattr(obj, "to_dict"):
-            return obj.to_dict()
+            return cast(Any, obj).to_dict()
         if hasattr(obj, "value"):  # For enums
-            return obj.value
+            return cast(Any, obj).value
         return super().default(obj)
 
 
@@ -69,7 +70,7 @@ def export_genome_json(
     # Export genes
     genes_data = []
     for gene in genome.genes:
-        gene_data = {
+        gene_data: dict[str, Any] = {
             "id": gene.id,
             "name": gene.name,
             "locus_tag": gene.locus_tag,
@@ -123,7 +124,7 @@ def export_interpretation_json(
     Returns:
         JSON string representation.
     """
-    data = {
+    data: dict[str, Any] = {
         "genome_id": summary.genome_id,
         "genome_name": summary.genome_name,
         "statistics": {
@@ -140,7 +141,7 @@ def export_interpretation_json(
     }
 
     for result in summary.results:
-        result_data = {
+        result_data: dict[str, Any] = {
             "gene_id": result.gene_id,
             "gene_name": result.gene_name,
             "success": result.success,
@@ -175,7 +176,7 @@ def export_interpretation_json(
     return json.dumps(data, indent=indent, cls=GIAEJSONEncoder)
 
 
-def export_evidence_json(evidence_list: list, indent: int = 2) -> str:
+def export_evidence_json(evidence_list: list[Evidence], indent: int = 2) -> str:
     """Export a list of Evidence objects to JSON."""
     return json.dumps(
         [e.to_dict() for e in evidence_list],

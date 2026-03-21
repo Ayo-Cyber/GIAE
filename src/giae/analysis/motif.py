@@ -8,10 +8,8 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
-from typing import Any
 
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
 
 
@@ -155,6 +153,7 @@ class MotifScanner:
             Number of patterns loaded.
         """
         from pathlib import Path
+
         from giae.analysis.prosite import load_prosite_patterns
 
         prosite_patterns = load_prosite_patterns(Path(filepath), include_skip)
@@ -211,14 +210,16 @@ class MotifScanner:
                         score *= 1.1
 
                 if score >= self.min_score:
-                    matches.append(MotifMatch(
-                        motif_name=motif.name,
-                        motif_description=motif.description,
-                        start=match.start(),
-                        end=match.end(),
-                        matched_sequence=matched_seq,
-                        score=min(score, 1.0),
-                    ))
+                    matches.append(
+                        MotifMatch(
+                            motif_name=motif.name,
+                            motif_description=motif.description,
+                            start=match.start(),
+                            end=match.end(),
+                            matched_sequence=matched_seq,
+                            score=min(score, 1.0),
+                        )
+                    )
 
         except re.error:
             # Invalid regex pattern, skip this motif
@@ -281,8 +282,7 @@ class MotifScanner:
                 evidence_type=EvidenceType.MOTIF_MATCH,
                 gene_id=gene_id,
                 description=(
-                    f"Motif match: {match.motif_description} "
-                    f"at positions {match.start}-{match.end}"
+                    f"Motif match: {match.motif_description} at positions {match.start}-{match.end}"
                 ),
                 confidence=match.score,
                 raw_data={
@@ -311,10 +311,7 @@ class MotifScanner:
         Returns:
             List of Evidence objects from motif scanning.
         """
-        if gene.protein:
-            sequence = gene.protein.sequence
-        else:
-            sequence = gene.sequence
+        sequence = gene.protein.sequence if gene.protein else gene.sequence
 
         matches = self.scan(sequence)
         return self.matches_to_evidence(matches, gene.id)
@@ -322,7 +319,7 @@ class MotifScanner:
 
 def get_motif_categories() -> list[str]:
     """Get list of available motif categories."""
-    return list(set(m.category for m in BUILTIN_MOTIFS))
+    return list({m.category for m in BUILTIN_MOTIFS})
 
 
 def describe_motifs() -> dict[str, list[str]]:

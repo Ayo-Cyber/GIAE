@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import json
 import logging
-import urllib.request
 import urllib.parse
-from dataclasses import dataclass, field
+import urllib.request
+from dataclasses import dataclass
 from typing import Any
 
 from giae.analysis.cache import DiskCache
 from giae.analysis.throttle import throttled_urlopen
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)
@@ -28,12 +28,12 @@ EBI_HMMER_URL = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
 class DomainHit:
     """A protein domain hit from a profile HMM database."""
 
-    name: str           # Domain name (e.g. "Pkinase")
-    accession: str      # Database accession (e.g. "PF00069.24")
-    description: str    # Domain description
-    evalue: float       # E-value (lower = more significant)
-    score: float        # Bit score (higher = more significant)
-    database: str       # Source database (e.g. "pfam")
+    name: str  # Domain name (e.g. "Pkinase")
+    accession: str  # Database accession (e.g. "PF00069.24")
+    description: str  # Domain description
+    evalue: float  # E-value (lower = more significant)
+    score: float  # Bit score (higher = more significant)
+    database: str  # Source database (e.g. "pfam")
 
     @property
     def is_significant(self) -> bool:
@@ -110,10 +110,12 @@ class InterProClient:
                 return self._parse_response(cached)
 
         fasta = f">query\n{sequence}"
-        post_data = urllib.parse.urlencode({
-            "seqdb": self.database,
-            "seq": fasta,
-        }).encode("utf-8")
+        post_data = urllib.parse.urlencode(
+            {
+                "seqdb": self.database,
+                "seq": fasta,
+            }
+        ).encode("utf-8")
 
         request = urllib.request.Request(
             EBI_HMMER_URL,

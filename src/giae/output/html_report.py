@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from giae.models.genome import Genome
     from giae.engine.interpreter import GenomeInterpretationSummary
+    from giae.models.genome import Genome
 
 
 class HTMLReportGenerator:
@@ -21,7 +20,7 @@ class HTMLReportGenerator:
     def generate(self, genome: Genome, summary: GenomeInterpretationSummary) -> str:
         """Generate HTML report content."""
         now = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
-        
+
         # Prepare data for JS
         results_data = []
         for res in summary.results:
@@ -31,26 +30,28 @@ class HTMLReportGenerator:
             evidence_count = 0
             reasoning = []
             category = "unknown"
-            
+
             if res.interpretation:
-                interpretation = res.interpretation.functional_label
+                interpretation = res.interpretation.hypothesis
                 confidence = res.interpretation.confidence_level.value
                 confidence_score = res.interpretation.confidence_score
-                evidence_count = len(res.interpretation.evidence_list)
+                evidence_count = len(res.interpretation.supporting_evidence_ids)
                 reasoning = res.interpretation.reasoning_chain
-                category = res.interpretation.category or "unknown"
-            
-            results_data.append({
-                "id": res.gene_id,
-                "name": res.gene_name or res.gene_id,
-                "interpretation": interpretation,
-                "confidence": confidence,
-                "score": round(confidence_score, 2),
-                "evidence_count": evidence_count,
-                "reasoning": reasoning,
-                "category": category,
-                "success": res.success,
-            })
+                category = "unknown"
+
+            results_data.append(
+                {
+                    "id": res.gene_id,
+                    "name": res.gene_name or res.gene_id,
+                    "interpretation": interpretation,
+                    "confidence": confidence,
+                    "score": round(confidence_score, 2),
+                    "evidence_count": evidence_count,
+                    "reasoning": reasoning,
+                    "category": category,
+                    "success": res.success,
+                }
+            )
 
         html_template = f"""<!DOCTYPE html>
 <html lang="en">
@@ -383,10 +384,10 @@ class HTMLReportGenerator:
 
             data.forEach(gene => {{
                 // Filter logic
-                const matchesSearch = gene.id.toLowerCase().includes(search) || 
+                const matchesSearch = gene.id.toLowerCase().includes(search) ||
                                      gene.interpretation.toLowerCase().includes(search) ||
                                      gene.reasoning.some(r => r.toLowerCase().includes(search));
-                
+
                 let matchesFilter = true;
                 if (currentFilter === 'HIGH') matchesFilter = gene.confidence === 'HIGH';
                 else if (currentFilter === 'MODERATE') matchesFilter = gene.confidence === 'MODERATE';
@@ -396,8 +397,8 @@ class HTMLReportGenerator:
                 if (matchesSearch && matchesFilter) {{
                     const row = document.createElement('tr');
                     row.className = 'gene-row';
-                    
-                    const reasoningHtml = gene.reasoning.length > 0 
+
+                    const reasoningHtml = gene.reasoning.length > 0
                         ? `<ul class="reasoning-list">${{gene.reasoning.map(r => `<li>${{r}}</li>`).join('')}}</ul>`
                         : '<span style="color: var(--text-muted); font-style: italic;">No detectable signal</span>';
 

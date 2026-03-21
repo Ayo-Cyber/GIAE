@@ -1,18 +1,17 @@
 """Tests for GIAE data models."""
 
-import pytest
-from datetime import datetime
+from pathlib import Path
 
-from giae.models.evidence import Evidence, EvidenceType, EvidenceProvenance
+import pytest
+
+from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
+from giae.models.gene import Gene, GeneLocation, Strand
+from giae.models.genome import Genome
 from giae.models.interpretation import (
-    Interpretation,
     ConfidenceLevel,
-    CompetingHypothesis,
+    Interpretation,
 )
 from giae.models.protein import Protein
-from giae.models.gene import Gene, GeneLocation, Strand
-from giae.models.genome import Genome, GenomeMetadata
-from pathlib import Path
 
 
 class TestEvidence:
@@ -134,7 +133,7 @@ class TestInterpretation:
         )
         data = original.to_dict()
         restored = Interpretation.from_dict(data)
-        
+
         assert restored.id == original.id
         assert restored.hypothesis == original.hypothesis
         assert restored.confidence_score == original.confidence_score
@@ -142,8 +141,12 @@ class TestInterpretation:
     def test_get_summary(self) -> None:
         """Test getting interpretation summary."""
         interpretation = Interpretation(
-            gene_id="g_1", hypothesis="XYZ", confidence_score=0.5,
-            confidence_level=ConfidenceLevel.MODERATE, supporting_evidence_ids=[], reasoning_chain=["1"]
+            gene_id="g_1",
+            hypothesis="XYZ",
+            confidence_score=0.5,
+            confidence_level=ConfidenceLevel.MODERATE,
+            supporting_evidence_ids=[],
+            reasoning_chain=["1"],
         )
         assert "XYZ" in interpretation.get_summary()
         assert "50%" in interpretation.get_summary()
@@ -196,19 +199,30 @@ class TestGene:
             GeneLocation(start=400, end=100, strand=Strand.FORWARD)
 
     def test_add_evidence_and_interpretation(self) -> None:
-        gene = Gene(name="test", location=GeneLocation(start=1, end=10, strand=Strand.FORWARD), sequence="A"*10)
-        
+        gene = Gene(
+            name="test",
+            location=GeneLocation(start=1, end=10, strand=Strand.FORWARD),
+            sequence="A" * 10,
+        )
+
         ev = Evidence(
-            evidence_type=EvidenceType.MOTIF_MATCH, gene_id=gene.id,
-            description="test", confidence=0.5, raw_data={},
-            provenance=EvidenceProvenance(tool_name="test", tool_version="1.0")
+            evidence_type=EvidenceType.MOTIF_MATCH,
+            gene_id=gene.id,
+            description="test",
+            confidence=0.5,
+            raw_data={},
+            provenance=EvidenceProvenance(tool_name="test", tool_version="1.0"),
         )
         gene.add_evidence(ev)
         assert len(gene.evidence) == 1
-        
+
         interp = Interpretation(
-            gene_id=gene.id, hypothesis="test", confidence_score=0.5,
-            confidence_level=ConfidenceLevel.MODERATE, supporting_evidence_ids=[], reasoning_chain=["1"]
+            gene_id=gene.id,
+            hypothesis="test",
+            confidence_score=0.5,
+            confidence_level=ConfidenceLevel.MODERATE,
+            supporting_evidence_ids=[],
+            reasoning_chain=["1"],
         )
         gene.add_interpretation(interp)
         assert len(gene.interpretations) == 1
@@ -251,8 +265,10 @@ class TestGenome:
             )
 
     def test_add_gene(self) -> None:
-        genome = Genome(name="Test", sequence="A"*100, source_file=Path("test.gb"), file_format="genbank")
-        gene = Gene(name="g1", location=GeneLocation(1, 10, Strand.FORWARD), sequence="A"*10)
+        genome = Genome(
+            name="Test", sequence="A" * 100, source_file=Path("test.gb"), file_format="genbank"
+        )
+        gene = Gene(name="g1", location=GeneLocation(1, 10, Strand.FORWARD), sequence="A" * 10)
         genome.add_gene(gene)
         assert genome.gene_count == 1
         assert len(genome.genes) == 1

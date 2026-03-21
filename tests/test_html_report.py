@@ -1,8 +1,9 @@
-import pytest
 from pathlib import Path
+
+from giae.engine.interpreter import GenomeInterpretationSummary
 from giae.models.genome import Genome
-from giae.engine.interpreter import GenomeInterpretationSummary, InterpretationResult
 from giae.output.html_report import HTMLReportGenerator
+
 
 def test_html_generator_smoke():
     genome = Genome(
@@ -10,7 +11,7 @@ def test_html_generator_smoke():
         name="Test Genome",
         sequence="ATGC",
         source_file=Path("test.fasta"),
-        file_format="fasta"
+        file_format="fasta",
     )
     summary = GenomeInterpretationSummary(
         genome_id="test",
@@ -22,25 +23,22 @@ def test_html_generator_smoke():
         low_confidence_count=0,
         failed_genes=0,
         processing_time_seconds=1.0,
-        results=[]
+        results=[],
     )
-    
+
     generator = HTMLReportGenerator()
     html = generator.generate(genome, summary)
-    
+
     assert "Test Genome" in html
     assert "GIAE Genome Interpretation Report" in html
     assert "Gene Explorer" in html
     assert "<style>" in html
     assert "<script>" in html
 
+
 def test_html_generator_no_results():
     genome = Genome(
-        id="empty",
-        name="Empty",
-        sequence="",
-        source_file=Path("empty.fasta"),
-        file_format="fasta"
+        id="empty", name="Empty", sequence="", source_file=Path("empty.fasta"), file_format="fasta"
     )
     summary = GenomeInterpretationSummary(
         genome_id="empty",
@@ -52,9 +50,9 @@ def test_html_generator_no_results():
         low_confidence_count=0,
         failed_genes=0,
         processing_time_seconds=0.1,
-        results=[]
+        results=[],
     )
-    
+
     generator = HTMLReportGenerator()
     html = generator.generate(genome, summary)
     assert "Empty" in html
