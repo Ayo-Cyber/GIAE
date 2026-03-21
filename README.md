@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/logo.png" alt="GIAE Logo" width="300"/>
+</p>
+
 # GIAE — Genome Interpretation & Annotation Engine
 
 > **Explainability-first genome annotation. Every prediction shows its reasoning.**
