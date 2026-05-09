@@ -140,6 +140,41 @@ FUNCTION_KEYWORDS: dict[str, list[str]] = {
         "modification",
         "target protein",
     ],
+    "phage_structure": [
+        "capsid",
+        "coat protein",
+        "spike protein",
+        "tail",
+        "head",
+        "portal",
+        "baseplate",
+        "fiber",
+        "pilot protein",
+        "major capsid",
+        "minor capsid",
+        "scaffold",
+        "scaffolding",
+        "prohead",
+        "procapsid",
+    ],
+    "phage_lysis": [
+        "lysis",
+        "lysin",
+        "holin",
+        "endolysin",
+        "spanin",
+        "lytic",
+    ],
+    "phage_replication": [
+        "replication initiation",
+        "dna binding protein",
+        "dna pilot",
+        "single-stranded dna binding",
+        "ssdna",
+        "rf replication",
+        "rolling circle",
+        "phage replication",
+    ],
     "unknown": [],
 }
 
@@ -179,25 +214,38 @@ class HypothesisGenerator:
         """
         hypotheses: list[FunctionalHypothesis] = []
 
-        # Strategy 1: Homology-based hypotheses (sequence similarity)
+        # Tier 1 — GenBank annotation (curator-assigned, most authoritative)
+        if EvidenceType.SEQUENCE_FEATURE in aggregated.groups_by_type:
+            hypotheses.extend(self._hypotheses_from_annotations(aggregated))
+
+        # Tier 2 — Homology (BLAST / GenBank product qualifier)
         if aggregated.has_homology:
-            homology_hypotheses = self._hypotheses_from_homology(aggregated)
-            hypotheses.extend(homology_hypotheses)
+            hypotheses.extend(self._hypotheses_from_homology(aggregated))
 
-        # Strategy 1b: Domain-based hypotheses (Pfam/HMM profile hits)
+        # Tier 3 — Domain hits (Pfam/HMMER profile HMMs)
         if EvidenceType.DOMAIN_HIT in aggregated.groups_by_type:
-            domain_hypotheses = self._hypotheses_from_domain_hits(aggregated)
-            hypotheses.extend(domain_hypotheses)
+            hypotheses.extend(self._hypotheses_from_domain_hits(aggregated))
 
-        # Strategy 2: Motif-based hypotheses
+        # Tier 4 — Motifs (PROSITE / builtin patterns).
+        # Motifs are supporting evidence — they should corroborate a higher-tier
+        # hypothesis, not originate one.  We only keep motif-derived hypotheses
+        # when no Tier 1-3 evidence produced anything; even then, confidence is
+        # capped at 0.45 so the result stays in LOW territory.
         if aggregated.has_motifs:
             motif_hypotheses = self._hypotheses_from_motifs(aggregated)
-            hypotheses.extend(motif_hypotheses)
+            if hypotheses:
+                # Higher-tier hypotheses exist — silently discard motif-only
+                # candidates.  The COMBINED step below will still incorporate
+                # motif evidence when type_diversity >= 2.
+                pass
+            else:
+                for h in motif_hypotheses:
+                    h.confidence = min(h.confidence, 0.45)
+                hypotheses.extend(motif_hypotheses)
 
-        # Strategy 3: Combined evidence hypotheses
+        # Combined evidence boost — fires when multiple evidence types agree
         if aggregated.type_diversity >= 2:
-            combined = self._hypotheses_from_combined(aggregated)
-            hypotheses.extend(combined)
+            hypotheses.extend(self._hypotheses_from_combined(aggregated))
 
         # Deduplicate and merge similar hypotheses
         hypotheses = self._merge_similar(hypotheses)
@@ -207,6 +255,55 @@ class HypothesisGenerator:
         hypotheses = [h for h in hypotheses if h.confidence >= self.min_confidence]
 
         return hypotheses[: self.max_hypotheses]
+
+    def _hypotheses_from_annotations(
+        self,
+        aggregated: AggregatedEvidence,
+    ) -> list[FunctionalHypothesis]:
+        """Generate hypotheses directly from GenBank product/function/note annotations.
+
+        These annotations are curated by the submitter or NCBI and are the most
+        authoritative evidence available in an already-annotated GenBank file.
+        """
+        hypotheses = []
+        annotation_evidence = aggregated.groups_by_type.get(EvidenceType.SEQUENCE_FEATURE, [])
+
+        for evidence in annotation_evidence:
+            source = evidence.raw_data.get("source", "")
+            if source not in ("genbank_product", "genbank_function", "genbank_note"):
+                continue
+
+            function = evidence.description
+            if not function:
+                continue
+
+            category = self._categorize_function(function)
+            keywords = self._extract_keywords(function)
+
+            if source == "genbank_product":
+                reasoning = [
+                    f"GenBank product annotation: {function}",
+                    "Curator-assigned product name from the submitted GenBank record",
+                ]
+            else:
+                reasoning = [
+                    f"GenBank annotation: {function}",
+                    "Curator-assigned functional description from the submitted GenBank record",
+                ]
+
+            hypotheses.append(
+                FunctionalHypothesis(
+                    function=function,
+                    category=category,
+                    confidence=evidence.confidence,
+                    supporting_evidence_ids=[evidence.id],
+                    reasoning_steps=reasoning,
+                    source_type="GENBANK",
+                    keywords=keywords,
+                )
+            )
+
+        return hypotheses
 
     def _hypotheses_from_homology(
         self,
@@ -302,8 +399,20 @@ class HypothesisGenerator:
         # For a real system we'd pass organism info down.
         is_phage = True  # Safe assumption for current test cases
 
-        # Eukaryotic motifs that shouldn't appear in phages
-        eukaryotic_motifs = {"conotoxin", "egf", "sh2", "sh3", "zinc_finger", "zf-c2h2"}
+        # Eukaryotic structural/extracellular motifs that are almost always
+        # false positives in phage/bacterial sequences.  PROSITE patterns for
+        # these domains match cysteine-spacing patterns common to many unrelated
+        # prokaryotic proteins.
+        eukaryotic_motifs = {
+            "conotoxin", "egf", "sh2", "sh3", "zinc_finger", "zf-c2h2",
+            "vwfc", "vwfa", "vwfb", "vwfd",      # Von Willebrand Factor domains
+            "tsp1", "thrombospondin",             # thrombospondin type-1 repeats
+            "fn3", "fibronectin",                 # fibronectin type-III
+            "ig", "immunoglobulin",               # Ig-fold domains
+            "lrr", "leucine_rich",                # leucine-rich repeats
+            "ank", "ankyrin",                     # ankyrin repeats
+            "wd40",                               # WD40 repeats
+        }
 
         # Group motifs by what they suggest
         motif_groups: dict[str, list[Evidence]] = {}
@@ -318,6 +427,13 @@ class HypothesisGenerator:
             category = self._categorize_function(function)
 
             avg_confidence = sum(e.confidence for e in evidences) / len(evidences)
+
+            # Suppress unmapped fallback hypotheses ("Protein with X motif") that
+            # rest on only a single hit — these are almost always PROSITE false
+            # positives and add no interpretive value.
+            is_unmapped_fallback = function == f"Protein with {motif_name} motif"
+            if is_unmapped_fallback and len(evidences) < 2:
+                continue
 
             # Formulate penalizations
             boost_factor = 0.1

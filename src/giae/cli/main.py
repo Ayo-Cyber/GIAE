@@ -6,6 +6,7 @@ Provides command-line interface for genome interpretation.
 from __future__ import annotations
 
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -21,6 +22,7 @@ from rich.table import Table
 
 from giae import __version__
 from giae.cli.db import db_cli
+from giae.cli.serve import serve_command, worker_command
 
 console = Console()
 
@@ -95,8 +97,8 @@ def parse(input_file: Path, output_format: str) -> None:
     "--format",
     "-f",
     "output_format",
-    default="report",
-    type=click.Choice(["report", "json", "html"]),
+    default="html",
+    type=click.Choice(["html", "report", "json"]),
     help="Output format",
 )
 @click.option(
@@ -106,11 +108,26 @@ def parse(input_file: Path, output_format: str) -> None:
     type=click.IntRange(1, 16),
     help="Number of parallel workers (default: 1)",
 )
-@click.option("--no-uniprot", is_flag=True, help="Skip UniProt API calls (faster, offline)")
 @click.option(
-    "--no-interpro", is_flag=True, help="Skip InterPro/HMMER domain search (faster, offline)"
+    "--mode",
+    default="online",
+    type=click.Choice(["online", "local", "offline"]),
+    show_default=True,
+    help=(
+        "Evidence mode: 'online' enables UniProt + InterPro APIs; "
+        "'local' uses local BLAST/HMMER only (no network); "
+        "'offline' uses bundled GenBank annotations + PROSITE only."
+    ),
 )
+@click.option("--no-uniprot", is_flag=True, hidden=True, help="Deprecated — use --mode offline")
+@click.option("--no-interpro", is_flag=True, hidden=True, help="Deprecated — use --mode offline")
 @click.option("--no-cache", is_flag=True, help="Disable disk caching of API responses")
+@click.option(
+    "--phage",
+    "phage_mode",
+    is_flag=True,
+    help="Enable phage-aware nested ORF detection (recovers overlapping genes)",
+)
 @click.pass_context
 def interpret(
     ctx: click.Context,
@@ -118,15 +135,18 @@ def interpret(
     output: Path | None,
     output_format: str,
     workers: int,
+    mode: str,
     no_uniprot: bool,
     no_interpro: bool,
     no_cache: bool,
+    phage_mode: bool,
 ) -> None:
     """Interpret a genome and generate functional predictions.
 
     This is the main command that runs the full interpretation pipeline.
     """
-    from giae.engine.interpreter import Interpreter
+    from giae.engine.interpreter import GenomeInterpretationSummary, Interpreter
+    from giae.models.interpretation import ConfidenceLevel
     from giae.parsers import ParserError, parse_genome
 
     verbose = ctx.obj.get("verbose", False) if ctx.obj else False
@@ -141,20 +161,65 @@ def interpret(
         console.print(f"  Genes: {genome.gene_count}")
         console.print()
 
+        # Warn if deprecated flags are used alongside --mode
+        if no_uniprot or no_interpro:
+            console.print(
+                "[yellow]Warning: --no-uniprot / --no-interpro are deprecated. "
+                "Use --mode offline instead.[/yellow]"
+            )
+
+        # Map --mode to plugin flags.  Deprecated --no-* flags override as before.
+        use_uniprot = (mode == "online") and not no_uniprot
+        use_interpro = (mode == "online") and not no_interpro
+        use_local_blast = mode in ("online", "local")
+        use_hmmer = mode in ("online", "local")
+
         # Run interpretation
         interpreter = Interpreter(
-            use_uniprot=not no_uniprot,
-            use_interpro=not no_interpro,
+            use_uniprot=use_uniprot,
+            use_interpro=use_interpro,
+            use_local_blast=use_local_blast,
+            use_hmmer=use_hmmer,
             use_cache=not no_cache,
+            phage_mode=phage_mode,
         )
 
         if verbose:
+            console.print(f"  [dim]Mode: {mode}[/dim]")
             motif_count = len(interpreter.motif_scanner.motifs)
             plugins = interpreter.plugin_manager.active_plugins
             console.print(f"  [dim]Motif patterns: {motif_count}[/dim]")
             if plugins:
                 console.print(f"  [dim]Active plugins: {', '.join(plugins)}[/dim]")
             console.print()
+
+        # Pre-populate ORF predictions so the progress bar has a gene count.
+        # Uses the same density trigger as interpreter.interpret_genome() — when
+        # genome.genes is already populated here, interpret_genome will not re-run
+        # ORF finding (density will be above the 0.3 g/kb threshold).
+        if interpreter.find_orfs:
+            genome_length_kb = len(genome.sequence) / 1000.0
+            gene_density = len(genome.genes) / genome_length_kb if genome_length_kb > 0 else 0
+            needs_orfs = not genome.genes or (genome_length_kb >= 5.0 and gene_density < 0.3)
+            if needs_orfs:
+                with console.status("[bold green]Predicting ORFs..."):
+                    orfs = interpreter.orf_finder.find_orfs(genome.sequence)
+                    orf_genes = interpreter.orf_finder.orfs_to_genes(orfs)
+                    if genome.genes:
+                        existing_spans = [
+                            (g.location.start, g.location.end) for g in genome.genes
+                        ]
+                        orf_genes = [
+                            g for g in orf_genes
+                            if not any(
+                                g.location.start < e_end and g.location.end > e_start
+                                for e_start, e_end in existing_spans
+                            )
+                        ]
+                    for gene in orf_genes:
+                        genome.add_gene(gene)
+                console.print(f"  ORF prediction: {len(genome.genes)} genes")
+                console.print()
 
         # Use per-gene progress bar
         with Progress(
@@ -165,12 +230,6 @@ def interpret(
             TextColumn("[cyan]{task.fields[gene_name]}[/cyan]"),
             console=console,
         ) as progress:
-            # Parse first to get gene count
-            if not genome.genes and genome.file_format == "fasta" and interpreter.find_orfs:
-                orfs = interpreter.orf_finder.find_orfs(genome.sequence)
-                genes = interpreter.orf_finder.orfs_to_genes(orfs)
-                for gene in genes:
-                    genome.add_gene(gene)
 
             task = progress.add_task(
                 "Interpreting genes...",
@@ -199,18 +258,12 @@ def interpret(
                         )
 
                 # Attach interpretations in order
-                from datetime import datetime, timezone
-
-                from giae.models.interpretation import ConfidenceLevel
-
                 start_time = datetime.now(timezone.utc)
                 for gene, result in parallel_results:
                     if result.interpretation:
                         gene.add_interpretation(result.interpretation)
 
                 all_results = [r for _, r in parallel_results]
-                # Build summary manually for parallel case
-                from giae.engine.interpreter import GenomeInterpretationSummary
 
                 high_conf = sum(
                     1
@@ -245,8 +298,6 @@ def interpret(
                 )
             else:
                 # Sequential interpretation with progress updates
-                from giae.models.interpretation import ConfidenceLevel
-
                 start_time = datetime.now(timezone.utc)
                 sequential_results: list[InterpretationResult] = []
                 for gene in genome.genes:
@@ -328,6 +379,9 @@ def interpret(
             if output:
                 output.write_text(html_output)
                 console.print(f"[green]HTML report written to:[/green] {output}")
+                import webbrowser
+
+                webbrowser.open(output.resolve().as_uri())
             else:
                 click.echo(html_output)
         else:
@@ -540,6 +594,8 @@ Processing Time: {summary.processing_time_seconds:.2f}s
 
 
 cli.add_command(db_cli)
+cli.add_command(serve_command)
+cli.add_command(worker_command)
 
 if __name__ == "__main__":
     cli()

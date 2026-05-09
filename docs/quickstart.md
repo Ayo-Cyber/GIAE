@@ -1,149 +1,256 @@
-# Quickstart Guide
+# Quickstart
 
-> **Time to complete:** ~5 minutes | **Skill level:** Beginner
+> **Time to first interpretation:** ~5 minutes &nbsp;·&nbsp; **Skill level:** Beginner
 
-This guide will take you from zero to your first genome annotation. By the end, you will have GIAE installed, have run it on a real genome, and know how to read the results.
+This page gets you from zero to a complete genome annotation, with three
+paths depending on how you want to use GIAE: as a **CLI tool**, as a
+**Python library**, or as a **REST service** in Docker.
 
 ---
 
-## Step 1 — Install GIAE
+## 1. Install GIAE
 
-You need Python 3.9 or newer. Open your terminal and run:
+GIAE needs Python 3.9 or newer.
 
-```bash
-pip install giae
-```
+=== "From PyPI"
+
+    ```bash
+    pip install giae
+    ```
+
+=== "From source"
+
+    ```bash
+    git clone https://github.com/Ayo-Cyber/GIAE.git
+    cd GIAE
+    python -m venv .venv && source .venv/bin/activate
+    pip install -e ".[dev,annotation]"
+    ```
 
 Verify it worked:
 
 ```bash
 giae --version
+# giae, version 0.2.2
 ```
 
-You should see something like:
-
-```
-giae, version 0.3.0
-```
-
-!!! tip "Using a virtual environment?"
-    If you are working inside a project, activate your environment first:
+!!! tip "Optional capabilities are extras"
+    Most pipelines need only the base install. Pull in extras as you
+    need them:
     ```bash
-    python -m venv .venv && source .venv/bin/activate
-    pip install giae
+    pip install "giae[annotation]"   # pyrodigal — ORF prediction on FASTA
+    pip install "giae[hmmer]"        # local Pfam HMMER
+    pip install "giae[ai]"           # ESM-2 protein language model
+    pip install "giae[api]"          # REST API server
     ```
 
 ---
 
-## Step 2 — Get a genome file
+## 2. Get a genome file
 
-GIAE works with **GenBank (`.gb`, `.gbk`)** or **FASTA (`.fa`, `.fasta`)** files.
+GIAE accepts **GenBank** (`.gb`, `.gbk`) or **FASTA** (`.fa`, `.fasta`)
+files.
 
-If you don't have one yet, download a small example — the Lambda phage genome (only 48 kb):
+If you don't have one handy, download Lambda phage from NCBI (48 kb,
+92 genes — small enough to finish in seconds):
 
 ```bash
-# Using curl
-curl -o lambda_phage.gb "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=NC_001416&rettype=gb&retmode=text"
+curl -o lambda_phage.gb \
+  "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=NC_001416&rettype=gb&retmode=text"
 ```
 
-Or grab it directly from [NCBI](https://www.ncbi.nlm.nih.gov/nuccore/NC_001416) → **Send to** → **Complete Record** → **GenBank format**.
+Or, if you cloned the repo, the `case_studies/` directory ships with
+seven reference phage genomes ready to use.
 
 ---
 
-## Step 3 — Run your first annotation
+## 3. Pick your path
 
-```bash
-giae interpret lambda_phage.gb
-```
+=== "🖥️ CLI"
 
-That's it. GIAE will start processing and print progress to your terminal:
+    The fastest way to see GIAE in action.
 
-```
-🔬 GIAE — Genome Interpretation and Annotation Engine
-   Parsing genome: lambda_phage.gb
-   Found 92 genes to interpret...
+    ### Offline mode — no network, ~seconds
 
-   [■■■■■■■■■■■■■■■          ] 68/92 genes (74%)
+    ```bash
+    giae interpret lambda_phage.gb --mode offline
+    ```
 
-✅ Done in 38s — 92 genes interpreted
-   Report saved to: lambda_phage_report.md
-```
+    ```text
+    ✅ Done in 4.2s — 92 genes interpreted
+       45 high confidence · 3 moderate · 0 low · 44 dark matter
+       Report: lambda_phage_report.md
+    ```
 
-!!! note "First run is slower"
-    On first run, GIAE contacts UniProt and InterPro to fetch the latest annotations. Subsequent runs on the same genome are much faster.
+    ### Online mode — UniProt + InterPro, deeper annotations
+
+    ```bash
+    giae interpret lambda_phage.gb --mode online
+    ```
+
+    ### Phage-aware mode — recovers nested overlapping genes
+
+    ```bash
+    giae interpret phiX174.gb --phage
+    ```
+
+    ### Interactive HTML report
+
+    ```bash
+    giae interpret lambda_phage.gb --format html -o lambda.html
+    ```
+
+    Open `lambda.html` in any browser. Every gene is colour-coded by
+    confidence with COG / Pfam / GO badges.
+
+    ### Parallel workers for big genomes
+
+    ```bash
+    giae interpret bacterial_genome.gb --workers 8 --mode local
+    ```
+
+    [Full CLI reference →](cli.md)
+
+=== "🐍 Python library"
+
+    Use GIAE inside your own pipelines.
+
+    ```python
+    from giae.engine.interpreter import Interpreter
+    from giae.parsers.genbank import GenBankParser
+
+    # 1. Parse the genome
+    genome = GenBankParser().parse("lambda_phage.gb")
+
+    # 2. Configure the interpreter
+    interpreter = Interpreter(
+        use_uniprot=False,        # offline mode
+        use_interpro=False,
+        phage_mode=True,          # phage-aware nested-ORF detection
+    )
+
+    # 3. Run interpretation
+    summary = interpreter.interpret_genome(genome)
+
+    print(f"Total: {summary.total_genes} | "
+          f"interpreted: {summary.interpreted_genes} | "
+          f"dark: {summary.novel_gene_report.dark_matter_count}")
+
+    # 4. Inspect individual results
+    for result in summary.results:
+        interp = result.interpretation
+        if not interp:
+            continue
+        print(f"\n{result.gene_id}  ·  {interp.hypothesis}")
+        print(f"  confidence: {interp.confidence_level.value} "
+              f"({interp.confidence_score:.2f})")
+        print(f"  COG: {interp.metadata.get('cog_category')} — "
+              f"{interp.metadata.get('cog_name')}")
+        print(f"  reasoning:")
+        for step in interp.reasoning_chain:
+            print(f"    • {step}")
+    ```
+
+    [Full Python API reference →](python_api.md)
+
+=== "🐳 REST API (Docker)"
+
+    Run GIAE as a service. Same engine, async job queue, multi-user.
+
+    ```bash
+    # 1. One-time setup — generate secrets and write .env
+    cp .env.example .env
+    # then edit .env to fill in JWT_SECRET and NEXTAUTH_SECRET
+    # Generate values with:
+    #   python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+    # 2. Bring up the stack
+    docker compose up -d postgres redis api worker
+
+    # 3. Verify
+    curl http://localhost:8000/api/v1/health
+    # {"status":"ok","message":"GIAE API Engine is fully operational."}
+    ```
+
+    Submit a genome:
+
+    ```bash
+    # Sign up
+    TOKEN=$(curl -sS -X POST http://localhost:8000/api/v1/auth/signup \
+      -H "Content-Type: application/json" \
+      -d '{"email":"you@lab.org","password":"correct-horse-battery"}' \
+      | jq -r .access_token)
+
+    # Submit a job (phage_mode optional)
+    curl -X POST http://localhost:8000/api/v1/jobs \
+      -H "Authorization: Bearer $TOKEN" \
+      -F "file=@lambda_phage.gb" \
+      -F "phage_mode=false"
+
+    # → {"job_id": "abc...", "status": "PENDING", ...}
+
+    # Poll status
+    curl -H "Authorization: Bearer $TOKEN" \
+      http://localhost:8000/api/v1/jobs/abc...
+
+    # When status: "COMPLETED", fetch the report
+    open http://localhost:8000/reports/abc....html
+    ```
+
+    [Full REST API reference →](rest_api.md) ·
+    [Deployment guide →](deployment.md)
 
 ---
 
-## Step 4 — Read the output
+## 4. Reading the output
 
-Open `lambda_phage_report.md` in any text editor or Markdown viewer.
+A typical interpretation block:
 
-Each gene gets a block like this:
-
-```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Gene: cI  |  Locus: J02459_1_45516_46325_F
-Interpretation: Repressor protein CI
-Confidence: HIGH (87%)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```text
+─────────────────────────────────────────────────────────────────
+Gene: cI  ·  λ-phage repressor protein
+Hypothesis:   Lambda phage repressor CI
+Confidence:   HIGH   (0.87)
+COG:          K — Transcription   (source: pfam)
+Pfam:         PF01381 (HTH_3)
+GO:           GO:0003677, GO:0006355
 
 Evidence:
-  ✔ UniProt: 96% identity to P03034 (Lambda repressor CI, E. coli)
-  ✔ Motif: HTH_3 (Helix-Turn-Helix domain) detected
-  ✔ Domain: cl21500 (lambda-phage repressor, N-terminal)
+  [0.94] HMMER     PF01381 (HTH_3, e-value 1.2e-9)
+  [0.96] UniProt   P03034 — Repressor protein CI, λ phage
+  [0.82] PROSITE   PS50943 — Helix-turn-helix DNA-binding domain
 
 Reasoning:
-  "Primary evidence strongly supports assignment as a lambda phage
-   transcriptional repressor. The combination of HTH motif and high
-   UniProt identity leaves little ambiguity."
+  1. Pfam HTH_3 domain hit (e-value 1.2e-9) is diagnostic for
+     transcriptional regulators
+  2. UniProt P03034 is a Swiss-Prot reviewed entry for the same gene
+     in the same organism (96% identity)
+  3. Three independent evidence types converge on the same function
 
-Alternative Hypotheses Considered:
-  - Cro-like repressor (23% confidence) — weaker motif match, rejected
+Uncertainty sources: none
+Competing hypotheses: Cro-like repressor (0.23) — rejected by HTH variant
+─────────────────────────────────────────────────────────────────
 ```
 
-### What the confidence score means
+### Confidence levels
 
-| Score | Label | What it means |
-|-------|-------|---------------|
-| 80–100% | **HIGH** | Multiple independent pieces of evidence agree |
-| 50–79% | **MEDIUM** | Good signal, but some ambiguity remains |
-| 20–49% | **LOW** | Weak or single evidence — treat as hypothesis |
-| <20% | **NOVEL** | No known function found — possible discovery! |
+| Score | Level | Interpretation |
+|---|---|---|
+| ≥ 0.80 | **HIGH** | Multiple independent evidence types converge |
+| 0.50 – 0.79 | **MODERATE** | Some convergence or one strong source |
+| 0.30 – 0.49 | **LOW** | Weak / single signal — treat as a hypothesis |
+| < 0.30 | **SPECULATIVE** | Minimal signal, flagged for review |
+| — | **NONE** | No evidence (dark matter — research priority) |
 
----
-
-## Step 5 — Get the rich HTML report (recommended)
-
-The plain text report is good, but the **HTML report** is where GIAE really shines. It gives you an interactive, colour-coded view of your genome:
-
-```bash
-giae interpret lambda_phage.gb --format html -o lambda_report.html
-```
-
-Open `lambda_report.html` in any browser. You will see:
-
-- 🟢 **Green** genes: HIGH confidence annotations
-- 🟡 **Yellow** genes: MEDIUM confidence — worth a second look
-- 🔴 **Red** genes: LOW confidence or NOVEL — research targets
-- A full reasoning chain for every gene
-- Alternative hypotheses you can explore
+[Full confidence model →](architecture.md#confidence-model)
 
 ---
 
-## Common options
+## 5. What's next?
 
-| Flag | What it does | Example |
-|------|-------------|---------|
-| `-o FILE` | Save output to a specific file | `-o my_results.md` |
-| `--format` | Choose output format (`md`, `json`, `html`) | `--format json` |
-| `--workers N` | Run N genes in parallel (faster on big genomes) | `--workers 4` |
-| `--no-uniprot` | Skip UniProt lookup (offline mode) | `--no-uniprot` |
-| `--no-interpro` | Skip InterPro lookup (offline mode) | `--no-interpro` |
-
----
-
-## Next Steps
-
-- 📖 **[Full Tutorial](tutorials/phage.md)**: Walk through a complete phage genome analysis with expert commentary
-- 🔌 **[API Reference](api.md)**: Use GIAE as a Python library in your own scripts
-- 🗺️ **[Roadmap](roadmap.md)**: See what's coming next
+- **[CLI reference](cli.md)** — every command, every flag
+- **[Python API](python_api.md)** — programmatic use, plugin protocol
+- **[REST API](rest_api.md)** — HTTP surface, auth, jobs
+- **[Architecture](architecture.md)** — evidence flow, scoring math
+- **[Benchmarks](benchmarks.md)** — head-to-head vs Bakta
+- **[Extending GIAE](extending.md)** — write your own plugin

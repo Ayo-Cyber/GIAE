@@ -1,0 +1,685 @@
+{
+  "genome_id": "genome_26b8d29b3693",
+  "genome_name": "NC_001422",
+  "statistics": {
+    "total_genes": 11,
+    "interpreted_genes": 10,
+    "success_rate": 90.91,
+    "high_confidence": 7,
+    "moderate_confidence": 0,
+    "low_confidence": 3,
+    "failed": 0
+  },
+  "processing_time_seconds": 0.002488,
+  "results": [
+    {
+      "gene_id": "gene_8ee546151c7a",
+      "gene_name": "phiX174p06",
+      "success": true,
+      "interpretation": {
+        "id": "int_a148979677ea",
+        "gene_id": "gene_8ee546151c7a",
+        "hypothesis": "major coat protein",
+        "confidence_score": 0.9006666666666667,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_b79e259be3e6",
+          "ev_9c3a9bc2cca5"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: major coat protein",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: major head protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to phage_structure function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447404+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "coat protein"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "major coat protein",
+          "category": "phage_structure",
+          "confidence": 0.8506666666666667,
+          "reasoning": [
+            "GenBank annotation: major coat protein",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: major head protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to phage_structure function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.15
+      }
+    },
+    {
+      "gene_id": "gene_9df63baeb91c",
+      "gene_name": "phiX174p03",
+      "success": true,
+      "interpretation": {
+        "id": "int_5b8de21dd698",
+        "gene_id": "gene_9df63baeb91c",
+        "hypothesis": "capsid morphogenesis",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_35b73677dc1d",
+          "ev_6f0f568c289f"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: capsid morphogenesis",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: head morphogenesis",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to phage_structure function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.446210+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "capsid"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "capsid morphogenesis",
+          "category": "phage_structure",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: capsid morphogenesis",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: head morphogenesis",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to phage_structure function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_235d9d39671f",
+      "gene_name": "phiX174p02",
+      "success": true,
+      "interpretation": {
+        "id": "int_aa12a381981d",
+        "gene_id": "gene_235d9d39671f",
+        "hypothesis": "shut off host DNA synthesis",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c41b376c8dc5",
+          "ev_4b54f24f64f5"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: shut off host DNA synthesis",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: DNA replication initiation",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to replication function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.446030+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "shut off host DNA synthesis",
+          "category": "replication",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: shut off host DNA synthesis",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: DNA replication initiation",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to replication function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_a89c7720559c",
+      "gene_name": "phiX174p09",
+      "success": true,
+      "interpretation": {
+        "id": "int_e9deaa8c1d61",
+        "gene_id": "gene_a89c7720559c",
+        "hypothesis": "Dna condensation",
+        "confidence_score": 0.9960000000000001,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_892b80f5ad2b",
+          "ev_ba69033dd065"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: DNA condensation",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to replication function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "core protein",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447703+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Dna condensation",
+          "category": "replication",
+          "confidence": 0.9460000000000001,
+          "reasoning": [
+            "BLAST homology hit: DNA condensation",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to replication function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        },
+        {
+          "function": "core protein",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: core protein",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.15
+      }
+    },
+    {
+      "gene_id": "gene_17c5c81d8d82",
+      "gene_name": "phiX174p05",
+      "success": true,
+      "interpretation": {
+        "id": "int_5a26b348a895",
+        "gene_id": "gene_17c5c81d8d82",
+        "hypothesis": "Ambiguous interpretation: 'Terminase' vs 'DNA maturation'",
+        "confidence_score": 0.7200000000000001,
+        "confidence_level": "low",
+        "supporting_evidence_ids": [
+          "ev_f3b90261492d"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: terminase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Output flagged: Ambiguous interpretation: 'Terminase' vs 'DNA maturation'"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "DNA maturation",
+            "confidence": 0.8085,
+            "reason_not_preferred": "Lower confidence (81%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation",
+          "conflicting_evidence"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447253+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "HIGH"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Terminase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: terminase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        },
+        {
+          "function": "DNA maturation",
+          "category": "replication",
+          "confidence": 0.8085,
+          "reasoning": [
+            "GenBank annotation: DNA maturation",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "Multiple evidence types point to replication function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.15
+      }
+    },
+    {
+      "gene_id": "gene_121eebcc0b92",
+      "gene_name": "phiX174p01",
+      "success": true,
+      "interpretation": {
+        "id": "int_267346d321f9",
+        "gene_id": "gene_121eebcc0b92",
+        "hypothesis": "Ambiguous interpretation: 'rf replication' vs 'viral strand synthesis'",
+        "confidence_score": 0.8,
+        "confidence_level": "low",
+        "supporting_evidence_ids": [
+          "ev_28f2bde16525",
+          "ev_860cbcc1ec68",
+          "ev_af79e0fb1e4d"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: rf replication",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: DNA replication initiation",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to replication function",
+          "Supported by 3 evidence items",
+          "Cross-validation increases confidence",
+          "Output flagged: Ambiguous interpretation: 'rf replication' vs 'viral strand synthesis'"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "viral strand synthesis",
+            "confidence": 0.8,
+            "reason_not_preferred": "Lower confidence (80%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "no_experimental_validation",
+          "conflicting_evidence"
+        ],
+        "timestamp": "2026-04-19T21:01:18.445943+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "replication",
+            "rf replication"
+          ],
+          "conflict_severity": "HIGH"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "rf replication",
+          "category": "replication",
+          "confidence": 0.8616666666666666,
+          "reasoning": [
+            "GenBank annotation: rf replication",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: DNA replication initiation",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to replication function",
+            "Supported by 3 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        },
+        {
+          "function": "viral strand synthesis",
+          "category": "unknown",
+          "confidence": 0.8,
+          "reasoning": [
+            "GenBank annotation: viral strand synthesis",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 3,
+        "types": 2,
+        "weighted_score": 1.5499999999999998
+      }
+    },
+    {
+      "gene_id": "gene_2ba1e6459f60",
+      "gene_name": "phiX174p07",
+      "success": true,
+      "interpretation": {
+        "id": "int_58782030d2df",
+        "gene_id": "gene_2ba1e6459f60",
+        "hypothesis": "capsid morphogenesis",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_727d741700ed",
+          "ev_bcabe625e6f0"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: capsid morphogenesis",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: head morphogenesis",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to phage_structure function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447494+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "capsid"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "capsid morphogenesis",
+          "category": "phage_structure",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: capsid morphogenesis",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: head morphogenesis",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to phage_structure function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_aa008a8fa95c",
+      "gene_name": "phiX174p08",
+      "success": true,
+      "interpretation": {
+        "id": "int_638404225349",
+        "gene_id": "gene_aa008a8fa95c",
+        "hypothesis": "cell lysis",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_64de4c163cc4",
+          "ev_d6ca673adb47"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: cell lysis",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: endolysin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to phage_lysis function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447604+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "lysis"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "cell lysis",
+          "category": "phage_lysis",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: cell lysis",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: endolysin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to phage_lysis function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_9d16b1dd762b",
+      "gene_name": "phiX174p04",
+      "success": true
+    },
+    {
+      "gene_id": "gene_d1608ba2ed78",
+      "gene_name": "phiX174p10",
+      "success": true,
+      "interpretation": {
+        "id": "int_5be17542dc42",
+        "gene_id": "gene_d1608ba2ed78",
+        "hypothesis": "Major spike protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_73532852fb8e"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: major spike protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447839+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "spike protein"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Major spike protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: major spike protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_a5e442a69786",
+      "gene_name": "phiX174p11",
+      "success": true,
+      "interpretation": {
+        "id": "int_e6652966bbd6",
+        "gene_id": "gene_a5e442a69786",
+        "hypothesis": "Ambiguous interpretation: 'Pilot protein for dna ejection' vs 'adsorption'",
+        "confidence_score": 0.8,
+        "confidence_level": "low",
+        "supporting_evidence_ids": [
+          "ev_f16ae84a9aee",
+          "ev_e47f51edbc99",
+          "ev_de9e17fbc8c9"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: pilot protein for DNA ejection",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to replication function",
+          "Supported by 3 evidence items",
+          "Cross-validation increases confidence",
+          "Output flagged: Ambiguous interpretation: 'Pilot protein for dna ejection' vs 'adsorption'"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "adsorption",
+            "confidence": 0.8,
+            "reason_not_preferred": "Lower confidence (80%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "minor spike protein",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "no_experimental_validation",
+          "conflicting_evidence"
+        ],
+        "timestamp": "2026-04-19T21:01:18.447952+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna",
+            "pilot protein"
+          ],
+          "conflict_severity": "HIGH"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Pilot protein for dna ejection",
+          "category": "replication",
+          "confidence": 0.95,
+          "reasoning": [
+            "BLAST homology hit: pilot protein for DNA ejection",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to replication function",
+            "Supported by 3 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        },
+        {
+          "function": "adsorption",
+          "category": "unknown",
+          "confidence": 0.8,
+          "reasoning": [
+            "GenBank annotation: adsorption",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        },
+        {
+          "function": "minor spike protein",
+          "category": "phage_structure",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: minor spike protein",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 3,
+        "types": 2,
+        "weighted_score": 1.5499999999999998
+      }
+    }
+  ]
+}

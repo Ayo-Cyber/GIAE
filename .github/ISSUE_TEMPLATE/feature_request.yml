@@ -1,0 +1,92 @@
+name: ✨ Feature Request
+description: Propose a new capability for GIAE
+title: "[feat] "
+labels: ["enhancement", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the proposal! GIAE has a strong opinion about scope — we'd rather chat
+        upstream than reject downstream. The clearer the use case, the faster we can
+        decide whether something belongs in core, as a plugin, or somewhere else.
+
+        Before opening, please skim the [roadmap](../../docs/roadmap.md) — your idea
+        might already be on it.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      description: |
+        Please describe the actual biology / engineering scenario, not just a feature label.
+        "Add Foldseek support" is less useful than "PhiX174 has zero sequence-based hits
+        because its proteins are structurally unique. We need a way to assign function
+        from 3D structure when sequence fails."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: |
+        How would the feature look? Sketch a CLI invocation, an API call, or an
+        Interpretation field. Imagined output is fine.
+      placeholder: |
+        $ giae interpret phiX174.gb --foldseek --afdb ~/.giae/afdb
+        ...
+        Gene: F  ·  Major capsid protein
+        Confidence: HIGH (0.81)
+        Evidence:
+          [0.81] Foldseek  AF-P69415  90.2% structural similarity
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Where should this live?
+      description: We try to keep core small. Plugins are the right home for most new evidence types.
+      options:
+        - Core (must-have for everyone)
+        - Plugin (optional evidence source)
+        - Companion tool / separate repo
+        - Documentation only
+        - Not sure — please advise
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing tools, workarounds, or approaches you've ruled out.
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Who benefits?
+      description: |
+        e.g. "Anyone annotating compact phages." Or "Labs running large bacterial
+        genomes who currently rely on Bakta + manual review."
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Are you offering to help build this?
+      options:
+        - label: I can prototype this myself if it's accepted
+        - label: I can contribute tests and docs
+        - label: I can provide benchmark genomes or test data
+        - label: I'm requesting only — no contribution available
+
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: Final checks
+      options:
+        - label: I searched existing issues and the roadmap, and didn't find a duplicate
+          required: true
+        - label: I agree to follow the [Code of Conduct](../../CODE_OF_CONDUCT.md)
+          required: true

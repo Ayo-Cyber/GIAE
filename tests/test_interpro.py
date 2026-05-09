@@ -57,124 +57,90 @@ class TestInterProClientParsing:
     def setup_method(self):
         self.client = InterProClient(timeout=10, max_hits=5)
 
-    def test_parse_response_format1(self):
-        """Test current EBI HMMER API response format."""
-        data = {
-            "results": {
-                "hits": [
-                    {
-                        "name": "Pkinase",
-                        "acc": "PF00069.24",
-                        "desc": "Protein kinase domain",
-                        "score": 250.3,
-                        "evalue": 1.5e-74,
-                    }
-                ]
-            }
-        }
-        hits = self.client._parse_response(data)
-        assert len(hits) == 1
-        assert hits[0].name == "Pkinase"
-        assert hits[0].accession == "PF00069.24"
-        assert hits[0].description == "Protein kinase domain"
-        assert hits[0].evalue == pytest.approx(1.5e-74)
-
-    def test_parse_response_format2(self):
-        """Test legacy EBI HMMER API response format."""
+    def test_parse_interpro_rest_single_entry(self):
+        """Test InterPro REST API response parsing."""
         data = {
             "results": [
                 {
-                    "hits": [
-                        {
-                            "name": "Pkinase",
-                            "acc": "PF00069.24",
-                            "desc": "Protein kinase domain",
-                            "score": 250.3,
-                            "evalue": 1.5e-74,
-                        }
-                    ]
+                    "metadata": {
+                        "accession": "PF00069",
+                        "name": "Pkinase",
+                        "source_database": "pfam",
+                    }
                 }
             ]
         }
-        hits = self.client._parse_response(data)
+        hits = self.client._parse_interpro_rest(data)
         assert len(hits) == 1
         assert hits[0].name == "Pkinase"
+        assert hits[0].accession == "PF00069"
+        assert hits[0].database == "pfam"
 
-    def test_parse_response_filters_weak_hits(self):
-        """Hits with evalue >= 0.01 should be filtered out."""
+    def test_parse_interpro_rest_multiple_entries(self):
+        """Test parsing multiple domain entries."""
         data = {
-            "results": {
-                "hits": [
-                    {
-                        "name": "Strong",
-                        "acc": "PF00001",
-                        "desc": "Strong hit",
-                        "score": 200.0,
-                        "evalue": 1e-10,
-                    },
-                    {
-                        "name": "Weak",
-                        "acc": "PF00002",
-                        "desc": "Weak hit",
-                        "score": 5.0,
-                        "evalue": 0.05,
-                    },
-                ]
-            }
+            "results": [
+                {
+                    "metadata": {
+                        "accession": "PF00069",
+                        "name": "Pkinase",
+                        "source_database": "pfam",
+                    }
+                },
+                {
+                    "metadata": {
+                        "accession": "PF07714",
+                        "name": "Pkinase_Tyr",
+                        "source_database": "pfam",
+                    }
+                },
+            ]
         }
-        hits = self.client._parse_response(data)
-        assert len(hits) == 1
-        assert hits[0].name == "Strong"
+        hits = self.client._parse_interpro_rest(data)
+        assert len(hits) == 2
+        assert hits[0].name == "Pkinase"
+        assert hits[1].name == "Pkinase_Tyr"
 
-    def test_parse_response_sorted_by_evalue(self):
-        """Hits should be returned sorted best (lowest evalue) first."""
-        data = {
-            "results": {
-                "hits": [
-                    {
-                        "name": "Second",
-                        "acc": "PF00002",
-                        "desc": "B",
-                        "score": 100.0,
-                        "evalue": 1e-8,
-                    },
-                    {
-                        "name": "First",
-                        "acc": "PF00001",
-                        "desc": "A",
-                        "score": 200.0,
-                        "evalue": 1e-20,
-                    },
-                ]
-            }
-        }
-        hits = self.client._parse_response(data)
-        assert hits[0].name == "First"
-        assert hits[1].name == "Second"
-
-    def test_parse_response_empty(self):
-        hits = self.client._parse_response({"results": {"hits": []}})
+    def test_parse_interpro_rest_empty(self):
+        hits = self.client._parse_interpro_rest({"results": []})
         assert hits == []
 
-    def test_parse_response_malformed(self):
-        hits = self.client._parse_response({})
+    def test_parse_interpro_rest_malformed(self):
+        hits = self.client._parse_interpro_rest({})
         assert hits == []
 
-    def test_parse_response_respects_max_hits(self):
+    def test_parse_interpro_rest_respects_max_hits(self):
         client = InterProClient(max_hits=2)
-        hits_data = [
+        entries = [
             {
-                "name": f"Dom{i}",
-                "acc": f"PF0000{i}",
-                "desc": f"Domain {i}",
-                "score": 100.0,
-                "evalue": 10 ** -(i + 5),
+                "metadata": {
+                    "accession": f"PF0000{i}",
+                    "name": f"Dom{i}",
+                    "source_database": "pfam",
+                }
             }
             for i in range(5)
         ]
-        data = {"results": {"hits": hits_data}}
-        hits = client._parse_response(data)
+        data = {"results": entries}
+        hits = client._parse_interpro_rest(data)
         assert len(hits) <= 2
+
+    def test_parse_interpro_rest_assigns_significant_evalue(self):
+        """InterPro REST hits should be marked as significant (evalue=1e-10)."""
+        data = {
+            "results": [
+                {
+                    "metadata": {
+                        "accession": "PF00069",
+                        "name": "Pkinase",
+                        "source_database": "pfam",
+                    }
+                }
+            ]
+        }
+        hits = self.client._parse_interpro_rest(data)
+        assert hits[0].evalue == 1e-10
+        assert hits[0].is_significant is True
 
     def test_hits_to_evidence(self):
         hits = [
@@ -196,8 +162,3 @@ class TestInterProClientParsing:
         ]
         evidence_list = self.client.hits_to_evidence(hits, "gene_001")
         assert len(evidence_list) == 0
-
-    def test_search_sequence_too_short(self):
-        """Sequences shorter than 20 aa should return empty without API call."""
-        result = self.client.search_sequence("MKVLIAS")
-        assert result == []

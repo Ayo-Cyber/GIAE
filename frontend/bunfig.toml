@@ -1,0 +1,7 @@
+[install]
+# Use Bun's lockfile (bun.lockb) — never generate package-lock.json or yarn.lock
+saveTextLockfile = false
+
+[install.cache]
+# Reuse cached packages across projects
+dir = "/Users/atunraseayomide/.bun/install/cache"

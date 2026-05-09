@@ -1,0 +1,121 @@
+name: 🐛 Bug Report
+description: Report a reproducible problem in GIAE
+title: "[bug] "
+labels: ["bug", "needs-triage"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! A reproducer is the single most useful
+        thing you can give us — it makes the difference between "fixed today" and "tabled".
+
+        Before opening, please:
+        - Check existing [issues](https://github.com/Ayo-Cyber/GIAE/issues) — yours might already exist.
+        - Try the latest release: `pip install -U giae`.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the problem.
+      placeholder: |
+        e.g. `giae interpret X.gb` crashes with KeyError when the GenBank file has a
+        CDS feature missing a /product qualifier.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: GIAE should treat the missing qualifier as an empty string and continue.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Reproducer
+      description: |
+        The exact commands and (if possible) a minimal genome file that triggers the bug.
+        For very small files, paste the contents inline. For larger ones, link to a gist.
+      render: shell
+      placeholder: |
+        $ giae interpret tests/fixtures/edge_case.gb --mode offline
+        Traceback (most recent call last):
+          File ".../giae/parsers/genbank.py", line 142, in _read_features
+            ...
+        KeyError: 'product'
+    validations:
+      required: true
+
+  - type: input
+    id: giae-version
+    attributes:
+      label: GIAE version
+      description: Output of `giae --version`
+      placeholder: "giae, version 0.2.2"
+    validations:
+      required: true
+
+  - type: input
+    id: python-version
+    attributes:
+      label: Python version
+      placeholder: "3.10.13"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Linux (x86_64)
+        - Linux (aarch64 / arm64)
+        - Windows / WSL
+        - Other (please describe in "Additional context")
+    validations:
+      required: true
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Which surface is affected?
+      options:
+        - CLI (`giae interpret`)
+        - Python library
+        - REST API (`giae serve`)
+        - Worker (`giae worker`)
+        - Docker / docker-compose
+        - Documentation
+        - Tests / CI
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Run with `giae --debug` for full output if it helps.
+      render: shell
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Anything else — screenshots, related issues, what you've tried.
+
+  - type: checkboxes
+    id: agreements
+    attributes:
+      label: Final checks
+      options:
+        - label: I searched existing issues and didn't find a duplicate
+          required: true
+        - label: I am using a supported version (0.2.x)
+          required: true
+        - label: I agree to follow the [Code of Conduct](../../CODE_OF_CONDUCT.md)
+          required: true

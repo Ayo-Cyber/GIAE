@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIAE Interpretation Report - NC_001422</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0d9488;
+            --primary-hover: #0f766e;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --high-conf: #10b981;
+            --mod-conf: #f59e0b;
+            --low-conf: #ef4444;
+            --spec-conf: #8b5cf6;
+            --dark-matter: #475569;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --card-bg: #1e293b;
+                --text: #f1f5f9;
+                --text-muted: #94a3b8;
+                --border: #334155;
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding-bottom: 40px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #134e4a 0%, #0d9488 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 40px 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .search-bar {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 9999px;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .gene-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border);
+        }
+
+        .gene-table th {
+            background: var(--bg);
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .gene-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .gene-row:hover {
+            background: rgba(13, 148, 136, 0.05);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .badge-HIGH { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .badge-MODERATE { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .badge-LOW { background: rgba(239, 68, 68, 0.15); color: #dc2626; }
+        .badge-SPECULATIVE { background: rgba(139, 92, 246, 0.15); color: #7c3aed; }
+        .badge-NONE { background: rgba(71, 85, 105, 0.15); color: #475569; }
+
+        .reasoning-list {
+            margin-top: 8px;
+            padding-left: 20px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .evidence-tag {
+            display: inline-block;
+            margin-right: 4px;
+            background: var(--bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        footer {
+            margin-top: 60px;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .glass-card {
+            backdrop-filter: blur(8px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .glass-card {
+                background: rgba(30, 41, 59, 0.8);
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-card, .gene-table, .search-bar {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>NC_001422</h1>
+            <p style="opacity: 0.8; margin-top: 8px;">GIAE Genome Interpretation Report</p>
+            <div style="margin-top: 20px; font-size: 0.875rem; opacity: 0.7;">
+                Generated on 2026-04-19 21:01:18 UTC • Version gene_8ee546151c7a
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="dashboard">
+            <div class="stat-card">
+                <div class="stat-value">11</div>
+                <div class="stat-label">Total Genes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">90.9%</div>
+                <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--high-conf)">7</div>
+                <div class="stat-label">High Confidence</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: var(--dark-matter)">1</div>
+                <div class="stat-label">Dark Matter</div>
+            </div>
+        </div>
+
+        <div class="section-title">Gene Explorer</div>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search by gene ID, product, or evidence..." onkeyup="filterTable()">
+            <div class="controls">
+                <button class="filter-btn active" onclick="setFilter('ALL', this)">All</button>
+                <button class="filter-btn" onclick="setFilter('HIGH', this)">High</button>
+                <button class="filter-btn" onclick="setFilter('MODERATE', this)">Moderate</button>
+                <button class="filter-btn" onclick="setFilter('LOW', this)">Low/Spec</button>
+                <button class="filter-btn" onclick="setFilter('DARK', this)">Dark Matter</button>
+            </div>
+        </div>
+
+        <table class="gene-table" id="geneTable">
+            <thead>
+                <tr>
+                    <th style="width: 15%">Locus / ID</th>
+                    <th style="width: 35%">Interpretation</th>
+                    <th style="width: 15%">Confidence</th>
+                    <th style="width: 35%">Reasoning Chain</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Populated by JS -->
+            </tbody>
+        </table>
+
+        <footer>
+            <p>Generated by <strong>GIAE</strong> — Genome Interpretation & Annotation Engine</p>
+            <p style="margin-top: 8px;">© 2026 GIAE Contributors • <a href="https://github.com/Ayo-Cyber/GIAE" style="color: var(--primary); text-decoration: none;">GitHub</a></p>
+        </footer>
+    </div>
+
+    <script>
+        const data = [{"id": "gene_8ee546151c7a", "name": "phiX174p06", "interpretation": "major coat protein", "confidence": "HIGH", "score": 0.9, "evidence_count": 2, "reasoning": ["GenBank annotation: major coat protein", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: major head protein", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to phage_structure function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_9df63baeb91c", "name": "phiX174p03", "interpretation": "capsid morphogenesis", "confidence": "HIGH", "score": 1.0, "evidence_count": 2, "reasoning": ["GenBank annotation: capsid morphogenesis", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: head morphogenesis", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to phage_structure function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_235d9d39671f", "name": "phiX174p02", "interpretation": "shut off host DNA synthesis", "confidence": "HIGH", "score": 1.0, "evidence_count": 2, "reasoning": ["GenBank annotation: shut off host DNA synthesis", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: DNA replication initiation", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to replication function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_a89c7720559c", "name": "phiX174p09", "interpretation": "Dna condensation", "confidence": "HIGH", "score": 1.0, "evidence_count": 2, "reasoning": ["BLAST homology hit: DNA condensation", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to replication function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_17c5c81d8d82", "name": "phiX174p05", "interpretation": "Ambiguous interpretation: 'Terminase' vs 'DNA maturation'", "confidence": "LOW", "score": 0.72, "evidence_count": 1, "reasoning": ["BLAST homology hit: terminase", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Output flagged: Ambiguous interpretation: 'Terminase' vs 'DNA maturation'"], "category": "unknown", "success": true}, {"id": "gene_121eebcc0b92", "name": "phiX174p01", "interpretation": "Ambiguous interpretation: 'rf replication' vs 'viral strand synthesis'", "confidence": "LOW", "score": 0.8, "evidence_count": 3, "reasoning": ["GenBank annotation: rf replication", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: DNA replication initiation", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to replication function", "Supported by 3 evidence items", "Cross-validation increases confidence", "Output flagged: Ambiguous interpretation: 'rf replication' vs 'viral strand synthesis'"], "category": "unknown", "success": true}, {"id": "gene_2ba1e6459f60", "name": "phiX174p07", "interpretation": "capsid morphogenesis", "confidence": "HIGH", "score": 1.0, "evidence_count": 2, "reasoning": ["GenBank annotation: capsid morphogenesis", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: head morphogenesis", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to phage_structure function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_aa008a8fa95c", "name": "phiX174p08", "interpretation": "cell lysis", "confidence": "HIGH", "score": 1.0, "evidence_count": 2, "reasoning": ["GenBank annotation: cell lysis", "Curator-assigned functional description from the submitted GenBank record", "BLAST homology hit: endolysin", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to phage_lysis function", "Supported by 2 evidence items", "Cross-validation increases confidence"], "category": "unknown", "success": true}, {"id": "gene_9d16b1dd762b", "name": "phiX174p04", "interpretation": "", "confidence": "NONE", "score": 0.0, "evidence_count": 0, "reasoning": [], "category": "unknown", "success": true}, {"id": "gene_d1608ba2ed78", "name": "phiX174p10", "interpretation": "Major spike protein", "confidence": "HIGH", "score": 0.8, "evidence_count": 1, "reasoning": ["BLAST homology hit: major spike protein", "Sequence identity supports functional similarity", "E-value indicates statistical significance"], "category": "unknown", "success": true}, {"id": "gene_a5e442a69786", "name": "phiX174p11", "interpretation": "Ambiguous interpretation: 'Pilot protein for dna ejection' vs 'adsorption'", "confidence": "LOW", "score": 0.8, "evidence_count": 3, "reasoning": ["BLAST homology hit: pilot protein for DNA ejection", "Sequence identity supports functional similarity", "E-value indicates statistical significance", "Multiple evidence types point to replication function", "Supported by 3 evidence items", "Cross-validation increases confidence", "Output flagged: Ambiguous interpretation: 'Pilot protein for dna ejection' vs 'adsorption'"], "category": "unknown", "success": true}];
+        let currentFilter = 'ALL';
+
+        function renderTable() {
+            const tbody = document.querySelector('#geneTable tbody');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            tbody.innerHTML = '';
+
+            data.forEach(gene => {
+                // Filter logic
+                const matchesSearch = gene.id.toLowerCase().includes(search) ||
+                                     gene.interpretation.toLowerCase().includes(search) ||
+                                     gene.reasoning.some(r => r.toLowerCase().includes(search));
+
+                let matchesFilter = true;
+                if (currentFilter === 'HIGH') matchesFilter = gene.confidence === 'HIGH';
+                else if (currentFilter === 'MODERATE') matchesFilter = gene.confidence === 'MODERATE';
+                else if (currentFilter === 'LOW') matchesFilter = gene.confidence === 'LOW' || gene.confidence === 'SPECULATIVE';
+                else if (currentFilter === 'DARK') matchesFilter = gene.confidence === 'NONE';
+
+                if (matchesSearch && matchesFilter) {
+                    const row = document.createElement('tr');
+                    row.className = 'gene-row';
+
+                    const reasoningHtml = gene.reasoning.length > 0
+                        ? `<ul class="reasoning-list">${gene.reasoning.map(r => `<li>${r}</li>`).join('')}</ul>`
+                        : '<span style="color: var(--text-muted); font-style: italic;">No detectable signal</span>';
+
+                    row.innerHTML = `
+                        <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${gene.name}</td>
+                        <td>
+                            <div style="font-weight: 600;">${gene.interpretation || 'hypothetical protein'}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Category: ${gene.category}</div>
+                        </td>
+                        <td>
+                            <span class="badge badge-${gene.confidence}">${gene.confidence}</span>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Score: ${gene.score}</div>
+                        </td>
+                        <td>${reasoningHtml}</td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            });
+        }
+
+        function filterTable() {
+            renderTable();
+        }
+
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTable();
+        }
+
+        // Initial render
+        renderTable();
+    </script>
+</body>
+</html>

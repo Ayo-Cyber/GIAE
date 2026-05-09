@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "giae"
-version = "0.2.0"
+version = "0.2.2"
 description = "Genome Interpretation & Annotation Engine - An Explainable, Evidence-Centric Framework for Genomic Interpretation"
 readme = "README.md"
 license = "MIT"
@@ -47,12 +47,27 @@ dev = [
     "mypy>=1.8.0",
     "ruff>=0.2.0",
 ]
+annotation = [
+    "pyrodigal>=3.0",
+]
 hmmer = [
     "pyhmmer>=0.10.0",
 ]
 ai = [
     "fair-esm>=2.0.0",
     "torch>=2.0.0",
+]
+api = [
+    "fastapi[standard]>=0.100.0",
+    "celery>=5.3.0",
+    "redis>=5.0.0",
+    "sqlalchemy>=2.0.0",
+    "python-multipart>=0.0.6",
+    "psycopg2-binary>=2.9.9",
+    "passlib[bcrypt]>=1.7.4",
+    "bcrypt<4.0",
+    "python-jose[cryptography]>=3.3.0",
+    "email-validator>=2.0.0",
 ]
 
 [project.scripts]

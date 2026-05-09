@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discussion / question
+    url: https://github.com/Ayo-Cyber/GIAE/discussions
+    about: Got a question, an idea you want to explore, or feedback that isn't a bug or a request? Start a discussion.
+  - name: 📖 Documentation
+    url: https://Ayo-Cyber.github.io/GIAE/
+    about: Read the full GIAE documentation site.
+  - name: 🛠️ Contributing
+    url: https://github.com/Ayo-Cyber/GIAE/blob/main/CONTRIBUTING.md
+    about: Setup, coding standards, and how to open a great PR.
+  - name: 🔒 Security disclosure
+    url: https://github.com/Ayo-Cyber/GIAE/security/advisories/new
+    about: Found a vulnerability? Please report it privately, not in a public issue.

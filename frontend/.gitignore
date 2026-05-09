@@ -1,0 +1,8 @@
+.next/
+node_modules/
+.env.local
+out/
+dist/
+*.tsbuildinfo
+# Bun
+bun.lockb
