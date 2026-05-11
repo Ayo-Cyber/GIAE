@@ -4,7 +4,7 @@ GIAE - Genome Interpretation & Annotation Engine
 An Explainable, Evidence-Centric Framework for Genomic Interpretation.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.2.2"
 __author__ = "GIAE Contributors"
 
 from giae.models.evidence import Evidence

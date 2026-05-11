@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from typing import Optional
 
 from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
@@ -22,6 +23,17 @@ class MotifPattern:
     description: str
     category: str  # e.g., "domain", "signal", "modification"
     confidence_weight: float = 1.0  # How reliable this motif is
+    # Compiled once at load time — avoids re.compile() on every scan call
+    _compiled: Optional[re.Pattern] = field(default=None, init=False, repr=False, compare=False)
+
+    def compiled(self) -> Optional[re.Pattern]:
+        """Return (and lazily cache) the compiled regex."""
+        if self._compiled is None:
+            try:
+                self._compiled = re.compile(self.pattern)
+            except re.error:
+                pass
+        return self._compiled
 
 
 @dataclass
@@ -106,6 +118,10 @@ BUILTIN_MOTIFS: list[MotifPattern] = [
     ),
 ]
 
+# Pre-compile builtin patterns once at import time
+for _m in BUILTIN_MOTIFS:
+    _m.compiled()
+
 
 @dataclass
 class MotifScanner:
@@ -163,6 +179,10 @@ class MotifScanner:
         else:
             self.motifs.extend(prosite_patterns)
 
+        # Pre-compile all newly added patterns so scan() pays zero compile cost
+        for m in prosite_patterns:
+            m.compiled()
+
         return len(prosite_patterns)
 
     def scan(self, sequence: str) -> list[MotifMatch]:
@@ -195,7 +215,9 @@ class MotifScanner:
         matches: list[MotifMatch] = []
 
         try:
-            regex = re.compile(motif.pattern)
+            regex = motif.compiled()
+            if regex is None:
+                return matches
 
             for match in regex.finditer(sequence):
                 score = motif.confidence_weight
@@ -221,8 +243,7 @@ class MotifScanner:
                         )
                     )
 
-        except re.error:
-            # Invalid regex pattern, skip this motif
+        except Exception:
             pass
 
         return matches

@@ -62,14 +62,16 @@ class UniProtClient:
     max_results: int = 5
     cache: DiskCache | None = None
 
-    def search_sequence(self, sequence: str) -> list[UniProtHit]:
+    def search_sequence(self, sequence: str, gene_name: str | None = None) -> list[UniProtHit]:
         """
-        Search UniProt by sequence similarity.
+        Search UniProt for matching proteins.
 
-        Uses UniProt's BLAST-like search to find similar proteins.
+        Uses gene name search against the UniProt REST API, with
+        sequence length validation to filter results.
 
         Args:
-            sequence: Protein sequence to search.
+            sequence: Protein sequence (used for cache key and length validation).
+            gene_name: Gene name to search by (preferred search method).
 
         Returns:
             List of UniProtHit objects.
@@ -81,17 +83,24 @@ class UniProtClient:
             return []
 
         # Check cache first
-        cache_key = sequence
+        cache_key = gene_name or sequence[:50]
         if self.cache:
             cached = self.cache.get("uniprot", cache_key)
             if cached is not None:
-                logger.debug("UniProt cache hit for sequence %s...", sequence[:20])
+                logger.debug("UniProt cache hit for %s", cache_key)
                 return self._parse_results(cached)
 
-        # Use UniProt's sequence search endpoint
+        # Search by gene name (reliable REST API approach)
         url = f"{UNIPROT_API_BASE}/uniprotkb/search"
+        if gene_name:
+            query = f"(gene_exact:{gene_name})"
+        else:
+            # Fallback: search by sequence length range
+            seq_len = len(sequence)
+            query = f"(length:[{seq_len - 20} TO {seq_len + 20}])"
+
         params = {
-            "query": f"sequence:{sequence[:100]}",  # Use first 100 aa
+            "query": query,
             "fields": "accession,id,protein_name,organism_name,gene_names,cc_function,keyword,go,length",
             "format": "json",
             "size": str(self.max_results),
@@ -319,7 +328,7 @@ class UniProtClient:
             return []
 
         sequence = gene.protein.sequence
-        hits = self.search_sequence(sequence)
+        hits = self.search_sequence(sequence, gene_name=gene.display_name)
         return self.hits_to_evidence(hits, gene.id)
 
 

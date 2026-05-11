@@ -22,15 +22,27 @@ def db_cli() -> None:
 
 
 @db_cli.command(name="download")
-@click.argument("name", type=click.Choice(["swissprot", "pfam", "esm", "prosite"]))
+@click.argument(
+    "name",
+    type=click.Choice(["swissprot", "swissprot-diamond", "pfam", "esm", "prosite"]),
+)
 @click.option("--force", is_flag=True, help="Force re-download")
 def download_db(name: str, force: bool) -> None:
-    """Download and prepare local databases."""
+    """Download and prepare local databases.
+
+    swissprot          — NCBI BLAST+ database (requires makeblastdb)\n
+    swissprot-diamond  — Diamond database (requires diamond, ~3x smaller)\n
+    pfam               — HMMER Pfam domain database\n
+    prosite            — PROSITE pattern database (bundled subset always available)\n
+    esm                — ESM-2 protein language model weights
+    """
     base_dir = Path.home() / ".giae"
     base_dir.mkdir(parents=True, exist_ok=True)
 
     if name == "swissprot":
         _setup_blast_db(base_dir / "blast", force)
+    elif name == "swissprot-diamond":
+        _setup_diamond_db(base_dir / "diamond", force)
     elif name == "pfam":
         _setup_hmmer_db(base_dir / "hmmer", force)
     elif name == "esm":
@@ -85,6 +97,55 @@ def _setup_blast_db(path: Path, force: bool) -> None:
         click.echo(f"Database created at: {target}")
     except Exception as e:
         click.echo(f"Failed to create DB: {e}")
+    finally:
+        if fasta_path.exists():
+            fasta_path.unlink()
+
+
+def _setup_diamond_db(path: Path, force: bool) -> None:
+    """Setup Diamond database from UniProt E. coli reference proteome."""
+    path.mkdir(parents=True, exist_ok=True)
+    target = path / "swissprot"
+    dmnd_file = path / "swissprot.dmnd"
+
+    if dmnd_file.exists() and not force:
+        click.echo(f"Diamond database: {dmnd_file}")
+        size_mb = dmnd_file.stat().st_size / (1024 * 1024)
+        click.echo(f"Already installed ({size_mb:.0f} MB). Use --force to reinstall.")
+        return
+
+    if not shutil.which("diamond"):
+        click.echo("Error: 'diamond' not found. Install via: conda install -c bioconda diamond")
+        return
+
+    click.echo("Downloading E. coli Reference Proteome from UniProt...")
+
+    url = (
+        "https://rest.uniprot.org/uniprotkb/stream?format=fasta&query=%28proteome%3AUP000000625%29"
+    )
+    fasta_path = path / "swissprot.fasta"
+
+    try:
+        urllib.request.urlretrieve(url, fasta_path)
+        click.echo(f"Downloaded {fasta_path.stat().st_size / 1024 / 1024:.1f} MB of sequences.")
+
+        click.echo("Running diamond makedb...")
+        subprocess.run(
+            [
+                "diamond",
+                "makedb",
+                "--in",
+                str(fasta_path),
+                "--db",
+                str(target),
+            ],
+            check=True,
+            capture_output=True,
+        )
+        size_mb = dmnd_file.stat().st_size / (1024 * 1024)
+        click.echo(f"Diamond database created: {dmnd_file} ({size_mb:.0f} MB)")
+    except Exception as e:
+        click.echo(f"Failed to create Diamond DB: {e}")
     finally:
         if fasta_path.exists():
             fasta_path.unlink()
@@ -155,6 +216,7 @@ def db_status() -> None:
     databases = [
         ("PROSITE", base_dir / "prosite" / "prosite.dat"),
         ("BLAST (SwissProt)", base_dir / "blast" / "swissprot.pin"),
+        ("Diamond (SwissProt)", base_dir / "diamond" / "swissprot.dmnd"),
         ("HMMER (Pfam)", base_dir / "hmmer" / "pfam.hmm"),
     ]
 
@@ -176,6 +238,12 @@ def db_status() -> None:
     # Check external tools
     click.echo("\nExternal Tools:\n")
     blast_available = shutil.which("blastp") is not None
+    diamond_available = shutil.which("diamond") is not None
     hmmer_available = shutil.which("hmmscan") is not None
-    click.echo(f"  BLAST+: {'✅ Found' if blast_available else '❌ Not installed'}")
-    click.echo(f"  HMMER3: {'✅ Found' if hmmer_available else '❌ Not installed'}")
+    aragorn_available = shutil.which("aragorn") is not None
+    barrnap_available = shutil.which("barrnap") is not None
+    click.echo(f"  BLAST+:  {'✅ Found' if blast_available else '❌ Not installed'}")
+    click.echo(f"  Diamond: {'✅ Found' if diamond_available else '❌ Not installed'}")
+    click.echo(f"  HMMER3:  {'✅ Found' if hmmer_available else '❌ Not installed'}")
+    click.echo(f"  Aragorn: {'✅ Found' if aragorn_available else '❌ Not installed'} (tRNA detection)")
+    click.echo(f"  Barrnap: {'✅ Found' if barrnap_available else '❌ Not installed'} (rRNA detection)")

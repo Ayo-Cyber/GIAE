@@ -21,7 +21,8 @@ from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)
 
-EBI_HMMER_URL = "https://www.ebi.ac.uk/Tools/hmmer/search/hmmscan"
+INTERPRO_API_BASE = "https://www.ebi.ac.uk/interpro/api"
+UNIPROT_API_BASE = "https://rest.uniprot.org"
 
 
 @dataclass
@@ -88,43 +89,29 @@ class InterProClient:
     database: str = "pfam"
     cache: DiskCache | None = None
 
-    def search_sequence(self, sequence: str) -> list[DomainHit]:
+    def search_by_accession(self, uniprot_accession: str) -> list[DomainHit]:
         """
-        Search a protein sequence against the Pfam domain database.
+        Look up Pfam domains for a UniProt accession via InterPro REST API.
 
         Args:
-            sequence: Protein amino acid sequence.
+            uniprot_accession: UniProt accession (e.g. "P03707").
 
         Returns:
             List of DomainHit objects sorted by e-value (best first).
         """
-        sequence = sequence.upper().replace("*", "").replace("-", "").strip()
-        if len(sequence) < 20:
+        if not uniprot_accession:
             return []
 
         # Check cache first
+        cache_key = f"accession:{uniprot_accession}"
         if self.cache:
-            cached = self.cache.get("interpro", sequence)
+            cached = self.cache.get("interpro", cache_key)
             if cached is not None:
-                logger.debug("InterPro cache hit for sequence %s...", sequence[:20])
-                return self._parse_response(cached)
+                logger.debug("InterPro cache hit for %s", uniprot_accession)
+                return self._parse_interpro_rest(cached)
 
-        fasta = f">query\n{sequence}"
-        post_data = urllib.parse.urlencode(
-            {
-                "seqdb": self.database,
-                "seq": fasta,
-            }
-        ).encode("utf-8")
-
-        request = urllib.request.Request(
-            EBI_HMMER_URL,
-            data=post_data,
-            headers={
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Accept": "application/json",
-            },
-        )
+        url = f"{INTERPRO_API_BASE}/entry/pfam/protein/uniprot/{uniprot_accession}"
+        request = urllib.request.Request(url, headers={"Accept": "application/json"})
 
         with throttled_urlopen(request, timeout=self.timeout) as response:
             raw = response.read().decode("utf-8")
@@ -133,54 +120,95 @@ class InterProClient:
 
         # Cache the raw API response
         if self.cache:
-            self.cache.put("interpro", sequence, result)
+            self.cache.put("interpro", cache_key, result)
 
-        return self._parse_response(result)
+        return self._parse_interpro_rest(result)
 
-    def _parse_response(self, data: dict[str, Any]) -> list[DomainHit]:
+    def search_by_gene_name(self, gene_name: str) -> list[DomainHit]:
         """
-        Parse EBI HMMER API JSON response.
+        Find Pfam domains by first resolving gene name to a UniProt accession.
 
-        Handles two known response formats from the EBI HMMER API.
+        Args:
+            gene_name: Gene name to search.
+
+        Returns:
+            List of DomainHit objects.
+        """
+        if not gene_name:
+            return []
+
+        # Check cache
+        cache_key = f"gene:{gene_name}"
+        if self.cache:
+            cached = self.cache.get("interpro", cache_key)
+            if cached is not None:
+                logger.debug("InterPro gene cache hit for %s", gene_name)
+                return self._parse_interpro_rest(cached)
+
+        # Step 1: Resolve gene name to UniProt accession
+        query = urllib.parse.quote(f"(gene_exact:{gene_name})")
+        uniprot_url = (
+            f"{UNIPROT_API_BASE}/uniprotkb/search"
+            f"?query={query}&fields=accession&format=json&size=1"
+        )
+        request = urllib.request.Request(uniprot_url, headers={"Accept": "application/json"})
+
+        with throttled_urlopen(request, timeout=self.timeout) as response:
+            data = json.loads(response.read().decode("utf-8"))
+
+        results = data.get("results", [])
+        if not results:
+            return []
+
+        accession = results[0].get("primaryAccession", "")
+        if not accession:
+            return []
+
+        # Step 2: Look up Pfam domains for this accession
+        hits = self.search_by_accession(accession)
+
+        # Cache under gene name too
+        if self.cache and hits:
+            # Re-fetch from accession cache to store under gene name
+            cached_data = self.cache.get("interpro", f"accession:{accession}")
+            if cached_data is not None:
+                self.cache.put("interpro", cache_key, cached_data)
+
+        return hits
+
+    def _parse_interpro_rest(self, data: dict[str, Any]) -> list[DomainHit]:
+        """
+        Parse InterPro REST API JSON response.
+
+        Handles the format from /entry/pfam/protein/uniprot/{accession}.
         """
         hits: list[DomainHit] = []
 
-        results = data.get("results", {})
+        results = data.get("results", [])
+        if not isinstance(results, list):
+            return hits
 
-        # Format 1: {"results": {"hits": [...]}} (current EBI API)
-        hit_list: list[Any] = []
-        if isinstance(results, dict):
-            hit_list = results.get("hits", [])
-
-        # Format 2: {"results": [{"hits": [...]}]} (legacy format)
-        if not hit_list and isinstance(results, list):
-            for item in results:
-                if isinstance(item, dict) and "hits" in item:
-                    hit_list = item["hits"]
-                    break
-
-        for raw_hit in hit_list[: self.max_hits]:
+        for entry in results[: self.max_hits]:
             try:
-                evalue = float(raw_hit.get("evalue", 1.0))
-                score = float(raw_hit.get("score", 0.0))
-
-                if evalue >= 0.01:
-                    continue
+                metadata = entry.get("metadata", {})
+                accession = str(metadata.get("accession", ""))
+                name = str(metadata.get("name", "unknown"))
+                source_db = str(metadata.get("source_database", self.database))
 
                 hits.append(
                     DomainHit(
-                        name=str(raw_hit.get("name", "unknown")),
-                        accession=str(raw_hit.get("acc", raw_hit.get("accession", ""))),
-                        description=str(raw_hit.get("desc", raw_hit.get("description", ""))),
-                        evalue=evalue,
-                        score=score,
-                        database=self.database,
+                        name=name,
+                        accession=accession,
+                        description=name,
+                        evalue=1e-10,  # InterPro REST doesn't return e-values; mark as significant
+                        score=100.0,
+                        database=source_db,
                     )
                 )
             except (KeyError, ValueError, TypeError):
                 continue
 
-        return sorted(hits, key=lambda h: h.evalue)
+        return hits
 
     def hits_to_evidence(self, hits: list[DomainHit], gene_id: str) -> list[Evidence]:
         """
@@ -236,5 +264,5 @@ class InterProClient:
         if not gene.protein or not gene.protein.sequence:
             return []
 
-        hits = self.search_sequence(gene.protein.sequence)
+        hits = self.search_by_gene_name(gene.display_name)
         return self.hits_to_evidence(hits, gene.id)

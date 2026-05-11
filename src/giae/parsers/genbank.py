@@ -135,30 +135,51 @@ class GenBankParser(BaseParser):
         genes: list[Gene] = []
         gene_counter: int = 0
 
-        # Create a lookup for CDS features by locus_tag
+        # Build CDS lookups: prefer locus_tag, fall back to gene name
         cds_by_locus: dict[str, SeqFeature] = {}
+        cds_by_gene_name: dict[str, SeqFeature] = {}
         for feature in record.features:
             if feature.type == "CDS":
                 locus_tag = feature.qualifiers.get("locus_tag", [None])[0]
+                gene_name = feature.qualifiers.get("gene", [None])[0]
                 if locus_tag:
                     cds_by_locus[locus_tag] = feature
+                if gene_name:
+                    cds_by_gene_name[gene_name] = feature
+
+        # Track which CDS locations are claimed by a gene feature
+        claimed_cds_locations: set[tuple[int, int, int]] = set()
 
         # Process gene features
         for feature in record.features:
             if feature.type == "gene":
                 gene_counter += 1
-                gene = self._feature_to_gene(feature, record, cds_by_locus)
+                gene = self._feature_to_gene(feature, record, cds_by_locus, cds_by_gene_name)
                 if gene:
                     genes.append(gene)
+                    # Mark the CDS at this location as claimed
+                    loc = feature.location
+                    if loc is not None:
+                        claimed_cds_locations.add(
+                            (int(loc.start), int(loc.end), int(loc.strand or 0))
+                        )
 
-        # If no gene features, try CDS features directly
-        if not genes:
-            for feature in record.features:
-                if feature.type == "CDS":
-                    gene_counter += 1
-                    gene = self._cds_to_gene(feature, record, gene_counter)
-                    if gene:
-                        genes.append(gene)
+        # Always pick up CDS features that have no paired gene feature.
+        # This handles files that use only CDS entries (no gene wrappers) as
+        # well as files that mix both styles.
+        for feature in record.features:
+            if feature.type != "CDS":
+                continue
+            loc = feature.location
+            if loc is None:
+                continue
+            loc_key = (int(loc.start), int(loc.end), int(loc.strand or 0))
+            if loc_key in claimed_cds_locations:
+                continue
+            gene_counter += 1
+            gene = self._cds_to_gene(feature, record, gene_counter)
+            if gene:
+                genes.append(gene)
 
         return genes
 
@@ -167,6 +188,7 @@ class GenBankParser(BaseParser):
         feature: SeqFeature,
         record: SeqRecord,
         cds_lookup: dict[str, SeqFeature],
+        cds_by_gene_name: dict[str, SeqFeature] | None = None,
     ) -> Gene | None:
         """Convert a gene feature to a Gene object."""
         qualifiers = feature.qualifiers
@@ -204,12 +226,25 @@ class GenBankParser(BaseParser):
             source="annotation",
         )
 
-        # Try to get protein from corresponding CDS
+        # Resolve the corresponding CDS feature: try locus_tag first, then gene name
+        cds_feature: SeqFeature | None = None
         if locus_tag and locus_tag in cds_lookup:
             cds_feature = cds_lookup[locus_tag]
+        elif gene_name and cds_by_gene_name and gene_name in cds_by_gene_name:
+            cds_feature = cds_by_gene_name[gene_name]
+
+        if cds_feature is not None:
             protein = self._extract_protein(cds_feature, gene.id)
             if protein:
                 gene.protein = protein
+            # Store function/note qualifiers for the evidence pipeline
+            cds_q = cds_feature.qualifiers
+            gb_function = cds_q.get("function", [None])[0]
+            gb_note = cds_q.get("note", [None])[0]
+            if gb_function:
+                gene.metadata["gb_function"] = gb_function
+            if gb_note:
+                gene.metadata["gb_note"] = gb_note
 
         return gene
 
@@ -259,6 +294,14 @@ class GenBankParser(BaseParser):
         protein = self._extract_protein(feature, gene.id)
         if protein:
             gene.protein = protein
+
+        # Store function/note qualifiers for the evidence pipeline
+        gb_function = qualifiers.get("function", [None])[0]
+        gb_note = qualifiers.get("note", [None])[0]
+        if gb_function:
+            gene.metadata["gb_function"] = gb_function
+        if gb_note:
+            gene.metadata["gb_note"] = gb_note
 
         return gene
 

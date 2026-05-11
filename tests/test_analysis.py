@@ -20,11 +20,24 @@ class TestORFFinder:
         orfs = finder.find_orfs(sequence)
 
         assert len(orfs) >= 1
-        # First ORF should start at 0
+        # Verify coordinates are within the sequence
+        orf = orfs[0]
+        assert orf.start >= 0
+        assert orf.end <= len(sequence)
+        assert orf.length_bp >= 50
+
+    def test_find_simple_orf_naive(self) -> None:
+        """Test naive scanner finds frame-0 ATG start precisely."""
+        sequence = "ATG" + "AAA" * 32 + "TAA"  # 102 bp total
+
+        finder = ORFFinder(min_length=50, use_pyrodigal=False)
+        orfs = finder.find_orfs(sequence)
+
+        assert len(orfs) >= 1
         orf = orfs[0]
         assert orf.start == 0
-        assert orf.protein_sequence.startswith("M")  # Starts with Met
-        assert orf.protein_sequence.endswith("*")  # Ends with stop
+        assert orf.protein_sequence.startswith("M")
+        assert orf.protein_sequence.endswith("*")
 
     def test_min_length_filter(self) -> None:
         """Test that ORFs below min_length are filtered."""

@@ -179,3 +179,20 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Runtime data (SQLite DBs, uploaded genomes, generated reports)
+*.db
+uploads/
+public_reports/
+
+# Scratch / one-off generated HTML files
+lambda_report.html
+test_report.html
+ui_mockup.html
+
+# Internal / confidential docs
+PRODUCT_STRATEGY.md

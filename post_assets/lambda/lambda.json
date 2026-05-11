@@ -1,0 +1,4896 @@
+{
+  "genome_id": "genome_cd409d9d68bb",
+  "genome_name": "NC_001416",
+  "statistics": {
+    "total_genes": 92,
+    "interpreted_genes": 84,
+    "success_rate": 91.3,
+    "high_confidence": 81,
+    "moderate_confidence": 2,
+    "low_confidence": 1,
+    "failed": 0
+  },
+  "processing_time_seconds": 0.611727,
+  "results": [
+    {
+      "gene_id": "gene_629d3208cf6b",
+      "gene_name": "T",
+      "success": true,
+      "interpretation": {
+        "id": "int_055677b14b8c",
+        "gene_id": "gene_629d3208cf6b",
+        "hypothesis": "Minor tail protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_a5bbc637e5da"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: minor tail protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436326+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Minor tail protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: minor tail protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_0a76a8a34c65",
+      "gene_name": "W",
+      "success": true,
+      "interpretation": {
+        "id": "int_4374941facde",
+        "gene_id": "gene_0a76a8a34c65",
+        "hypothesis": "Head-tail adaptor ad1",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_434ee91fa492"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: head-tail adaptor Ad1",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435402+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail",
+            "head"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Head-tail adaptor ad1",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: head-tail adaptor Ad1",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_811d1ceb8a16",
+      "gene_name": "Fi",
+      "success": true,
+      "interpretation": {
+        "id": "int_e3ccbfc348f1",
+        "gene_id": "gene_811d1ceb8a16",
+        "hypothesis": "Dna packaging chaperone fi",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_950cf17837b3"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: DNA packaging chaperone FI",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435952+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna",
+            "chaperone"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Dna packaging chaperone fi",
+          "category": "replication",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: DNA packaging chaperone FI",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_e7c988e1ac19",
+      "gene_name": "nu1",
+      "success": true,
+      "interpretation": {
+        "id": "int_7d8a16f79c54",
+        "gene_id": "gene_e7c988e1ac19",
+        "hypothesis": "Terminase small subunit",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_bacfb1799e23"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: terminase small subunit",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435708+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Terminase small subunit",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: terminase small subunit",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_ec12d1dfc38b",
+      "gene_name": "G",
+      "success": true,
+      "interpretation": {
+        "id": "int_8733726120de",
+        "gene_id": "gene_ec12d1dfc38b",
+        "hypothesis": "Minor tail protein g",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_4af1b4cd9d06"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: minor tail protein G",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436275+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Minor tail protein g",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: minor tail protein G",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_a6b0e356ecba",
+      "gene_name": "J",
+      "success": true,
+      "interpretation": {
+        "id": "int_8ba28f57f7ac",
+        "gene_id": "gene_a6b0e356ecba",
+        "hypothesis": "Central tail fiber j",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_ec75026f68d6"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: central tail fiber J",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436706+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail",
+            "fiber"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Central tail fiber j",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: central tail fiber J",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_de5a9a0c93bd",
+      "gene_name": "I",
+      "success": true,
+      "interpretation": {
+        "id": "int_442d2de15003",
+        "gene_id": "gene_de5a9a0c93bd",
+        "hypothesis": "Tail assembly protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_10f2d38a79ac"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail assembly protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436652+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail assembly protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail assembly protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_f09e756f0ae7",
+      "gene_name": "U",
+      "success": true,
+      "interpretation": {
+        "id": "int_6be65d256d4a",
+        "gene_id": "gene_f09e756f0ae7",
+        "hypothesis": "Tail terminator",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_5196785d5eeb"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail terminator",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436120+00:00",
+        "metadata": {
+          "category": "transcription",
+          "keyword": [
+            "terminator",
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail terminator",
+          "category": "transcription",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail terminator",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_def40b2dc35d",
+      "gene_name": "Z",
+      "success": true,
+      "interpretation": {
+        "id": "int_285c0dc415a0",
+        "gene_id": "gene_def40b2dc35d",
+        "hypothesis": "Tail protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_3b54e51051c5"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436072+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_1c747859fa6a",
+      "gene_name": "K",
+      "success": true,
+      "interpretation": {
+        "id": "int_fd607ec62f5c",
+        "gene_id": "gene_1c747859fa6a",
+        "hypothesis": "C40 family peptidase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_3252988b3d70"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: C40 family peptidase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436599+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "C40 family peptidase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: C40 family peptidase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_afafc2684175",
+      "gene_name": "C",
+      "success": true,
+      "interpretation": {
+        "id": "int_d3ca7ad8118d",
+        "gene_id": "gene_afafc2684175",
+        "hypothesis": "S49 family peptidase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_b6f2b5400dbe"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: S49 family peptidase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435558+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "S49 family peptidase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: S49 family peptidase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_0d66fd28bc0f",
+      "gene_name": "L",
+      "success": true,
+      "interpretation": {
+        "id": "int_de4292355b6c",
+        "gene_id": "gene_0d66fd28bc0f",
+        "hypothesis": "Minor tail protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_dc3c03fecf8b"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: minor tail protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436546+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Minor tail protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: minor tail protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_c5551cf5151d",
+      "gene_name": "E",
+      "success": true,
+      "interpretation": {
+        "id": "int_29c4d2f4d7f2",
+        "gene_id": "gene_c5551cf5151d",
+        "hypothesis": "Major capsid protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_9c6a851cdc5c"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: major capsid protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436210+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "capsid",
+            "major capsid"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Major capsid protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: major capsid protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_5ce73b7cf099",
+      "gene_name": "B",
+      "success": true,
+      "interpretation": {
+        "id": "int_409bc7921bcf",
+        "gene_id": "gene_5ce73b7cf099",
+        "hypothesis": "Portal protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_0bd6d1b6b5fe"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: portal protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435459+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "portal"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Portal protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: portal protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_ade66d38bdf9",
+      "gene_name": "M",
+      "success": true,
+      "interpretation": {
+        "id": "int_6d12a590cbad",
+        "gene_id": "gene_ade66d38bdf9",
+        "hypothesis": "Minor tail protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c526e9fc9813"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: minor tail protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436430+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Minor tail protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: minor tail protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_6deb2f312978",
+      "gene_name": "Fii",
+      "success": true,
+      "interpretation": {
+        "id": "int_86eb900aa34b",
+        "gene_id": "gene_6deb2f312978",
+        "hypothesis": "Head closure hc1",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_50521abe2f89"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: head closure Hc1",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436020+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "head"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Head closure hc1",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: head closure Hc1",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_458ebbd2ff4f",
+      "gene_name": "D",
+      "success": true,
+      "interpretation": {
+        "id": "int_f64c46dac880",
+        "gene_id": "gene_458ebbd2ff4f",
+        "hypothesis": "Head decoration",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_465c8c894b5d"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: head decoration",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435660+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "head"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Head decoration",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: head decoration",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_d239e9e2e6d1",
+      "gene_name": "nu3",
+      "success": true,
+      "interpretation": {
+        "id": "int_ee047f06fa9f",
+        "gene_id": "gene_d239e9e2e6d1",
+        "hypothesis": "Capsid assembly protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_603a0da61594"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: capsid assembly protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435610+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "capsid"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Capsid assembly protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: capsid assembly protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_207a04da7e2d",
+      "gene_name": "H",
+      "success": true,
+      "interpretation": {
+        "id": "int_06bf3bea5931",
+        "gene_id": "gene_207a04da7e2d",
+        "hypothesis": "Tail length tape measure protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_76a0f3919fee"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail length tape measure protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.436380+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail length tape measure protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail length tape measure protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_c2053f42ab6e",
+      "gene_name": "A",
+      "success": true,
+      "interpretation": {
+        "id": "int_bb779157c421",
+        "gene_id": "gene_c2053f42ab6e",
+        "hypothesis": "Terminase large subunit",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_5f129a50d891"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: terminase large subunit",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.435281+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Terminase large subunit",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: terminase large subunit",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_5ecedd8ad271",
+      "gene_name": "V",
+      "success": true,
+      "interpretation": {
+        "id": "int_943ee2067ddb",
+        "gene_id": "gene_5ecedd8ad271",
+        "hypothesis": "Major tail protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_5aecbfacab51"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: major tail protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.489174+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Major tail protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: major tail protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_9ff9c1f49e37",
+      "gene_name": "lom",
+      "success": true,
+      "interpretation": {
+        "id": "int_56a67953783e",
+        "gene_id": "gene_9ff9c1f49e37",
+        "hypothesis": "Lom outer membrane protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_8fe36dcb1aa3"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Lom outer membrane protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.489246+00:00",
+        "metadata": {
+          "category": "transport",
+          "keyword": [
+            "membrane"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Lom outer membrane protein",
+          "category": "transport",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Lom outer membrane protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_d9d061c09a17",
+      "gene_name": "orf-401",
+      "success": true,
+      "interpretation": {
+        "id": "int_48d098a6a617",
+        "gene_id": "gene_d9d061c09a17",
+        "hypothesis": "Tail fiber protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_eea98e0e5330"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail fiber protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.489303+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail",
+            "fiber"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail fiber protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail fiber protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_397d6bf5169b",
+      "gene_name": "orf206b",
+      "success": true
+    },
+    {
+      "gene_id": "gene_9a5f2dd337db",
+      "gene_name": "orf-314",
+      "success": true,
+      "interpretation": {
+        "id": "int_2c68270af691",
+        "gene_id": "gene_9a5f2dd337db",
+        "hypothesis": "Tail fiber protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_8979022dbcf4"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail fiber protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.491470+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail",
+            "fiber"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail fiber protein",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail fiber protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_12195eb88c6d",
+      "gene_name": "orf-194",
+      "success": true,
+      "interpretation": {
+        "id": "int_7c91fb166ad3",
+        "gene_id": "gene_12195eb88c6d",
+        "hypothesis": "Tail fiber assembly",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_8cb89d6e3fb1"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: tail fiber assembly",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.491524+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "tail",
+            "fiber"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Tail fiber assembly",
+          "category": "phage_structure",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: tail fiber assembly",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_4ece7889193f",
+      "gene_name": "ea47",
+      "success": true,
+      "interpretation": {
+        "id": "int_2f18a694ae02",
+        "gene_id": "gene_4ece7889193f",
+        "hypothesis": "Ea47",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_6b0e2debae5b"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: ea47",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.491578+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ea47",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: ea47",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_d086eb9b6cb2",
+      "gene_name": "lambdap30",
+      "success": true
+    },
+    {
+      "gene_id": "gene_4c081fd64d5a",
+      "gene_name": "ea31",
+      "success": true,
+      "interpretation": {
+        "id": "int_dd1822ece134",
+        "gene_id": "gene_4c081fd64d5a",
+        "hypothesis": "Hnh endonuclease",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_78ea31c128bd"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: HNH endonuclease",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.492048+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Hnh endonuclease",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: HNH endonuclease",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_3455a9e54660",
+      "gene_name": "ea59",
+      "success": true,
+      "interpretation": {
+        "id": "int_c7a90f2f7df6",
+        "gene_id": "gene_3455a9e54660",
+        "hypothesis": "Aaa family atpase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_dabd5ff9a57f"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: AAA family ATPase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.492097+00:00",
+        "metadata": {
+          "category": "metabolism",
+          "keyword": [
+            "atp"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Aaa family atpase",
+          "category": "metabolism",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: AAA family ATPase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_d720cff8b451",
+      "gene_name": "xis",
+      "success": true,
+      "interpretation": {
+        "id": "int_04a5fecd04ed",
+        "gene_id": "gene_d720cff8b451",
+        "hypothesis": "Excisionase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_628d55743ede"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: excisionase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.492147+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Excisionase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: excisionase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_90d4c680c971",
+      "gene_name": "int",
+      "success": true,
+      "interpretation": {
+        "id": "int_5944bd400d79",
+        "gene_id": "gene_90d4c680c971",
+        "hypothesis": "Integrase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_020cc0a26e22"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: integrase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.533574+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Integrase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: integrase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_c3c102a826b0",
+      "gene_name": "xis",
+      "success": true,
+      "interpretation": {
+        "id": "int_72a497846802",
+        "gene_id": "gene_c3c102a826b0",
+        "hypothesis": "Excisionase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_f83dffc20474"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: excisionase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.533646+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Excisionase",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: excisionase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_172f93cba05f",
+      "gene_name": "lambdap35",
+      "success": true,
+      "interpretation": {
+        "id": "int_a75149f0a004",
+        "gene_id": "gene_172f93cba05f",
+        "hypothesis": "Predicted by GeneMark",
+        "confidence_score": 0.5,
+        "confidence_level": "moderate",
+        "supporting_evidence_ids": [
+          "ev_fb9d232100a9"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: Predicted by GeneMark",
+          "Curator-assigned functional description from the submitted GenBank record"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.534556+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Predicted by GeneMark",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: Predicted by GeneMark",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.3
+      }
+    },
+    {
+      "gene_id": "gene_c0b1500f0a8d",
+      "gene_name": "ea8.5",
+      "success": true,
+      "interpretation": {
+        "id": "int_6e7866c12fc4",
+        "gene_id": "gene_c0b1500f0a8d",
+        "hypothesis": "Ea8.5",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_02303259e41a"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: ea8.5",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.534614+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ea8.5",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: ea8.5",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_907df68ceeda",
+      "gene_name": "ea22",
+      "success": true,
+      "interpretation": {
+        "id": "int_b73bb73738b8",
+        "gene_id": "gene_907df68ceeda",
+        "hypothesis": "Ead/ea22-like family protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_99f66184cbac"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: ead/Ea22-like family protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.534669+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ead/ea22-like family protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: ead/Ea22-like family protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_22c08e7a463c",
+      "gene_name": "orf61",
+      "success": true
+    },
+    {
+      "gene_id": "gene_c68ae8cff984",
+      "gene_name": "orf63",
+      "success": true,
+      "interpretation": {
+        "id": "int_d210acee91c8",
+        "gene_id": "gene_c68ae8cff984",
+        "hypothesis": "Duf1382 family protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c1e4a3e46fc6"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: DUF1382 family protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.535612+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Duf1382 family protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: DUF1382 family protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_24f33bb7423b",
+      "gene_name": "orf60a",
+      "success": true,
+      "interpretation": {
+        "id": "int_19533bf2260c",
+        "gene_id": "gene_24f33bb7423b",
+        "hypothesis": "Duf1317 domain-containing protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_f6b19818e261"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: DUF1317 domain-containing protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.535672+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Duf1317 domain-containing protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: DUF1317 domain-containing protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_0f6eec06f64c",
+      "gene_name": "bet",
+      "success": true,
+      "interpretation": {
+        "id": "int_b7c375738d68",
+        "gene_id": "gene_0f6eec06f64c",
+        "hypothesis": "Rect-like ssdna annealing protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_125bafe6f59c"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: RecT-like ssDNA annealing protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.587323+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna",
+            "ssdna"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Rect-like ssdna annealing protein",
+          "category": "replication",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: RecT-like ssDNA annealing protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_297d31f89977",
+      "gene_name": "gam",
+      "success": true,
+      "interpretation": {
+        "id": "int_20c4130ea501",
+        "gene_id": "gene_297d31f89977",
+        "hypothesis": "Gam-like host nuclease inhibitor",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_6223121fcd43"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: gam-like host nuclease inhibitor",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.587415+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Gam-like host nuclease inhibitor",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: gam-like host nuclease inhibitor",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_1b859761f6dc",
+      "gene_name": "exo",
+      "success": true,
+      "interpretation": {
+        "id": "int_601865f78c6d",
+        "gene_id": "gene_1b859761f6dc",
+        "hypothesis": "Exonuclease",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_37240156a149"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: exonuclease",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.615962+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Exonuclease",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: exonuclease",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_db1eb2f95e5a",
+      "gene_name": "lambdap43",
+      "success": true,
+      "interpretation": {
+        "id": "int_688550e6bdd4",
+        "gene_id": "gene_db1eb2f95e5a",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_ebd6c562670f",
+          "ev_1d7a509a5ee7",
+          "ev_8dbc68a11ea3",
+          "ev_ea5538dc7618"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 4 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.717932+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 4 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 3 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 13,
+        "types": 1,
+        "weighted_score": 8.787999999999998
+      }
+    },
+    {
+      "gene_id": "gene_2b4948cd5f86",
+      "gene_name": "kil",
+      "success": true,
+      "interpretation": {
+        "id": "int_56d0735fd00f",
+        "gene_id": "gene_2b4948cd5f86",
+        "hypothesis": "Kil protein for bacterial septation inhibition",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_0a6f85822b49"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Kil protein for bacterial septation inhibition",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.718026+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Kil protein for bacterial septation inhibition",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Kil protein for bacterial septation inhibition",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_1a23368ddad8",
+      "gene_name": "cIII",
+      "success": true,
+      "interpretation": {
+        "id": "int_b24b75bdad54",
+        "gene_id": "gene_1a23368ddad8",
+        "hypothesis": "Ciii anti-termination",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_747f6ac396ab"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: CIII anti-termination",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.718086+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ciii anti-termination",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: CIII anti-termination",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_547f1cd879e6",
+      "gene_name": "ea10",
+      "success": true
+    },
+    {
+      "gene_id": "gene_b2f19f3d4896",
+      "gene_name": "ral",
+      "success": true,
+      "interpretation": {
+        "id": "int_2db16f63eb4d",
+        "gene_id": "gene_b2f19f3d4896",
+        "hypothesis": "Restriction alleviation ral",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_dd343583442f"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: restriction alleviation ral",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.719502+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Restriction alleviation ral",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: restriction alleviation ral",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_da91972bba4d",
+      "gene_name": "orf28",
+      "success": true
+    },
+    {
+      "gene_id": "gene_3a925206f2ec",
+      "gene_name": "lambdap48",
+      "success": true,
+      "interpretation": {
+        "id": "int_fb41e776acac",
+        "gene_id": "gene_3a925206f2ec",
+        "hypothesis": "Sieb superinfection exclusion",
+        "confidence_score": 0.9,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_cd3351b04159"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: SieB superinfection exclusion",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Predicted by GeneMark",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.720208+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Sieb superinfection exclusion",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: SieB superinfection exclusion",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        },
+        {
+          "function": "Predicted by GeneMark",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: Predicted by GeneMark",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.15
+      }
+    },
+    {
+      "gene_id": "gene_9ae2c1972ad3",
+      "gene_name": "N",
+      "success": true,
+      "interpretation": {
+        "id": "int_4fe48e029060",
+        "gene_id": "gene_9ae2c1972ad3",
+        "hypothesis": "Anti-termination protein n-like",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_d016405fd74e"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: anti-termination protein N-like",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.720266+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Anti-termination protein n-like",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: anti-termination protein N-like",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_ba9892ae57f9",
+      "gene_name": "lambdap32",
+      "success": true,
+      "interpretation": {
+        "id": "int_243e7ea02a7c",
+        "gene_id": "gene_ba9892ae57f9",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_556e8242d9e6",
+          "ev_e9207f1bbbc9",
+          "ev_ca6628897653",
+          "ev_c8e9ede6bb15"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 4 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.765219+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 4 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 3 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 8,
+        "types": 1,
+        "weighted_score": 5.4399999999999995
+      }
+    },
+    {
+      "gene_id": "gene_3589b7e0cb77",
+      "gene_name": "lambdap40",
+      "success": true,
+      "interpretation": {
+        "id": "int_4687f2a0f95e",
+        "gene_id": "gene_3589b7e0cb77",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_eb4edf733670",
+          "ev_daa3e58f4a69",
+          "ev_880f824f159f",
+          "ev_14f748dbf6c3",
+          "ev_74b2dea57118",
+          "ev_2321b511d46e"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 6 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.815714+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 6 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 5 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 3 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 29,
+        "types": 1,
+        "weighted_score": 19.684000000000005
+      }
+    },
+    {
+      "gene_id": "gene_017be86f875e",
+      "gene_name": "lambdap52",
+      "success": true,
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.68
+      }
+    },
+    {
+      "gene_id": "gene_6dadd6fd0ed0",
+      "gene_name": "rexb",
+      "success": true,
+      "interpretation": {
+        "id": "int_c61abd983288",
+        "gene_id": "gene_6dadd6fd0ed0",
+        "hypothesis": "Rexb-like exclusion protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_43aac1aff19a"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: RexB-like exclusion protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.819423+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Rexb-like exclusion protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: RexB-like exclusion protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_34ebbf566853",
+      "gene_name": "rexa",
+      "success": true,
+      "interpretation": {
+        "id": "int_da33d5d77566",
+        "gene_id": "gene_34ebbf566853",
+        "hypothesis": "Rexa-like exclusion protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_20572d1c7241"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: RexA-like exclusion protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.819485+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Rexa-like exclusion protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: RexA-like exclusion protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_b05b15b036f6",
+      "gene_name": "cI",
+      "success": true,
+      "interpretation": {
+        "id": "int_945adad9469e",
+        "gene_id": "gene_b05b15b036f6",
+        "hypothesis": "Lexa family transcriptional regulator",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_5148d20335b1"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: LexA family transcriptional regulator",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.819539+00:00",
+        "metadata": {
+          "category": "transcription",
+          "keyword": [
+            "transcription",
+            "regulator"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Lexa family transcriptional regulator",
+          "category": "transcription",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: LexA family transcriptional regulator",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_03858825685b",
+      "gene_name": "lambdap51",
+      "success": true,
+      "interpretation": {
+        "id": "int_82b881a14d97",
+        "gene_id": "gene_03858825685b",
+        "hypothesis": "Protein with anaphylatoxin_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_0aa010b38261"
+        ],
+        "reasoning_chain": [
+          "Detected anaphylatoxin_1 motif pattern",
+          "Motif suggests Protein with anaphylatoxin_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with 2fe2s_fer_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.825015+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "anaphylatoxin_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 2 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 6,
+        "types": 1,
+        "weighted_score": 4.148
+      }
+    },
+    {
+      "gene_id": "gene_da599f72d2a9",
+      "gene_name": "lambdap55",
+      "success": true,
+      "interpretation": {
+        "id": "int_d05a49fb3c8d",
+        "gene_id": "gene_da599f72d2a9",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_e9f8930e9eeb"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.850177+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 3,
+        "types": 1,
+        "weighted_score": 2.04
+      }
+    },
+    {
+      "gene_id": "gene_4ba61910fdd2",
+      "gene_name": "lambdap56",
+      "success": true,
+      "interpretation": {
+        "id": "int_b33924cd07b5",
+        "gene_id": "gene_4ba61910fdd2",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_b7a111a0371b"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.853002+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 3,
+        "types": 1,
+        "weighted_score": 2.04
+      }
+    },
+    {
+      "gene_id": "gene_97b50aabeac3",
+      "gene_name": "cro",
+      "success": true,
+      "interpretation": {
+        "id": "int_e5a787f843ce",
+        "gene_id": "gene_97b50aabeac3",
+        "hypothesis": "Cro/ci family transcriptional regulator",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_99acd39b0dab"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Cro/CI family transcriptional regulator",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.853065+00:00",
+        "metadata": {
+          "category": "transcription",
+          "keyword": [
+            "transcription",
+            "regulator"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Cro/ci family transcriptional regulator",
+          "category": "transcription",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Cro/CI family transcriptional regulator",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_ef32ccef9a69",
+      "gene_name": "lambdap58",
+      "success": true,
+      "interpretation": {
+        "id": "int_9e15f7069e4a",
+        "gene_id": "gene_ef32ccef9a69",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.8350000000000001,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c25132bcfee8"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.854390+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.68
+      }
+    },
+    {
+      "gene_id": "gene_c466a875ffc9",
+      "gene_name": "cII",
+      "success": true,
+      "interpretation": {
+        "id": "int_fad31e42ad4d",
+        "gene_id": "gene_c466a875ffc9",
+        "hypothesis": "transcriptional activator",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_1d6eec60559c",
+          "ev_5b1870064beb"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: transcriptional activator",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: CII-like transcriptional activator",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to transcription function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.854478+00:00",
+        "metadata": {
+          "category": "transcription",
+          "keyword": [
+            "transcription",
+            "activator"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "transcriptional activator",
+          "category": "transcription",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: transcriptional activator",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: CII-like transcriptional activator",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to transcription function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_d350e0eb733f",
+      "gene_name": "lambdap60",
+      "success": true
+    },
+    {
+      "gene_id": "gene_9d0ace64746b",
+      "gene_name": "O",
+      "success": true,
+      "interpretation": {
+        "id": "int_6555741d0206",
+        "gene_id": "gene_9d0ace64746b",
+        "hypothesis": "Replication initiation o-like",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_2e274623ad24"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: replication initiation O-like",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855556+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "replication",
+            "initiation",
+            "replication initiation"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Replication initiation o-like",
+          "category": "replication",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: replication initiation O-like",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_1e5951b3c104",
+      "gene_name": "P",
+      "success": true,
+      "interpretation": {
+        "id": "int_ffd634ae16a7",
+        "gene_id": "gene_1e5951b3c104",
+        "hypothesis": "Dna replication protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c25998044cc8"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: DNA replication protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855614+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna",
+            "replication"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Dna replication protein",
+          "category": "replication",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: DNA replication protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_d95845dbd57a",
+      "gene_name": "ren",
+      "success": true,
+      "interpretation": {
+        "id": "int_1995693637f9",
+        "gene_id": "gene_d95845dbd57a",
+        "hypothesis": "Ren-like exclusion protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_cb004baed05b"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Ren-like exclusion protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855676+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ren-like exclusion protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Ren-like exclusion protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_da91c3f69717",
+      "gene_name": "NinB",
+      "success": true,
+      "interpretation": {
+        "id": "int_22cb8797cd2a",
+        "gene_id": "gene_da91c3f69717",
+        "hypothesis": "Ninb/ orf homologous recombination mediator",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_9a6d90c6677c"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: NinB/ Orf homologous recombination mediator",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855732+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ninb/ orf homologous recombination mediator",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: NinB/ Orf homologous recombination mediator",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_6828e1271d13",
+      "gene_name": "NinC",
+      "success": true,
+      "interpretation": {
+        "id": "int_12f6e7317c01",
+        "gene_id": "gene_6828e1271d13",
+        "hypothesis": "Phosphoadenosine phosphosulfate reductase",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_58067f0caa28"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: phosphoadenosine phosphosulfate reductase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855790+00:00",
+        "metadata": {
+          "category": "metabolism",
+          "keyword": [
+            "reductase"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Phosphoadenosine phosphosulfate reductase",
+          "category": "metabolism",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: phosphoadenosine phosphosulfate reductase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_8f8ab901003e",
+      "gene_name": "NinD",
+      "success": true,
+      "interpretation": {
+        "id": "int_9794579caec2",
+        "gene_id": "gene_8f8ab901003e",
+        "hypothesis": "Nind protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_f253c7a86cc9"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: NinD protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855847+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Nind protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: NinD protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_e10ce45d0d73",
+      "gene_name": "NinE",
+      "success": true,
+      "interpretation": {
+        "id": "int_8965962826ec",
+        "gene_id": "gene_e10ce45d0d73",
+        "hypothesis": "Nine family protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_490c4a131da5"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: NinE family protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855898+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Nine family protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: NinE family protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_c1056ad0a8dd",
+      "gene_name": "NinF",
+      "success": true,
+      "interpretation": {
+        "id": "int_30f70bcd9d47",
+        "gene_id": "gene_c1056ad0a8dd",
+        "hypothesis": "Protein ninf",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_93eb7afea45d"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: protein ninF",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855946+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein ninf",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: protein ninF",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_a5d5ff17547c",
+      "gene_name": "NinG",
+      "success": true,
+      "interpretation": {
+        "id": "int_3304f0d619f8",
+        "gene_id": "gene_a5d5ff17547c",
+        "hypothesis": "Ning/ rap dna junction specific endonuclease",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_3afb69614d4c"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: NinG/ Rap DNA junction specific endonuclease",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.855994+00:00",
+        "metadata": {
+          "category": "replication",
+          "keyword": [
+            "dna"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ning/ rap dna junction specific endonuclease",
+          "category": "replication",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: NinG/ Rap DNA junction specific endonuclease",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_9008637bbe06",
+      "gene_name": "NinH",
+      "success": true,
+      "interpretation": {
+        "id": "int_151293ed0fb2",
+        "gene_id": "gene_9008637bbe06",
+        "hypothesis": "Ninh family protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_457d65c4e93d"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: NinH family protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.856041+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Ninh family protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: NinH family protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_5f5ca6d8c912",
+      "gene_name": "NinI",
+      "success": true,
+      "interpretation": {
+        "id": "int_933ad0418201",
+        "gene_id": "gene_5f5ca6d8c912",
+        "hypothesis": "serine/threonine phosphatase",
+        "confidence_score": 1.0,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_828f5fd474ae",
+          "ev_0ee10a7ef717"
+        ],
+        "reasoning_chain": [
+          "GenBank annotation: serine/threonine phosphatase",
+          "Curator-assigned functional description from the submitted GenBank record",
+          "BLAST homology hit: serine/threonine protein phosphatase",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to metabolism function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.856125+00:00",
+        "metadata": {
+          "category": "metabolism",
+          "keyword": [
+            "phosphatase"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "serine/threonine phosphatase",
+          "category": "metabolism",
+          "confidence": 0.95,
+          "reasoning": [
+            "GenBank annotation: serine/threonine phosphatase",
+            "Curator-assigned functional description from the submitted GenBank record",
+            "BLAST homology hit: serine/threonine protein phosphatase",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to metabolism function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.25
+      }
+    },
+    {
+      "gene_id": "gene_f5c98b1507d5",
+      "gene_name": "Q",
+      "success": true,
+      "interpretation": {
+        "id": "int_c923d2e5b38c",
+        "gene_id": "gene_f5c98b1507d5",
+        "hypothesis": "Antitermination protein",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_09deaa5bc9ca"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: antitermination protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.856179+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Antitermination protein",
+          "category": "unknown",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: antitermination protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_9851ef483243",
+      "gene_name": "lambdap72",
+      "success": true,
+      "interpretation": {
+        "id": "int_f4225431de72",
+        "gene_id": "gene_9851ef483243",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.8350000000000001,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_8e2da4d611a1"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.858093+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.68
+      }
+    },
+    {
+      "gene_id": "gene_bb53336fd03c",
+      "gene_name": "orf-64",
+      "success": true
+    },
+    {
+      "gene_id": "gene_b91990c636b4",
+      "gene_name": "S",
+      "success": true,
+      "interpretation": {
+        "id": "int_bf1e0a068b1a",
+        "gene_id": "gene_b91990c636b4",
+        "hypothesis": "Holin/anti-holin",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c621e6481728"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: holin/anti-holin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.864859+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "holin"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Holin/anti-holin",
+          "category": "phage_lysis",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: holin/anti-holin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_2de1679e6a6f",
+      "gene_name": "S'",
+      "success": true,
+      "interpretation": {
+        "id": "int_e77957bc4113",
+        "gene_id": "gene_2de1679e6a6f",
+        "hypothesis": "Holin/anti-holin",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_5d7c23fc003f"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: holin/anti-holin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.864973+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "holin"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Holin/anti-holin",
+          "category": "phage_lysis",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: holin/anti-holin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_835aa6e93392",
+      "gene_name": "R",
+      "success": true,
+      "interpretation": {
+        "id": "int_3162416470ca",
+        "gene_id": "gene_835aa6e93392",
+        "hypothesis": "Endolysin",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_c22a81971e6b"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: endolysin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.865031+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "lysin",
+            "endolysin"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Endolysin",
+          "category": "phage_lysis",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: endolysin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_a37cf337ef0f",
+      "gene_name": "Rz",
+      "success": true,
+      "interpretation": {
+        "id": "int_ab2ad9daf72c",
+        "gene_id": "gene_a37cf337ef0f",
+        "hypothesis": "Rz-like spanin",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_1505cd83d5e3"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Rz-like spanin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.865084+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "spanin"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Rz-like spanin",
+          "category": "phage_lysis",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Rz-like spanin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_394248991460",
+      "gene_name": "Rz1",
+      "success": true,
+      "interpretation": {
+        "id": "int_dfc187f3d137",
+        "gene_id": "gene_394248991460",
+        "hypothesis": "Rz-like spanin",
+        "confidence_score": 0.8,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_fc436eb7a1ca"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Rz-like spanin",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance"
+        ],
+        "competing_hypotheses": [],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.865136+00:00",
+        "metadata": {
+          "category": "phage_lysis",
+          "keyword": [
+            "spanin"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Rz-like spanin",
+          "category": "phage_lysis",
+          "confidence": 0.85,
+          "reasoning": [
+            "BLAST homology hit: Rz-like spanin",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 1,
+        "types": 1,
+        "weighted_score": 0.85
+      }
+    },
+    {
+      "gene_id": "gene_9d881f97def0",
+      "gene_name": "lambdap44",
+      "success": true,
+      "interpretation": {
+        "id": "int_97f778ce2033",
+        "gene_id": "gene_9d881f97def0",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_2efd4fd6d9c0",
+          "ev_0a82f3fbfd48",
+          "ev_d13f4d22982b",
+          "ev_10fbcb01aa61"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 4 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.865273+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 4 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 3 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 13,
+        "types": 1,
+        "weighted_score": 8.787999999999998
+      }
+    },
+    {
+      "gene_id": "gene_8c8fe5cb4917",
+      "gene_name": "lambdap78",
+      "success": true,
+      "interpretation": {
+        "id": "int_82e7145f2a00",
+        "gene_id": "gene_8c8fe5cb4917",
+        "hypothesis": "Head protein",
+        "confidence_score": 0.9960000000000001,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_682d6f81b9b2",
+          "ev_8cd6509ce28e"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: head protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to phage_structure function",
+          "Supported by 2 evidence items",
+          "Cross-validation increases confidence"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Predicted by GeneMark",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.865374+00:00",
+        "metadata": {
+          "category": "phage_structure",
+          "keyword": [
+            "head"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Head protein",
+          "category": "phage_structure",
+          "confidence": 0.9460000000000001,
+          "reasoning": [
+            "BLAST homology hit: head protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to phage_structure function",
+            "Supported by 2 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        },
+        {
+          "function": "Predicted by GeneMark",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: Predicted by GeneMark",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 1.15
+      }
+    },
+    {
+      "gene_id": "gene_a5925bf5e745",
+      "gene_name": "lambdap79",
+      "success": true,
+      "interpretation": {
+        "id": "int_217797f02ea5",
+        "gene_id": "gene_a5925bf5e745",
+        "hypothesis": "Lipoprotein",
+        "confidence_score": 0.77,
+        "confidence_level": "moderate",
+        "supporting_evidence_ids": [
+          "ev_f9df2cdd0e47"
+        ],
+        "reasoning_chain": [
+          "Detected gram_negative_lipobox motif pattern",
+          "Motif suggests Lipoprotein function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Predicted by GeneMark",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "limited_evidence",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.866400+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "gram_negative_lipobox"
+          ],
+          "conflict_severity": "NONE"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Lipoprotein",
+          "category": "unknown",
+          "confidence": 0.77,
+          "reasoning": [
+            "Detected gram_negative_lipobox motif pattern",
+            "Motif suggests Lipoprotein function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Predicted by GeneMark",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: Predicted by GeneMark",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 2,
+        "types": 2,
+        "weighted_score": 0.8599999999999999
+      }
+    },
+    {
+      "gene_id": "gene_5192ad78b0be",
+      "gene_name": "bor",
+      "success": true,
+      "interpretation": {
+        "id": "int_8c8513f59aa4",
+        "gene_id": "gene_5192ad78b0be",
+        "hypothesis": "Ambiguous interpretation: 'Bor-like outer membrane protein' vs 'confers serum resistance upon the host'",
+        "confidence_score": 0.8,
+        "confidence_level": "low",
+        "supporting_evidence_ids": [
+          "ev_81ce3ee92917",
+          "ev_3b1e7058869d",
+          "ev_d67848949564"
+        ],
+        "reasoning_chain": [
+          "BLAST homology hit: Bor-like outer membrane protein",
+          "Sequence identity supports functional similarity",
+          "E-value indicates statistical significance",
+          "Multiple evidence types point to transport function",
+          "Supported by 3 evidence items",
+          "Cross-validation increases confidence",
+          "Output flagged: Ambiguous interpretation: 'Bor-like outer membrane protein' vs 'confers serum resistance upon the host'"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "confers serum resistance upon the host",
+            "confidence": 0.8,
+            "reason_not_preferred": "Lower confidence (80%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Predicted by GeneMark",
+            "confidence": 0.6,
+            "reason_not_preferred": "Lower confidence (60%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "no_experimental_validation",
+          "conflicting_evidence"
+        ],
+        "timestamp": "2026-04-19T21:01:17.895360+00:00",
+        "metadata": {
+          "category": "transport",
+          "keyword": [
+            "membrane"
+          ],
+          "conflict_severity": "HIGH"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Bor-like outer membrane protein",
+          "category": "transport",
+          "confidence": 0.95,
+          "reasoning": [
+            "BLAST homology hit: Bor-like outer membrane protein",
+            "Sequence identity supports functional similarity",
+            "E-value indicates statistical significance",
+            "Multiple evidence types point to transport function",
+            "Supported by 3 evidence items",
+            "Cross-validation increases confidence"
+          ]
+        },
+        {
+          "function": "confers serum resistance upon the host",
+          "category": "unknown",
+          "confidence": 0.8,
+          "reasoning": [
+            "GenBank annotation: confers serum resistance upon the host",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        },
+        {
+          "function": "Predicted by GeneMark",
+          "category": "unknown",
+          "confidence": 0.6,
+          "reasoning": [
+            "GenBank annotation: Predicted by GeneMark",
+            "Curator-assigned functional description from the submitted GenBank record"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 3,
+        "types": 2,
+        "weighted_score": 1.5499999999999998
+      }
+    },
+    {
+      "gene_id": "gene_56859414aa60",
+      "gene_name": "lambdap50",
+      "success": true,
+      "interpretation": {
+        "id": "int_94d892e444ad",
+        "gene_id": "gene_56859414aa60",
+        "hypothesis": "Protein with anaphylatoxin_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_16f65057dbda"
+        ],
+        "reasoning_chain": [
+          "Detected anaphylatoxin_1 motif pattern",
+          "Motif suggests Protein with anaphylatoxin_1 motif function",
+          "Supported by 1 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with 2fe2s_fer_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.935,
+            "reason_not_preferred": "Lower confidence (94%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:17.976037+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "anaphylatoxin_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 2 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.935,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 1 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 7,
+        "types": 1,
+        "weighted_score": 4.827999999999999
+      }
+    },
+    {
+      "gene_id": "gene_d9d286314fe3",
+      "gene_name": "lambdap54",
+      "success": true,
+      "interpretation": {
+        "id": "int_81b6fd060b08",
+        "gene_id": "gene_d9d286314fe3",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_ca38a264b5b2",
+          "ev_8de5f9bd464e",
+          "ev_f3c7de6b5be7",
+          "ev_73c852c3f0be",
+          "ev_485ff8a94bd0",
+          "ev_58524e3a1ca5",
+          "ev_661c057914e0",
+          "ev_ebac2f0f39eb"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 8 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with vwfc_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.009318+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 8 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 4 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with vwfc_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected vwfc_1 motif pattern",
+            "Motif suggests Protein with vwfc_1 motif function",
+            "Supported by 3 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 23,
+        "types": 1,
+        "weighted_score": 15.484000000000002
+      }
+    },
+    {
+      "gene_id": "gene_beefdfec3051",
+      "gene_name": "lambdap25",
+      "success": true,
+      "interpretation": {
+        "id": "int_ca6b30efeaee",
+        "gene_id": "gene_beefdfec3051",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_82b829a7f2dd",
+          "ev_6048f406a50b",
+          "ev_719a3316cfae",
+          "ev_86c65568de9d",
+          "ev_40d3d1a5ede9",
+          "ev_f1e8da1cb7a3",
+          "ev_cb0557c19932",
+          "ev_eb67e2e7e662",
+          "ev_c3c7d2fea2aa",
+          "ev_98e8f93fe5b0",
+          "ev_1799bf85c0e9",
+          "ev_e1e36d57e71d",
+          "ev_029e930205cd",
+          "ev_5d3a3f6704f6",
+          "ev_e4eff6526b3f",
+          "ev_440bd75a1c6e",
+          "ev_19cd635d23c2",
+          "ev_f74a654f3c9f",
+          "ev_760923fb4c4a",
+          "ev_4a409af26ddf",
+          "ev_f4a54339ad68"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 21 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.045566+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 21 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 133,
+        "types": 1,
+        "weighted_score": 91.03199999999984
+      }
+    },
+    {
+      "gene_id": "gene_14ffde541986",
+      "gene_name": "lambdap22",
+      "success": true,
+      "interpretation": {
+        "id": "int_0bc0c31e7e01",
+        "gene_id": "gene_14ffde541986",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_769613cfb2be",
+          "ev_9257b87ae0aa",
+          "ev_187ff9409a84",
+          "ev_f9870f90450e",
+          "ev_0d3fa971f549",
+          "ev_53f8c17ec2c6",
+          "ev_4fc54d5dd05b",
+          "ev_ede222d487ab",
+          "ev_dfcd50921cf0",
+          "ev_755b36a3dd3d",
+          "ev_6dc25c19a36a",
+          "ev_59f633990033",
+          "ev_f4b07f0a96ae",
+          "ev_da473d75fec1",
+          "ev_26b49077eb0c",
+          "ev_0cb297a16726",
+          "ev_e489a2d0ec56",
+          "ev_c95d81bd00f5",
+          "ev_d3b066b723fd",
+          "ev_75a5e5088901",
+          "ev_4952b2f333ab",
+          "ev_32828bb6680c"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 22 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.045832+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 22 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 15 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 138,
+        "types": 1,
+        "weighted_score": 94.49999999999982
+      }
+    },
+    {
+      "gene_id": "gene_164df766547a",
+      "gene_name": "lambdap23",
+      "success": true,
+      "interpretation": {
+        "id": "int_647204182534",
+        "gene_id": "gene_164df766547a",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_48fb6b7400e8",
+          "ev_99b1c18ac70e",
+          "ev_4a8a2bc25096",
+          "ev_f1b9901342c8",
+          "ev_e624a7cba5de",
+          "ev_797613e0eabc",
+          "ev_240d2cd35f8b",
+          "ev_cb45751181ef",
+          "ev_cc4032930ee7",
+          "ev_a065790d89c9",
+          "ev_42198f484ae2",
+          "ev_6151984a157b",
+          "ev_6f6f599da850",
+          "ev_2e0d8c52ae33",
+          "ev_4a3964dd1bae",
+          "ev_5bfcea0db19f",
+          "ev_291450b47964",
+          "ev_8707a045fb41",
+          "ev_20c196dd3b51",
+          "ev_f08dbc97c55b",
+          "ev_c1a8a362d31c",
+          "ev_fa68077b9e06"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 22 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.046210+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 22 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 135,
+        "types": 1,
+        "weighted_score": 92.39199999999983
+      }
+    },
+    {
+      "gene_id": "gene_d07e01efc4ab",
+      "gene_name": "lambdap24",
+      "success": true,
+      "interpretation": {
+        "id": "int_6ccb2873db9d",
+        "gene_id": "gene_d07e01efc4ab",
+        "hypothesis": "Protein with 2fe2s_fer_1 motif",
+        "confidence_score": 0.85,
+        "confidence_level": "high",
+        "supporting_evidence_ids": [
+          "ev_8f1ce5f840ad",
+          "ev_4717adef3ec6",
+          "ev_9dca49f30d13",
+          "ev_f7f02372ea3d",
+          "ev_5111df46cd6c",
+          "ev_9dbc3965f3c7",
+          "ev_c5bb6e834c36",
+          "ev_28dcbb021160",
+          "ev_14c5317d76f1",
+          "ev_0f598ea26e52",
+          "ev_c78ac41938cd",
+          "ev_f3a7fc92595c",
+          "ev_7039bd5c17ee",
+          "ev_a7c1480341e4",
+          "ev_3155ac679b5c",
+          "ev_8388c16bab8b",
+          "ev_f11797678936",
+          "ev_13004ab8faed",
+          "ev_ae1ec60f4587",
+          "ev_51a469e4f271",
+          "ev_06a8741f69d4"
+        ],
+        "reasoning_chain": [
+          "Detected 2fe2s_fer_1 motif pattern",
+          "Motif suggests Protein with 2fe2s_fer_1 motif function",
+          "Supported by 21 motif match(es)"
+        ],
+        "competing_hypotheses": [
+          {
+            "hypothesis": "Protein with thiolase_3 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          },
+          {
+            "hypothesis": "Protein with anaphylatoxin_1 motif",
+            "confidence": 0.95,
+            "reason_not_preferred": "Lower confidence (95%) than primary hypothesis"
+          }
+        ],
+        "uncertainty_sources": [
+          "single_evidence_type",
+          "weak_motif_match",
+          "no_experimental_validation"
+        ],
+        "timestamp": "2026-04-19T21:01:18.046561+00:00",
+        "metadata": {
+          "category": "unknown",
+          "keyword": [
+            "2fe2s_fer_1"
+          ],
+          "conflict_severity": "LOW"
+        }
+      },
+      "hypotheses": [
+        {
+          "function": "Protein with 2fe2s_fer_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected 2fe2s_fer_1 motif pattern",
+            "Motif suggests Protein with 2fe2s_fer_1 motif function",
+            "Supported by 21 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with thiolase_3 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected thiolase_3 motif pattern",
+            "Motif suggests Protein with thiolase_3 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        },
+        {
+          "function": "Protein with anaphylatoxin_1 motif",
+          "category": "unknown",
+          "confidence": 0.95,
+          "reasoning": [
+            "Detected anaphylatoxin_1 motif pattern",
+            "Motif suggests Protein with anaphylatoxin_1 motif function",
+            "Supported by 14 motif match(es)"
+          ]
+        }
+      ],
+      "evidence_summary": {
+        "count": 134,
+        "types": 1,
+        "weighted_score": 91.71199999999985
+      }
+    }
+  ]
+}

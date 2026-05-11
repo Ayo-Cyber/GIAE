@@ -2,6 +2,12 @@
 
 Detects potential coding sequences in unannotated genomes
 by scanning for open reading frames.
+
+When pyrodigal is installed (`pip install giae[annotation]`), it is used as
+the primary gene-finder because it applies Prodigal's dynamic-programming
+model with proper RBS scoring and GC-content-aware start codon weighting.
+If pyrodigal is not available the naive six-frame ATG scanner is used as a
+fallback — same interface, lower accuracy.
 """
 
 from __future__ import annotations
@@ -111,14 +117,16 @@ class ORFFinder:
     """
     Find Open Reading Frames in nucleotide sequences.
 
-    This class scans a DNA sequence for potential coding regions
-    by identifying start codons, stop codons, and the reading frames
-    between them.
+    Uses pyrodigal (Prodigal port) when installed, falling back to a
+    six-frame ATG scanner otherwise.  Both backends expose the same
+    public interface so callers do not need to know which is active.
 
     Attributes:
         min_length: Minimum ORF length in base pairs (default: 100).
-        start_codons: Set of valid start codons.
-        include_partial: Whether to include ORFs at sequence boundaries.
+        start_codons: Set of valid start codons (naive backend only).
+        include_partial: Whether to include ORFs at sequence boundaries
+            (naive backend only).
+        use_pyrodigal: Try pyrodigal before the naive scanner (default True).
 
     Example:
         >>> finder = ORFFinder(min_length=150)
@@ -130,13 +138,14 @@ class ORFFinder:
     min_length: int = 100
     start_codons: set[str] = field(default_factory=lambda: START_CODONS.copy())
     include_partial: bool = False
+    use_pyrodigal: bool = True
 
     def find_orfs(self, sequence: str) -> list[ORFResult]:
         """
         Find all ORFs in a sequence.
 
-        Searches both forward and reverse complement strands
-        in all three reading frames.
+        Tries pyrodigal first when `use_pyrodigal` is True and the package
+        is installed.  Falls back to the six-frame naive scanner otherwise.
 
         Args:
             sequence: DNA sequence (uppercase ATGC).
@@ -145,19 +154,66 @@ class ORFFinder:
             List of ORFResult objects for all detected ORFs.
         """
         sequence = sequence.upper()
+        if self.use_pyrodigal:
+            try:
+                return self._pyrodigal_find_orfs(sequence)
+            except ImportError:
+                pass  # pyrodigal not installed — fall through
+        return self._naive_find_orfs(sequence)
+
+    # ------------------------------------------------------------------
+    # Pyrodigal backend
+    # ------------------------------------------------------------------
+
+    def _pyrodigal_find_orfs(self, sequence: str) -> list[ORFResult]:
+        """Use pyrodigal (Prodigal) for gene prediction."""
+        import pyrodigal  # ImportError propagates to find_orfs caller
+
+        # meta=True: no training step — works on phage genomes and single
+        # contigs without needing a training sequence.
+        # We don't pass min_gene because it must be > max_overlap (default 60)
+        # and callers may set min_length < 60 in tests.  Instead we post-filter.
+        gf = pyrodigal.GeneFinder(meta=True)
+        predictions = gf.find_genes(sequence.encode())
+
+        results: list[ORFResult] = []
+        for gene in predictions:
+            # pyrodigal uses 1-based inclusive coordinates.
+            start = gene.begin - 1  # 0-based inclusive
+            end = gene.end          # 0-based exclusive (== 1-based inclusive end)
+            if end - start < self.min_length:
+                continue
+            strand = Strand.FORWARD if gene.strand == 1 else Strand.REVERSE
+            nuc_seq = gene.sequence().upper()
+            prot_seq = gene.translate().rstrip("*")
+            results.append(
+                ORFResult(
+                    start=start,
+                    end=end,
+                    strand=strand,
+                    frame=start % 3,
+                    nucleotide_sequence=nuc_seq,
+                    protein_sequence=prot_seq,
+                )
+            )
+        results.sort(key=lambda o: o.start)
+        return results
+
+    # ------------------------------------------------------------------
+    # Naive six-frame scanner (fallback)
+    # ------------------------------------------------------------------
+
+    def _naive_find_orfs(self, sequence: str) -> list[ORFResult]:
+        """Six-frame ATG scanner — fallback when pyrodigal is unavailable."""
         orfs: list[ORFResult] = []
 
-        # Search forward strand
         for frame in range(3):
             orfs.extend(self._find_orfs_in_frame(sequence, frame, Strand.FORWARD))
 
-        # Search reverse complement
         rev_comp = self._reverse_complement(sequence)
         for frame in range(3):
             rev_orfs = self._find_orfs_in_frame(rev_comp, frame, Strand.REVERSE)
-            # Adjust coordinates for reverse strand
             for orf in rev_orfs:
-                # Convert to forward strand coordinates
                 new_start = len(sequence) - orf.end
                 new_end = len(sequence) - orf.start
                 orfs.append(
@@ -171,7 +227,6 @@ class ORFFinder:
                     )
                 )
 
-        # Sort by position
         orfs.sort(key=lambda o: o.start)
         return orfs
 
@@ -184,19 +239,15 @@ class ORFFinder:
         """Find ORFs in a specific reading frame."""
         orfs: list[ORFResult] = []
         seq_len = len(sequence)
-
-        # Start position for this frame
         pos = frame
 
         while pos < seq_len - 2:
             codon = sequence[pos : pos + 3]
 
             if codon in self.start_codons:
-                # Found a start codon, look for stop
                 orf_start = pos
                 orf_seq = []
 
-                # Translate until stop or end
                 i = pos
                 while i < seq_len - 2:
                     c = sequence[i : i + 3]
@@ -207,7 +258,6 @@ class ORFFinder:
                     orf_seq.append(aa)
 
                     if c in STOP_CODONS:
-                        # Found complete ORF
                         orf_end = i + 3
                         if orf_end - orf_start >= self.min_length:
                             orfs.append(
@@ -223,7 +273,6 @@ class ORFFinder:
                         break
                     i += 3
                 else:
-                    # Reached end without stop codon
                     if self.include_partial:
                         orf_end = (seq_len - frame) // 3 * 3 + frame
                         if orf_end - orf_start >= self.min_length:
@@ -246,6 +295,10 @@ class ORFFinder:
         """Get the reverse complement of a DNA sequence."""
         complement = {"A": "T", "T": "A", "G": "C", "C": "G", "N": "N"}
         return "".join(complement.get(base, "N") for base in reversed(sequence))
+
+    # ------------------------------------------------------------------
+    # Gene model conversion
+    # ------------------------------------------------------------------
 
     def orfs_to_genes(self, orfs: list[ORFResult], prefix: str = "ORF") -> list[Gene]:
         """
@@ -277,7 +330,6 @@ class ORFFinder:
                 source="orf_prediction",
             )
 
-            # Attach protein
             protein = Protein(
                 gene_id=gene_id,
                 sequence=orf.protein_sequence,

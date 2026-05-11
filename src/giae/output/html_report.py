@@ -28,27 +28,43 @@ class HTMLReportGenerator:
             confidence = "NONE"
             confidence_score = 0.0
             evidence_count = 0
-            reasoning = []
+            reasoning: list[str] = []
             category = "unknown"
+            cog_letter = ""
+            cog_name = ""
+            go_terms: list[str] = []
+            normalized_product = ""
+            pfam_id = ""
 
             if res.interpretation:
                 interpretation = res.interpretation.hypothesis
-                confidence = res.interpretation.confidence_level.value
+                confidence = res.interpretation.confidence_level.value.upper()
                 confidence_score = res.interpretation.confidence_score
                 evidence_count = len(res.interpretation.supporting_evidence_ids)
                 reasoning = res.interpretation.reasoning_chain
-                category = "unknown"
+                meta = res.interpretation.metadata or {}
+                category = str(meta.get("category", "unknown"))
+                cog_letter = str(meta.get("cog_category", ""))
+                cog_name = str(meta.get("cog_name", ""))
+                go_terms = list(meta.get("go_terms", []) or [])
+                normalized_product = str(meta.get("normalized_product", ""))
+                pfam_id = str(meta.get("pfam_id", ""))
 
             results_data.append(
                 {
                     "id": res.gene_id,
                     "name": res.gene_name or res.gene_id,
                     "interpretation": interpretation,
+                    "normalized_product": normalized_product,
                     "confidence": confidence,
                     "score": round(confidence_score, 2),
                     "evidence_count": evidence_count,
                     "reasoning": reasoning,
                     "category": category,
+                    "cog_letter": cog_letter,
+                    "cog_name": cog_name,
+                    "go_terms": go_terms,
+                    "pfam_id": pfam_id,
                     "success": res.success,
                 }
             )
@@ -280,6 +296,39 @@ class HTMLReportGenerator:
             font-size: 0.75rem;
         }}
 
+        .cog-badge {{
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            background: rgba(13, 148, 136, 0.15);
+            color: var(--primary);
+            font-family: 'JetBrains Mono', monospace;
+            cursor: help;
+        }}
+
+        .pfam-badge {{
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: rgba(139, 92, 246, 0.12);
+            color: #7c3aed;
+            font-family: 'JetBrains Mono', monospace;
+        }}
+
+        .go-badge {{
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            background: rgba(100, 116, 139, 0.12);
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }}
+
         footer {{
             margin-top: 60px;
             text-align: center;
@@ -402,11 +451,25 @@ class HTMLReportGenerator:
                         ? `<ul class="reasoning-list">${{gene.reasoning.map(r => `<li>${{r}}</li>`).join('')}}</ul>`
                         : '<span style="color: var(--text-muted); font-style: italic;">No detectable signal</span>';
 
+                    const displayProduct = gene.normalized_product || gene.interpretation || 'hypothetical protein';
+                    const cogBadge = gene.cog_letter
+                        ? `<span class="cog-badge" title="${{gene.cog_name}}">COG:${{gene.cog_letter}}</span>`
+                        : '';
+                    const pfamBadge = gene.pfam_id
+                        ? `<span class="pfam-badge">${{gene.pfam_id}}</span>`
+                        : '';
+                    const goBadges = (gene.go_terms || []).slice(0, 3).map(
+                        g => `<span class="go-badge">${{g}}</span>`
+                    ).join(' ');
+
                     row.innerHTML = `
                         <td style="font-family: 'JetBrains Mono', monospace; font-weight: 600;">${{gene.name}}</td>
                         <td>
-                            <div style="font-weight: 600;">${{gene.interpretation || 'hypothetical protein'}}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Category: ${{gene.category}}</div>
+                            <div style="font-weight: 600;">${{displayProduct}}</div>
+                            <div style="margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px;">
+                                ${{cogBadge}} ${{pfamBadge}} ${{goBadges}}
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">Category: ${{gene.category}}${{gene.cog_name ? ' · ' + gene.cog_name : ''}}</div>
                         </td>
                         <td>
                             <span class="badge badge-${{gene.confidence}}">${{gene.confidence}}</span>

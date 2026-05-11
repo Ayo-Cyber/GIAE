@@ -295,7 +295,10 @@ The JSON output includes all evidence, scores, and reasoning in a structured for
 
 ## Next Steps
 
-- 🔌 **Install local BLAST+** for more sensitive homology: `giae db download swissprot`
+- 🔌 **Install Diamond** for fast local homology: `giae db download swissprot-diamond`
 - 🔌 **Install HMMER/Pfam** for domain detection: `giae db download pfam`
-- 📖 **[API Reference](../api.md)** — use GIAE in your Python scripts
-- 🗺️ **[Roadmap](../roadmap.md)** — what's coming next (HTML comparison tools, caching, more!)
+- 📖 **[Python API Reference](../python_api.md)** — use GIAE in your scripts
+- 🌐 **[REST API Reference](../rest_api.md)** — submit jobs over HTTP
+- 🏛️ **[Architecture](../architecture.md)** — how the evidence model and confidence scoring work
+- 📊 **[Benchmarks](../benchmarks.md)** — head-to-head vs Bakta
+- 🗺️ **[Roadmap](../roadmap.md)** — what's coming next
