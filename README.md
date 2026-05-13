@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="docs/assets/logo.png" alt="GIAE" width="64" align="middle"/>
+  <img src="docs/assets/mark.svg" alt="GIAE" width="64" align="middle"/>
   <br/>
   GIAE — Genome Interpretation &amp; Annotation Engine
 </h1>

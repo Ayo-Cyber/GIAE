@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Providers } from "@/components/providers";
+import { themeBootstrapScript } from "@/components/theme";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -18,10 +19,14 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <Providers>
-      <html lang="en" className="dark">
-        <body>{children}</body>
-      </html>
-    </Providers>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Set theme before first paint to avoid flash */}
+        <script dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
+    </html>
   );
 }

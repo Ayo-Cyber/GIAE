@@ -44,10 +44,15 @@ def _serialize_genes(results, genome) -> str:
         meta = (interp.metadata or {}) if interp else {}
         normalized = meta.get("normalized_product")
 
+        loc = gene.location if gene else None
         out.append({
             "id": r.gene_id,
             "name": r.gene_name or (gene.name if gene else None) or r.gene_id,
             "locus": (gene.locus_tag if gene else None) or r.gene_id,
+            "start": loc.start if loc else None,
+            "end": loc.end if loc else None,
+            "strand": loc.strand.value if loc else None,
+            "length": (loc.end - loc.start) if loc else None,
             "is_dark": is_dark,
             "confidence": conf_value,
             "score": round(interp.confidence_score, 3) if interp else None,
@@ -60,6 +65,16 @@ def _serialize_genes(results, genome) -> str:
             "pfam_id": meta.get("pfam_id"),
             "category": meta.get("category"),
             "reasoning": " ".join(interp.reasoning_chain) if interp else None,
+            "reasoning_steps": list(interp.reasoning_chain) if interp else [],
+            "competing_hypotheses": [
+                {
+                    "hypothesis": ch.hypothesis,
+                    "confidence": round(ch.confidence, 3),
+                    "reason_not_preferred": ch.reason_not_preferred,
+                }
+                for ch in (interp.competing_hypotheses if interp else [])
+            ],
+            "uncertainty_sources": list(interp.uncertainty_sources) if interp else [],
             "evidence": evidence_list,
         })
     return json.dumps(out)

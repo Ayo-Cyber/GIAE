@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { Dna, LayoutDashboard, FolderOpen, Database, Key, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
+import { ThemeToggle } from "./theme";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -77,6 +78,7 @@ export function AppNav() {
           >
             Upgrade
           </Link>
+          <ThemeToggle />
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-xs font-semibold text-white">
               {initials}

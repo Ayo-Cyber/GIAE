@@ -3,26 +3,27 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Download, Share2, CheckCircle2, Clock, AlertCircle, RefreshCw, XCircle, WifiOff } from "lucide-react";
+import { ChevronLeft, Download, Share2, CheckCircle2, Clock, AlertCircle, RefreshCw, XCircle, WifiOff, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Job, GeneRow } from "@/lib/types";
 import { AppNav } from "@/components/nav";
 import { cn } from "@/lib/utils";
+import {
+  ConfidenceComposition,
+  ReasoningChain,
+  CompetingHypothesesChart,
+  UncertaintyNotes,
+} from "@/components/explainability-panel";
+import { GenomeTrack } from "@/components/genome-track";
 
 type GeneFilter = "all" | "high" | "moderate" | "low" | "dark";
-
-function confidenceDot(c: string | null) {
-  if (c === "HIGH") return "bg-emerald-400";
-  if (c === "MODERATE") return "bg-amber-400";
-  if (c === "LOW") return "bg-indigo-400";
-  return "bg-gray-600";
-}
 
 export default function JobPage() {
   const { id } = useParams<{ id: string }>();
   const [job, setJob] = useState<Job | null>(null);
   const [selected, setSelected] = useState<GeneRow | null>(null);
   const [filter, setFilter] = useState<GeneFilter>("all");
+  const [query, setQuery] = useState("");
   const [rerunning, setRerunning] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -51,10 +52,15 @@ export default function JobPage() {
   const isRunning = job?.status === "RUNNING" || job?.status === "PENDING";
   const isCancellable = job?.status === "PENDING" || job?.status === "RUNNING";
   const genes = (job?.genes ?? []).filter((g) => {
-    if (filter === "high") return g.confidence === "HIGH";
-    if (filter === "moderate") return g.confidence === "MODERATE";
-    if (filter === "low") return g.confidence === "LOW";
-    if (filter === "dark") return g.is_dark;
+    if (filter === "high" && !(g.confidence === "HIGH" && !g.is_dark)) return false;
+    if (filter === "moderate" && !(g.confidence === "MODERATE" && !g.is_dark)) return false;
+    if (filter === "low" && !((g.confidence === "LOW" || g.confidence === "SPECULATIVE") && !g.is_dark)) return false;
+    if (filter === "dark" && !g.is_dark) return false;
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      const hay = `${g.name} ${g.locus} ${g.function ?? ""} ${g.normalized_product ?? ""}`.toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
     return true;
   });
 
@@ -188,19 +194,36 @@ export default function JobPage() {
         {job?.status === "COMPLETED" && (
           <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 112px)" }}>
             {/* Gene list sidebar */}
-            <div className="w-60 border-r border-white/5 flex flex-col overflow-hidden shrink-0">
-              <div className="p-3 border-b border-white/5">
-                <p className="text-xs text-gray-500 uppercase tracking-wider px-1 mb-2">Genes</p>
+            <div className="w-72 border-r border-white/5 flex flex-col overflow-hidden shrink-0 bg-[#0c0c18]">
+              <div className="p-3 border-b border-white/5 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-gray-500 uppercase tracking-wider">Genes</p>
+                  <p className="text-[10px] text-gray-600 mono">
+                    {genes.length}/{job?.total_genes ?? 0}
+                  </p>
+                </div>
+                {/* Search */}
+                <div className="relative">
+                  <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search name, locus, function…"
+                    className="w-full text-xs bg-white/4 border border-white/8 rounded-md pl-7 pr-2 py-1.5 text-gray-200 placeholder-gray-600 outline-none focus:border-indigo-500/40 focus:bg-white/6 transition-colors"
+                  />
+                </div>
+                {/* Filter chips */}
                 <div className="flex gap-1 flex-wrap">
                   {(["all", "high", "moderate", "low", "dark"] as GeneFilter[]).map((f) => (
                     <button
                       key={f}
                       onClick={() => setFilter(f)}
                       className={cn(
-                        "flex-1 text-xs py-1 rounded-md transition-colors capitalize",
+                        "flex-1 text-[11px] py-1 rounded-md transition-colors capitalize",
                         filter === f
                           ? "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                          : "text-gray-500 hover:text-gray-300 hover:bg-white/5"
+                          : "text-gray-500 hover:text-gray-300 hover:bg-white/5 border border-transparent"
                       )}
                     >
                       {f}
@@ -209,36 +232,84 @@ export default function JobPage() {
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-2 space-y-0.5">
+              <div className="flex-1 overflow-y-auto p-1.5 space-y-0.5">
                 {genes.length === 0 ? (
-                  <p className="text-xs text-gray-600 px-2 py-4 text-center">No genes match this filter</p>
+                  <div className="px-2 py-8 text-center">
+                    <p className="text-xs text-gray-600">No matches</p>
+                    {(filter !== "all" || query) && (
+                      <button
+                        onClick={() => { setFilter("all"); setQuery(""); }}
+                        className="text-[11px] text-indigo-400 hover:text-indigo-300 mt-1.5"
+                      >
+                        Clear filters
+                      </button>
+                    )}
+                  </div>
                 ) : (
-                  genes.map((g) => (
-                    <button
-                      key={g.id}
-                      onClick={() => setSelected(g)}
-                      className={cn(
-                        "w-full text-left px-2.5 py-2 rounded-lg transition-colors",
-                        selected?.id === g.id
-                          ? "bg-indigo-600/15 border border-indigo-500/20"
-                          : "hover:bg-white/5"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-0.5">
-                        <span className={cn("text-xs font-medium", selected?.id === g.id ? "text-white" : "text-gray-300")}>
-                          {g.name}
-                        </span>
-                        <span className={cn("w-1.5 h-1.5 rounded-full", g.is_dark ? "bg-amber-400" : confidenceDot(g.confidence))} />
-                      </div>
-                      <p className="text-xs text-gray-600 mono">{g.locus}</p>
-                    </button>
-                  ))
+                  genes.map((g) => {
+                    const isSel = selected?.id === g.id;
+                    const isDark = g.is_dark;
+                    const stripColour = isDark
+                      ? "bg-amber-700"
+                      : g.confidence === "HIGH" ? "bg-emerald-400"
+                      : g.confidence === "MODERATE" ? "bg-amber-500"
+                      : g.confidence === "LOW" || g.confidence === "SPECULATIVE" ? "bg-indigo-400"
+                      : "bg-gray-700";
+                    const label = g.normalized_product ?? g.function ?? (isDark ? "Dark matter" : "Unannotated");
+                    return (
+                      <button
+                        key={g.id}
+                        onClick={() => setSelected(g)}
+                        className={cn(
+                          "group w-full text-left pl-2 pr-2.5 py-2 rounded-lg transition-all relative overflow-hidden",
+                          isSel
+                            ? "bg-indigo-600/15 ring-1 ring-indigo-500/30"
+                            : "hover:bg-white/5"
+                        )}
+                      >
+                        {/* Left confidence strip */}
+                        <span className={cn("absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r", stripColour)} />
+                        <div className="pl-2">
+                          <div className="flex items-center justify-between mb-0.5 gap-2">
+                            <span className={cn("text-xs font-medium truncate", isSel ? "text-white" : "text-gray-200")}>
+                              {g.name}
+                            </span>
+                            <span className="flex items-center gap-1.5 shrink-0">
+                              {g.strand === -1 && (
+                                <span className="text-[9px] mono text-gray-600">−</span>
+                              )}
+                              {g.length != null && (
+                                <span className="text-[10px] mono text-gray-600">
+                                  {g.length < 1000 ? `${g.length}b` : `${(g.length / 1000).toFixed(1)}k`}
+                                </span>
+                              )}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate leading-tight">
+                            {label}
+                          </p>
+                          <p className="text-[10px] text-gray-700 mono mt-0.5 truncate">
+                            {g.locus}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })
                 )}
               </div>
             </div>
 
             {/* Gene detail panel */}
             <div className="flex-1 overflow-y-auto p-6">
+              {/* Genome map */}
+              <div className="mb-6">
+                <GenomeTrack
+                  genes={job.genes ?? []}
+                  selectedId={selected?.id ?? null}
+                  onSelect={setSelected}
+                />
+              </div>
+
               {/* Summary cards */}
               <div className="grid grid-cols-4 gap-3 mb-6">
                 {[
@@ -254,94 +325,174 @@ export default function JobPage() {
                 ))}
               </div>
 
-              {/* Confidence bar */}
-              {job.total_genes && job.total_genes > 0 && (
-                <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-4 mb-6">
-                  <p className="text-xs text-gray-400 font-medium mb-3">Confidence distribution</p>
-                  <div className="flex rounded-full overflow-hidden h-2.5 mb-3">
-                    <div className="bg-emerald-500" style={{ width: `${((job.high_confidence_count ?? 0) / job.total_genes) * 100}%` }} />
-                    <div className="bg-amber-500" style={{ width: `${(((job.interpreted_genes ?? 0) - (job.high_confidence_count ?? 0)) / job.total_genes) * 100}%` }} />
-                    <div className="bg-white/5 flex-1" />
+              {/* Confidence distribution */}
+              {job.total_genes && job.total_genes > 0 && (() => {
+                const total = job.total_genes;
+                const allGenes = job.genes ?? [];
+                const high = allGenes.filter((g) => g.confidence === "HIGH" && !g.is_dark).length;
+                const moderate = allGenes.filter((g) => g.confidence === "MODERATE" && !g.is_dark).length;
+                const low = allGenes.filter((g) => (g.confidence === "LOW" || g.confidence === "SPECULATIVE") && !g.is_dark).length;
+                const dark = allGenes.filter((g) => g.is_dark).length;
+                const unscored = Math.max(total - high - moderate - low - dark, 0);
+                const segs: { count: number; color: string; label: string; dot: string }[] = [
+                  { count: high, color: "bg-emerald-500", label: "High", dot: "bg-emerald-400" },
+                  { count: moderate, color: "bg-amber-500", label: "Moderate", dot: "bg-amber-400" },
+                  { count: low, color: "bg-indigo-500", label: "Low", dot: "bg-indigo-400" },
+                  { count: dark, color: "bg-amber-700", label: "Dark", dot: "bg-amber-600" },
+                  { count: unscored, color: "bg-white/8", label: "Unscored", dot: "bg-gray-600" },
+                ];
+                return (
+                  <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-4 mb-6">
+                    <p className="text-xs text-gray-400 font-medium mb-3">Confidence distribution</p>
+                    <div className="flex rounded-full overflow-hidden h-2.5 mb-3 bg-white/4">
+                      {segs.map((s) =>
+                        s.count > 0 ? (
+                          <div
+                            key={s.label}
+                            className={s.color}
+                            style={{ width: `${(s.count / total) * 100}%` }}
+                            title={`${s.label}: ${s.count} (${Math.round((s.count / total) * 100)}%)`}
+                          />
+                        ) : null
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-500">
+                      {segs.map((s) =>
+                        s.count > 0 ? (
+                          <span key={s.label} className="flex items-center gap-1.5">
+                            <span className={cn("w-1.5 h-1.5 rounded-full", s.dot)} />
+                            {s.label} <span className="text-gray-400 mono">{s.count}</span>
+                          </span>
+                        ) : null
+                      )}
+                    </div>
                   </div>
-                  <div className="flex gap-5 text-xs text-gray-500">
-                    <span><span className="text-emerald-400">●</span> High {job.high_confidence_count ?? 0}</span>
-                    <span><span className="text-amber-400">●</span> Other {(job.interpreted_genes ?? 0) - (job.high_confidence_count ?? 0)}</span>
-                    <span><span className="text-gray-600">●</span> Dark {job.dark_count ?? 0}</span>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Selected gene detail */}
               {selected ? (
-                <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-white font-semibold">{selected.name}</h3>
-                        {selected.confidence && (
-                          <span className={cn(
-                            "text-xs px-2 py-0.5 rounded-full border",
-                            selected.confidence === "HIGH"
-                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : selected.confidence === "MODERATE"
-                              ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                              : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
-                          )}>
-                            {selected.confidence}
-                          </span>
-                        )}
-                        {selected.is_dark && (
-                          <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20">
-                            DARK MATTER
-                          </span>
-                        )}
+                <div className="space-y-4">
+                  {/* Header card */}
+                  <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <h3 className="text-white font-semibold">{selected.name}</h3>
+                          {selected.confidence && (
+                            <span className={cn(
+                              "text-xs px-2 py-0.5 rounded-full border",
+                              selected.confidence === "HIGH"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : selected.confidence === "MODERATE"
+                                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                            )}>
+                              {selected.confidence}
+                            </span>
+                          )}
+                          {selected.is_dark && (
+                            <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20">
+                              DARK MATTER
+                            </span>
+                          )}
+                          {selected.cog_category && (
+                            <span
+                              className="text-xs px-2 py-0.5 rounded-full border bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
+                              title={selected.cog_name ?? undefined}
+                            >
+                              COG {selected.cog_category}
+                            </span>
+                          )}
+                          {selected.pfam_id && (
+                            <span className="text-xs px-2 py-0.5 rounded-full border bg-purple-500/10 text-purple-400 border-purple-500/20 mono">
+                              {selected.pfam_id}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500 mono">{selected.locus}</p>
                       </div>
-                      <p className="text-xs text-gray-500 mono">{selected.locus}</p>
+                      {selected.score != null && (
+                        <div className="text-right shrink-0 ml-3">
+                          <p className="text-xs text-gray-500">Score</p>
+                          <p className={cn(
+                            "text-2xl font-bold mono",
+                            selected.confidence === "HIGH" ? "text-emerald-400"
+                              : selected.confidence === "MODERATE" ? "text-amber-400"
+                              : selected.confidence === "LOW" ? "text-indigo-400"
+                              : "text-gray-500"
+                          )}>
+                            {selected.score.toFixed(2)}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                    {selected.score != null && (
-                      <div className="text-right">
-                        <p className="text-xs text-gray-500">Confidence score</p>
-                        <p className="text-2xl font-bold text-emerald-400 mono">{selected.score.toFixed(2)}</p>
+
+                    {(selected.normalized_product || selected.function) && (
+                      <p className="text-sm text-gray-300 leading-relaxed">
+                        {selected.normalized_product || selected.function}
+                      </p>
+                    )}
+
+                    {selected.go_terms && selected.go_terms.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-3">
+                        {selected.go_terms.map((go) => (
+                          <span
+                            key={go}
+                            className="text-[10px] mono bg-white/4 border border-white/6 text-gray-400 px-2 py-0.5 rounded"
+                          >
+                            {go}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
 
-                  {selected.function && (
-                    <p className="text-sm text-gray-300 leading-relaxed mb-5">{selected.function}</p>
-                  )}
-
+                  {/* Dark matter callout — full width */}
                   {selected.is_dark && (
-                    <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4 mb-4">
+                    <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4">
                       <p className="text-sm text-amber-300 font-medium mb-1">Dark matter gene</p>
                       <p className="text-xs text-gray-400 leading-relaxed">
                         No motif hits, no domain evidence. This gene has zero functional annotation
-                        across all databases. Added to the global dark matter index as a high-priority research target.
+                        across all databases. Added to the global dark matter index as a
+                        high-priority research target.
                       </p>
                     </div>
                   )}
 
-                  {selected.evidence.length > 0 && (
-                    <div className="mb-5">
-                      <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Evidence chain</p>
-                      <div className="space-y-2">
-                        {selected.evidence.map((ev, i) => (
-                          <div key={i} className="flex items-start gap-3 bg-white/2 border border-white/4 rounded-lg p-2.5">
-                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
-                            <div>
-                              <p className="text-xs font-medium text-gray-200">{ev.label}</p>
-                              <p className="text-xs text-gray-600 mono">{ev.source} · confidence {ev.conf}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                  {/* Explainability grid */}
+                  {!selected.is_dark && selected.score != null && (
+                    <div className="grid lg:grid-cols-2 gap-4">
+                      <ConfidenceComposition
+                        evidence={selected.evidence}
+                        score={selected.score}
+                        level={selected.confidence}
+                      />
+                      {selected.competing_hypotheses && selected.competing_hypotheses.length > 0 && selected.function && (
+                        <CompetingHypothesesChart
+                          primary={{ hypothesis: selected.function, confidence: selected.score }}
+                          competing={selected.competing_hypotheses}
+                        />
+                      )}
                     </div>
                   )}
 
-                  {selected.reasoning && (
-                    <div className="pt-4 border-t border-white/5">
+                  {/* Reasoning chain — full width */}
+                  {selected.reasoning_steps && selected.reasoning_steps.length > 0 && (
+                    <ReasoningChain steps={selected.reasoning_steps} />
+                  )}
+
+                  {/* Fallback: text reasoning if no steps array */}
+                  {(!selected.reasoning_steps || selected.reasoning_steps.length === 0) && selected.reasoning && (
+                    <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
                       <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Reasoning</p>
                       <p className="text-xs text-gray-400 leading-relaxed italic">"{selected.reasoning}"</p>
                     </div>
+                  )}
+
+                  {/* Uncertainty notes */}
+                  {selected.uncertainty_sources && selected.uncertainty_sources.length > 0 && (
+                    <UncertaintyNotes sources={selected.uncertainty_sources} />
                   )}
                 </div>
               ) : (
