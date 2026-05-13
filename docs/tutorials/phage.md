@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="../assets/logo.png" alt="GIAE Logo" width="200"/>
+  <img src="../assets/logo.svg" alt="GIAE Logo" width="320"/>
 </p>
 
 # Tutorial: Annotating a Phage Genome from Scratch

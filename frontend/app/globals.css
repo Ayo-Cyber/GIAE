@@ -7,49 +7,143 @@
 :root {
   --font-inter: 'Inter', system-ui, sans-serif;
   --font-jetbrains: 'JetBrains Mono', monospace;
+
+  /* ── Dark theme (default) ─────────────────────────────────────────── */
+  --bg: #0a0a14;
+  --surface: #0f0f1e;
+  --surface-elevated: #13131f;
+  --surface-hover: #16162a;
+  --divider: rgba(255, 255, 255, 0.06);
+  --divider-strong: rgba(255, 255, 255, 0.10);
+
+  --fg: #f1f5f9;
+  --fg-bright: #ffffff;
+  --fg-muted: #9ca3af;
+  --fg-faint: #6b7280;
+  --fg-dim: #4b5563;
+
+  --tooltip-bg: #0a0a14;
+  --scroll-track: #0f0f1a;
+  --scroll-thumb: #1e1e30;
+  --scroll-thumb-hover: #2d2d48;
 }
 
-* {
-  box-sizing: border-box;
+/* ── Light theme overrides ──────────────────────────────────────────── */
+:root[data-theme="light"] {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --surface-elevated: #ffffff;
+  --surface-hover: #f1f5f9;
+  --divider: rgba(15, 23, 42, 0.08);
+  --divider-strong: rgba(15, 23, 42, 0.14);
+
+  --fg: #0f172a;
+  --fg-bright: #020617;
+  --fg-muted: #475569;
+  --fg-faint: #64748b;
+  --fg-dim: #94a3b8;
+
+  --tooltip-bg: #0f172a;
+  --scroll-track: #e2e8f0;
+  --scroll-thumb: #cbd5e1;
+  --scroll-thumb-hover: #94a3b8;
 }
 
-html {
-  scroll-behavior: smooth;
-}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 
 body {
-  background-color: #0a0a14;
-  color: #f1f5f9;
+  background-color: var(--bg);
+  color: var(--fg);
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 4px; height: 4px; }
-::-webkit-scrollbar-track { background: #0f0f1a; }
-::-webkit-scrollbar-thumb { background: #1e1e30; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #2d2d48; }
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scroll-track); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
 
 /* Selection */
-::selection { background: rgba(99,102,241,0.3); color: white; }
+::selection { background: rgba(99, 102, 241, 0.3); color: var(--fg-bright); }
+
+/* ── Light-mode overrides for hard-coded utility classes ─────────────
+   Applied via attribute selector to keep dark mode as default.        */
+
+:root[data-theme="light"] .bg-\[\#0a0a14\] { background-color: var(--bg) !important; }
+:root[data-theme="light"] .bg-\[\#0f0f1e\] { background-color: var(--surface) !important; border-color: var(--divider) !important; }
+:root[data-theme="light"] .bg-\[\#13131f\] { background-color: var(--surface-elevated) !important; }
+
+/* Text colour shifts — preserve hierarchy */
+:root[data-theme="light"] .text-white { color: var(--fg-bright) !important; }
+:root[data-theme="light"] .text-gray-100 { color: var(--fg-bright) !important; }
+:root[data-theme="light"] .text-gray-200 { color: var(--fg) !important; }
+:root[data-theme="light"] .text-gray-300 { color: var(--fg) !important; }
+:root[data-theme="light"] .text-gray-400 { color: var(--fg-muted) !important; }
+:root[data-theme="light"] .text-gray-500 { color: var(--fg-faint) !important; }
+:root[data-theme="light"] .text-gray-600 { color: var(--fg-dim) !important; }
+:root[data-theme="light"] .text-gray-700 { color: var(--fg-dim) !important; }
+
+/* Border tweaks */
+:root[data-theme="light"] .border-white\/5,
+:root[data-theme="light"] .border-white\/6,
+:root[data-theme="light"] .border-white\/8,
+:root[data-theme="light"] .border-white\/10 { border-color: var(--divider) !important; }
+:root[data-theme="light"] .border-white\/20 { border-color: var(--divider-strong) !important; }
+
+/* White overlay backgrounds → subtle neutrals in light mode */
+:root[data-theme="light"] .bg-white\/2 { background-color: rgba(15, 23, 42, 0.02) !important; }
+:root[data-theme="light"] .bg-white\/4 { background-color: rgba(15, 23, 42, 0.04) !important; }
+:root[data-theme="light"] .bg-white\/5 { background-color: rgba(15, 23, 42, 0.04) !important; }
+:root[data-theme="light"] .bg-white\/6 { background-color: rgba(15, 23, 42, 0.05) !important; }
+:root[data-theme="light"] .bg-white\/8 { background-color: rgba(15, 23, 42, 0.06) !important; }
+:root[data-theme="light"] .bg-white\/10 { background-color: rgba(15, 23, 42, 0.08) !important; }
+:root[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(15, 23, 42, 0.05) !important; }
+:root[data-theme="light"] .hover\:bg-white\/8:hover { background-color: rgba(15, 23, 42, 0.07) !important; }
+:root[data-theme="light"] .hover\:bg-white\/10:hover { background-color: rgba(15, 23, 42, 0.08) !important; }
+
+/* Indigo tint backgrounds dim slightly in light mode for less neon look */
+:root[data-theme="light"] .bg-indigo-600\/15,
+:root[data-theme="light"] .bg-indigo-600\/20 { background-color: rgba(99, 102, 241, 0.10) !important; }
+:root[data-theme="light"] .bg-indigo-500\/10,
+:root[data-theme="light"] .bg-indigo-500\/20 { background-color: rgba(99, 102, 241, 0.08) !important; }
+:root[data-theme="light"] .bg-indigo-400\/10 { background-color: rgba(129, 140, 248, 0.10) !important; }
+
+/* Tone down emerald/amber/red tinted backgrounds */
+:root[data-theme="light"] .bg-emerald-500\/10 { background-color: rgba(16, 185, 129, 0.10) !important; }
+:root[data-theme="light"] .bg-amber-500\/10 { background-color: rgba(245, 158, 11, 0.12) !important; }
+:root[data-theme="light"] .bg-amber-500\/5 { background-color: rgba(245, 158, 11, 0.07) !important; }
+:root[data-theme="light"] .bg-red-500\/10,
+:root[data-theme="light"] .bg-red-500\/20 { background-color: rgba(239, 68, 68, 0.10) !important; }
+:root[data-theme="light"] .bg-purple-500\/10 { background-color: rgba(168, 85, 247, 0.10) !important; }
+
+/* Indigo glow softer in light mode */
+:root[data-theme="light"] .glow-indigo {
+  box-shadow: 0 0 30px rgba(99, 102, 241, 0.06), 0 1px 0 rgba(15, 23, 42, 0.03) inset;
+}
+
+/* Genome-map labels on slices are dark in dark mode — invert in light */
+:root[data-theme="light"] svg text[fill="#0a0a14"] { fill: #ffffff !important; }
 
 @layer utilities {
   .surface {
-    background: #0f0f1e;
-    border: 1px solid rgba(255,255,255,0.06);
+    background: var(--surface);
+    border: 1px solid var(--divider);
   }
   .surface-elevated {
-    background: #13131f;
-    border: 1px solid rgba(255,255,255,0.07);
+    background: var(--surface-elevated);
+    border: 1px solid var(--divider-strong);
   }
   .glow-indigo {
-    box-shadow: 0 0 30px rgba(99,102,241,0.12), 0 1px 0 rgba(255,255,255,0.05) inset;
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.12), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
   }
   .glow-emerald {
-    box-shadow: 0 0 20px rgba(16,185,129,0.1);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
   }
   .text-gradient {
-    background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.7) 100%);
+    background: linear-gradient(135deg, var(--fg-bright) 0%, var(--fg-muted) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -64,8 +158,13 @@ body {
     font-family: var(--font-jetbrains);
   }
   .grid-bg {
-    background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-                      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
     background-size: 40px 40px;
   }
+}
+
+:root[data-theme="light"] .grid-bg {
+  background-image: linear-gradient(rgba(15, 23, 42, 0.025) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(15, 23, 42, 0.025) 1px, transparent 1px);
 }

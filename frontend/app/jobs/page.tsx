@@ -51,29 +51,35 @@ export default function JobsPage() {
       .finally(() => setLoading(false));
   }, []);
 
+  // Grid template: File grows · Status fits · Genes fits · Actions right-aligned
+  const cols =
+    "grid grid-cols-[minmax(0,1fr)_140px_160px_140px] gap-x-6 items-center";
+
   return (
     <div className="min-h-screen bg-[#0a0a14]">
       <AppNav />
       <div className="pt-14 max-w-5xl mx-auto px-6 py-10">
-
         {/* Header */}
-        <div className="flex items-start justify-between mb-8">
+        <div className="flex items-start justify-between mb-8 gap-6">
           <div>
-            <h1 className="text-2xl font-semibold text-white mb-1">Jobs</h1>
+            <h1 className="text-2xl font-semibold text-white mb-1 tracking-tight">Jobs</h1>
             <p className="text-gray-400 text-sm">All genome interpretation runs.</p>
           </div>
-          <div className="text-right">
-            <p className="text-3xl font-bold text-white mono">
+          <div className="text-right shrink-0">
+            <p className="text-3xl font-bold text-white mono tabular-nums leading-none">
               {loading ? "—" : jobs.length}
             </p>
-            <p className="text-xs text-gray-500">total jobs</p>
+            <p className="text-xs text-gray-500 mt-1.5">total jobs</p>
           </div>
         </div>
 
         {loading ? (
           <div className="space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-14 bg-[#0f0f1e] border border-white/6 rounded-xl animate-pulse" />
+              <div
+                key={i}
+                className="h-16 bg-[#0f0f1e] border border-white/6 rounded-xl animate-pulse"
+              />
             ))}
           </div>
         ) : jobs.length === 0 ? (
@@ -84,62 +90,89 @@ export default function JobsPage() {
             <p className="text-white font-medium mb-1">No jobs yet</p>
             <p className="text-sm text-gray-500 max-w-xs">
               Upload a genome from the{" "}
-              <Link href="/dashboard" className="text-indigo-400 hover:underline">dashboard</Link>{" "}
+              <Link href="/dashboard" className="text-indigo-400 hover:underline">
+                dashboard
+              </Link>{" "}
               to start an interpretation run.
             </p>
           </div>
         ) : (
           <div className="bg-[#0f0f1e] border border-white/6 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-5 text-xs text-gray-500 uppercase tracking-wider px-5 py-3 border-b border-white/5 bg-white/2">
-              <span className="col-span-2">File</span>
+            {/* Header row */}
+            <div
+              className={cn(
+                cols,
+                "text-[11px] text-gray-500 uppercase tracking-wider font-medium px-6 py-3 border-b border-white/5 bg-white/2"
+              )}
+            >
+              <span>File</span>
               <span>Status</span>
               <span>Genes</span>
-              <span>Actions</span>
+              <span className="text-right">Actions</span>
             </div>
-            <div className="divide-y divide-white/4">
+
+            {/* Rows */}
+            <div className="divide-y divide-white/[0.04]">
               {jobs.map((job) => (
-                <div
+                <Link
                   key={job.job_id}
-                  className="grid grid-cols-5 px-5 py-3.5 hover:bg-white/2 transition-colors items-center"
+                  href={`/jobs/${job.job_id}`}
+                  className={cn(
+                    cols,
+                    "px-6 py-4 hover:bg-white/[0.025] transition-colors group"
+                  )}
                 >
-                  <Link
-                    href={`/jobs/${job.job_id}`}
-                    className="col-span-2 flex flex-col gap-0.5 group"
-                  >
+                  {/* File */}
+                  <div className="min-w-0 flex flex-col gap-0.5">
                     <span className="text-sm font-medium text-gray-200 group-hover:text-white transition-colors truncate">
                       {job.filename}
                     </span>
-                    <span className="mono text-xs text-gray-600">{job.job_id.slice(0, 8)}…</span>
-                  </Link>
-                  <StatusBadge status={job.status} />
-                  <span className={cn("text-xs mono", job.total_genes ? "text-gray-300" : "text-gray-600")}>
+                    <span className="mono text-[11px] text-gray-600">
+                      {job.job_id.slice(0, 8)}…
+                    </span>
+                  </div>
+
+                  {/* Status */}
+                  <div>
+                    <StatusBadge status={job.status} />
+                  </div>
+
+                  {/* Genes */}
+                  <div className="text-xs mono tabular-nums">
                     {job.total_genes != null ? (
-                      <>
-                        {job.total_genes}{" "}
+                      <span className="text-gray-300">
+                        {job.total_genes}
                         {job.high_confidence_count != null && (
-                          <span className="text-emerald-500">/ {job.high_confidence_count} high</span>
+                          <>
+                            <span className="text-gray-600"> · </span>
+                            <span className="text-emerald-400">
+                              {job.high_confidence_count} high
+                            </span>
+                          </>
                         )}
-                      </>
-                    ) : "—"}
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <Link
-                      href={`/jobs/${job.job_id}`}
-                      className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
-                    >
+                      </span>
+                    ) : (
+                      <span className="text-gray-600">—</span>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-end gap-3">
+                    <span className="text-xs text-indigo-400 group-hover:text-indigo-300 transition-colors">
                       View →
-                    </Link>
+                    </span>
                     {job.report_url && (
                       <a
                         href={job.report_url}
                         target="_blank"
+                        onClick={(e) => e.stopPropagation()}
                         className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-200 transition-colors"
                       >
                         <Download size={11} /> Report
                       </a>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

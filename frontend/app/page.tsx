@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { api } from "@/lib/api";
 import {
   Dna,
@@ -16,6 +17,8 @@ import {
   Globe,
   ShieldCheck,
 } from "lucide-react";
+import { ThemeToggle } from "@/components/theme";
+import { HeroPreview } from "@/components/hero-preview";
 
 /* ─── tiny helpers ─── */
 const Badge = ({ children }: { children: React.ReactNode }) => (
@@ -150,6 +153,7 @@ function Nav() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <Link
             href="/login"
             className="hidden md:inline text-sm text-gray-400 hover:text-white transition-colors"
@@ -188,62 +192,148 @@ export default function LandingPage() {
       <Nav />
 
       {/* ── HERO ── */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
-        {/* bg glow */}
+      <section className="relative pt-28 pb-20 px-6 overflow-hidden">
+        {/* Background */}
         <div className="absolute inset-0 grid-bg opacity-100 pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-indigo-600/8 blur-[120px] rounded-full pointer-events-none" />
+        <motion.div
+          className="absolute top-[-200px] left-[10%] w-[600px] h-[500px] bg-indigo-600/10 blur-[140px] rounded-full pointer-events-none"
+          animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
+          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute top-[100px] right-[-100px] w-[500px] h-[500px] bg-violet-600/8 blur-[140px] rounded-full pointer-events-none"
+          animate={{ x: [0, -30, 0], y: [0, 25, 0] }}
+          transition={{ duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        />
 
-        <div className="max-w-4xl mx-auto text-center relative">
-          <div className="flex justify-center mb-6">
-            <Badge>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Open Beta — Free to start
-            </Badge>
+        <div className="max-w-6xl mx-auto relative">
+          <div className="grid lg:grid-cols-[1.05fr_1fr] gap-12 lg:gap-16 items-center">
+
+            {/* Left — copy (staggered fade-up) */}
+            <motion.div
+              className="max-w-xl"
+              initial="hidden"
+              animate="show"
+              variants={{
+                hidden: {},
+                show: { transition: { staggerChildren: 0.09, delayChildren: 0.05 } },
+              }}
+            >
+              {(() => {
+                const item = {
+                  hidden: { opacity: 0, y: 14 },
+                  show: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const },
+                  },
+                };
+                return (
+                  <>
+                    <motion.div variants={item}>
+                      <Badge>
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                        v0.2.2 · Open Beta — Free to start
+                      </Badge>
+                    </motion.div>
+
+                    <motion.h1
+                      variants={item}
+                      className="text-5xl md:text-6xl font-bold leading-[1.04] tracking-tight mt-6 mb-5"
+                    >
+                      <span className="text-gradient">The genome annotator</span>{" "}
+                      <span className="text-gradient-indigo">that shows its work.</span>
+                    </motion.h1>
+
+                    <motion.p
+                      variants={item}
+                      className="text-lg text-gray-400 mb-8 leading-relaxed"
+                    >
+                      Every gene gets a confidence score, an evidence chain, and a
+                      reasoning trace. No black-box predictions — and no gene gets
+                      silently dropped.
+                    </motion.p>
+
+                    <motion.div
+                      variants={item}
+                      className="flex flex-col sm:flex-row gap-3 mb-8"
+                    >
+                      <Link
+                        href="/signup"
+                        className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-medium text-sm transition-all shadow-lg shadow-indigo-600/25 hover:shadow-indigo-600/40 hover:-translate-y-px"
+                      >
+                        Start interpreting free
+                        <ArrowRight size={15} />
+                      </Link>
+                      <Link
+                        href="/dashboard"
+                        className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/8 border border-white/10 text-gray-300 px-5 py-3 rounded-xl font-medium text-sm transition-colors"
+                      >
+                        <Terminal size={14} />
+                        See a live demo
+                      </Link>
+                    </motion.div>
+
+                    <motion.div
+                      variants={item}
+                      className="flex flex-wrap items-center gap-x-6 gap-y-3 text-xs text-gray-500 pt-2"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-400" />
+                        Open source · MIT
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-400" />
+                        Runs offline · No data leaves your laptop
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <CheckCircle2 size={13} className="text-emerald-400" />
+                        REST API + CLI + Python library
+                      </span>
+                    </motion.div>
+                  </>
+                );
+              })()}
+            </motion.div>
+
+            {/* Right — product preview card */}
+            <HeroPreview />
           </div>
+        </div>
+      </section>
 
-          <h1 className="text-5xl md:text-6xl font-bold leading-[1.08] tracking-tight mb-6">
-            <span className="text-gradient">Every answer your genome</span>
-            <br />
-            <span className="text-gradient-indigo">is hiding from you.</span>
-          </h1>
-
-          <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-            GIAE is the first explainable genome annotation engine. Upload a
-            GenBank or FASTA file and get a full interactive report — confidence
-            scores, evidence chains, and a complete accounting of every
-            unannotated gene.
+      {/* ── BENCHMARK STRIP — replacing the old stat grid ── */}
+      <section className="px-6 pb-20">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-center text-xs uppercase tracking-[0.18em] text-gray-600 mb-5">
+            Benchmarked against Bakta on reference phage genomes
           </p>
-
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-16">
-            <Link
-              href="/signup"
-              className="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl font-medium text-sm transition-colors"
-            >
-              Start interpreting free
-              <ArrowRight size={15} />
-            </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center gap-2 bg-white/5 hover:bg-white/8 border border-white/10 text-gray-300 px-6 py-3 rounded-xl font-medium text-sm transition-colors"
-            >
-              <Terminal size={14} />
-              View live demo
-            </Link>
-          </div>
-
-          {/* Hero stat strip */}
-          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto">
+          <div className="grid grid-cols-3 gap-3 md:gap-4">
             {[
-              { n: "44", label: "dark matter genes in lambda phage alone" },
-              { n: "1.2M+", label: "unannotated proteins indexed globally" },
-              { n: "91%", label: "avg confidence on known protein families" },
+              { genome: "phiX174", giae: "60.0%", delta: "tie", win: false },
+              { genome: "λ phage", giae: "79.2%", delta: "+6.6%", win: true },
+              { genome: "T7 phage", giae: "88.1%", delta: "+2.9%", win: true },
             ].map((s) => (
               <div
-                key={s.label}
-                className="surface rounded-xl p-4 text-center"
+                key={s.genome}
+                className="surface rounded-xl p-4 flex flex-col gap-1 hover:border-indigo-500/25 transition-colors"
               >
-                <p className="text-2xl font-bold text-white mono mb-1">{s.n}</p>
-                <p className="text-xs text-gray-500 leading-snug">{s.label}</p>
+                <p className="text-xs text-gray-500">{s.genome}</p>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-2xl font-bold text-white mono tabular-nums">{s.giae}</p>
+                  <span
+                    className={
+                      s.win
+                        ? "text-xs font-medium text-emerald-400 mono"
+                        : "text-xs font-medium text-gray-500 mono"
+                    }
+                  >
+                    {s.delta}
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-600">
+                  GIAE F1 score {s.win ? "vs Bakta" : ""}
+                </p>
               </div>
             ))}
           </div>

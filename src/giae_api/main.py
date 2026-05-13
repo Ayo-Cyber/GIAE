@@ -4,6 +4,7 @@ import json as _json
 import os
 import shutil
 import uuid
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Optional
 
@@ -15,6 +16,11 @@ from sqlalchemy.orm import Session
 
 from . import auth, database, models
 from .worker import process_genome_task
+
+# Absolute base directory — always the repo root regardless of process CWD
+_BASE_DIR = Path(__file__).resolve().parents[2]  # src/giae_api → src → repo root
+UPLOAD_DIR = _BASE_DIR / "uploads"
+REPORTS_DIR = _BASE_DIR / "public_reports"
 
 
 # ---------------------------------------------------------------------------
@@ -90,8 +96,8 @@ app.add_middleware(
 )
 
 # Static reports
-os.makedirs("public_reports", exist_ok=True)
-app.mount("/reports", StaticFiles(directory="public_reports"), name="reports")
+REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 
 # ---------------------------------------------------------------------------
@@ -266,8 +272,8 @@ async def create_job(
     """
     job_id = str(uuid.uuid4())
 
-    os.makedirs("uploads", exist_ok=True)
-    file_path = f"uploads/{job_id}_{file.filename}"
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    file_path = str(UPLOAD_DIR / f"{job_id}_{file.filename}")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
@@ -334,7 +340,7 @@ def rerun_job(
     if job.user_id and job.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Forbidden")
 
-    file_path = f"uploads/{job_id}_{job.filename}"
+    file_path = str(UPLOAD_DIR / f"{job_id}_{job.filename}")
     if not os.path.exists(file_path):
         raise HTTPException(status_code=409, detail="Original upload file not found")
 
