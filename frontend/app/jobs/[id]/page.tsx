@@ -3,18 +3,20 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ChevronLeft, Download, Share2, CheckCircle2, Clock, AlertCircle, RefreshCw, XCircle, WifiOff, Search } from "lucide-react";
+import { ChevronLeft, Download, Share2, CheckCircle2, Clock, AlertCircle, RefreshCw, XCircle, WifiOff, Search, Presentation, FlaskConical } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Job, GeneRow } from "@/lib/types";
 import { AppNav } from "@/components/nav";
 import { cn } from "@/lib/utils";
 import {
   ConfidenceComposition,
+  EvidenceLadder,
   ReasoningChain,
   CompetingHypothesesChart,
   UncertaintyNotes,
 } from "@/components/explainability-panel";
 import { GenomeTrack } from "@/components/genome-track";
+import { DEMO_JOB_ID, demoJob } from "@/data/demo-data";
 
 type GeneFilter = "all" | "high" | "moderate" | "low" | "dark";
 
@@ -28,8 +30,16 @@ export default function JobPage() {
   const [cancelling, setCancelling] = useState(false);
   const [copied, setCopied] = useState(false);
   const [workerOnline, setWorkerOnline] = useState<boolean | null>(null);
+  const [stageMode, setStageMode] = useState(false);
+  const isDemo = id === DEMO_JOB_ID;
 
   useEffect(() => {
+    if (isDemo) {
+      setJob(demoJob);
+      setSelected(demoJob.genes[0]);
+      return;
+    }
+
     // Initial fetch
     api.getJob(id).then((j) => {
       setJob(j);
@@ -42,7 +52,7 @@ export default function JobPage() {
       if (j.genes?.length > 0 && !selected) setSelected(j.genes[0]);
     });
     return stop;
-  }, [id]);
+  }, [id, isDemo]);
 
   useEffect(() => {
     if (job?.status !== "PENDING" && job?.status !== "RUNNING") return;
@@ -79,12 +89,31 @@ export default function JobPage() {
             <ChevronLeft size={16} />
           </Link>
           <div className="flex-1">
-            <p className="text-sm font-semibold text-white">{job?.filename ?? id}</p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-semibold text-white">{job?.filename ?? id}</p>
+              {isDemo && (
+                <span className="inline-flex items-center gap-1 text-[10px] text-cyan-200 bg-cyan-400/10 border border-cyan-400/20 px-1.5 py-0.5 rounded-full">
+                  <FlaskConical size={10} />
+                  sample
+                </span>
+              )}
+            </div>
             <p className="text-xs text-gray-500 mono">
-              {job?.total_genes != null ? `${job.total_genes} genes` : "Loading…"}
+              {job?.total_genes != null ? `${job.total_genes} genes · ${job.processing_time_seconds ?? "—"}s` : "Loading…"}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap justify-end">
+            <button
+              onClick={() => setStageMode((v) => !v)}
+              className={cn(
+                "flex items-center gap-1.5 text-xs border px-3 py-1.5 rounded-lg transition-colors",
+                stageMode
+                  ? "bg-cyan-500/15 border-cyan-400/25 text-cyan-100"
+                  : "bg-white/5 hover:bg-white/8 border-white/10 text-gray-300"
+              )}
+            >
+              <Presentation size={12} /> Stage view
+            </button>
             <button
               onClick={() => {
                 navigator.clipboard.writeText(window.location.href);
@@ -114,7 +143,7 @@ export default function JobPage() {
                 {cancelling ? "Cancelling…" : "Cancel"}
               </button>
             )}
-            {(job?.status === "COMPLETED" || job?.status === "FAILED") && (
+            {!isDemo && (job?.status === "COMPLETED" || job?.status === "FAILED") && (
               <button
                 onClick={async () => {
                   setRerunning(true);
@@ -192,9 +221,20 @@ export default function JobPage() {
 
         {/* Completed state */}
         {job?.status === "COMPLETED" && (
-          <div className="flex flex-1 overflow-hidden" style={{ height: "calc(100vh - 112px)" }}>
+          <div
+            className={cn(
+              "flex flex-1 overflow-hidden flex-col lg:flex-row",
+              stageMode ? "bg-[radial-gradient(circle_at_70%_10%,rgba(8,145,178,0.08),transparent_32%)]" : ""
+            )}
+            style={{ height: "calc(100vh - 112px)" }}
+          >
             {/* Gene list sidebar */}
-            <div className="w-72 border-r border-white/5 flex flex-col overflow-hidden shrink-0 bg-[#0c0c18]">
+            <div
+              className={cn(
+                "border-r border-white/5 flex flex-col overflow-hidden shrink-0 bg-[#0c0c18]",
+                stageMode ? "w-full lg:w-80 max-h-72 lg:max-h-none" : "w-full lg:w-72 max-h-72 lg:max-h-none"
+              )}
+            >
               <div className="p-3 border-b border-white/5 space-y-2.5">
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-gray-500 uppercase tracking-wider">Genes</p>
@@ -300,9 +340,9 @@ export default function JobPage() {
             </div>
 
             {/* Gene detail panel */}
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className={cn("flex-1 overflow-y-auto", stageMode ? "p-4 md:p-8" : "p-4 md:p-6")}>
               {/* Genome map */}
-              <div className="mb-6">
+              <div className={cn("mb-6", stageMode && "mx-auto max-w-6xl")}>
                 <GenomeTrack
                   genes={job.genes ?? []}
                   selectedId={selected?.id ?? null}
@@ -311,15 +351,15 @@ export default function JobPage() {
               </div>
 
               {/* Summary cards */}
-              <div className="grid grid-cols-4 gap-3 mb-6">
+              <div className={cn("grid gap-3 mb-6", stageMode ? "grid-cols-2 xl:grid-cols-4 mx-auto max-w-6xl" : "grid-cols-2 xl:grid-cols-4")}>
                 {[
                   { v: String(job.total_genes ?? 0), l: "Total Genes", c: "text-white" },
                   { v: String(job.high_confidence_count ?? 0), l: "High Confidence", c: "text-emerald-400" },
                   { v: String(job.dark_count ?? 0), l: "Dark Matter", c: "text-amber-400" },
                   { v: `${successRate}%`, l: "Success Rate", c: "text-indigo-400" },
                 ].map((s) => (
-                  <div key={s.l} className="bg-[#0f0f1e] border border-white/6 rounded-xl p-3 text-center">
-                    <p className={`text-xl font-bold ${s.c}`}>{s.v}</p>
+                  <div key={s.l} className={cn("bg-[#0f0f1e] border border-white/6 rounded-xl text-center", stageMode ? "p-5" : "p-3")}>
+                    <p className={cn("font-bold", s.c, stageMode ? "text-3xl" : "text-xl")}>{s.v}</p>
                     <p className="text-xs text-gray-500 mt-0.5">{s.l}</p>
                   </div>
                 ))}
@@ -342,7 +382,7 @@ export default function JobPage() {
                   { count: unscored, color: "bg-white/8", label: "Unscored", dot: "bg-gray-600" },
                 ];
                 return (
-                  <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-4 mb-6">
+                  <div className={cn("bg-[#0f0f1e] border border-white/6 rounded-xl p-4 mb-6", stageMode && "mx-auto max-w-6xl")}>
                     <p className="text-xs text-gray-400 font-medium mb-3">Confidence distribution</p>
                     <div className="flex rounded-full overflow-hidden h-2.5 mb-3 bg-white/4">
                       {segs.map((s) =>
@@ -372,13 +412,13 @@ export default function JobPage() {
 
               {/* Selected gene detail */}
               {selected ? (
-                <div className="space-y-4">
+                <div className={cn("space-y-4", stageMode && "mx-auto max-w-6xl")}>
                   {/* Header card */}
-                  <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
-                    <div className="flex items-start justify-between mb-4">
+                  <div className={cn("bg-[#0f0f1e] border border-white/6 rounded-xl", stageMode ? "p-7 border-cyan-400/15" : "p-5")}>
+                    <div className="flex items-start justify-between mb-4 gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <h3 className="text-white font-semibold">{selected.name}</h3>
+                          <h3 className={cn("text-white font-semibold", stageMode && "text-2xl")}>{selected.name}</h3>
                           {selected.confidence && (
                             <span className={cn(
                               "text-xs px-2 py-0.5 rounded-full border",
@@ -416,7 +456,8 @@ export default function JobPage() {
                         <div className="text-right shrink-0 ml-3">
                           <p className="text-xs text-gray-500">Score</p>
                           <p className={cn(
-                            "text-2xl font-bold mono",
+                            "font-bold mono",
+                            stageMode ? "text-4xl" : "text-2xl",
                             selected.confidence === "HIGH" ? "text-emerald-400"
                               : selected.confidence === "MODERATE" ? "text-amber-400"
                               : selected.confidence === "LOW" ? "text-indigo-400"
@@ -429,7 +470,7 @@ export default function JobPage() {
                     </div>
 
                     {(selected.normalized_product || selected.function) && (
-                      <p className="text-sm text-gray-300 leading-relaxed">
+                      <p className={cn("text-gray-300 leading-relaxed", stageMode ? "text-lg" : "text-sm")}>
                         {selected.normalized_product || selected.function}
                       </p>
                     )}
@@ -459,6 +500,8 @@ export default function JobPage() {
                       </p>
                     </div>
                   )}
+
+                  <EvidenceLadder evidence={selected.evidence} isDark={selected.is_dark} />
 
                   {/* Explainability grid */}
                   {!selected.is_dark && selected.score != null && (

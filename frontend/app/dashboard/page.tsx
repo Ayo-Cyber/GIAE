@@ -4,9 +4,10 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { UploadZone } from "@/components/upload-zone";
-import { ArrowRight, CheckCircle2, Clock, AlertCircle, Dna } from "lucide-react";
+import { ArrowRight, CheckCircle2, Clock, AlertCircle, Dna, PlayCircle, Sparkles } from "lucide-react";
 import { api } from "@/lib/api";
 import type { Job } from "@/lib/types";
+import { DEMO_JOB_ID } from "@/data/demo-data";
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "COMPLETED")
@@ -65,11 +66,24 @@ export default function DashboardPage() {
   return (
     <div className="max-w-5xl mx-auto px-6 py-10">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-white mb-1">
-          Good to see you, {firstName}
-        </h1>
-        <p className="text-gray-400 text-sm">Upload a genome to start a new interpretation job.</p>
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-xs text-cyan-300 bg-cyan-400/10 border border-cyan-400/20 px-2.5 py-1 rounded-full mb-3">
+            <Sparkles size={12} />
+            Explainable genome annotation
+          </div>
+          <h1 className="text-2xl font-semibold text-white mb-1">
+            Good to see you, {firstName}
+          </h1>
+          <p className="text-gray-400 text-sm">Upload a genome or open the sample report to see GIAE's reasoning in action.</p>
+        </div>
+        <Link
+          href={`/jobs/${DEMO_JOB_ID}`}
+          className="inline-flex items-center justify-center gap-2 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/15 border border-cyan-400/25 px-4 py-2.5 text-sm font-medium text-cyan-200 transition-colors"
+        >
+          <PlayCircle size={15} />
+          Load sample report
+        </Link>
       </div>
 
       {/* Upload */}
@@ -111,14 +125,29 @@ export default function DashboardPage() {
             ))}
           </div>
         ) : jobs.length === 0 ? (
-          <div className="bg-[#0f0f1e] border border-white/6 rounded-2xl px-8 py-14 flex flex-col items-center text-center">
-            <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-4">
-              <Dna size={22} className="text-indigo-400" />
+          <div className="bg-[#0f0f1e] border border-white/6 rounded-2xl px-8 py-12 grid gap-8 lg:grid-cols-[1fr_320px] lg:items-center">
+            <div className="text-center lg:text-left">
+              <div className="w-12 h-12 rounded-xl bg-indigo-600/10 border border-indigo-500/20 flex items-center justify-center mb-4 mx-auto lg:mx-0">
+                <Dna size={22} className="text-indigo-400" />
+              </div>
+              <p className="text-white font-medium mb-1">No jobs yet</p>
+              <p className="text-sm text-gray-500 max-w-md mx-auto lg:mx-0">
+                Upload a genome file above to run your first interpretation, or open the curated lambda phage sample for an instant demo.
+              </p>
             </div>
-            <p className="text-white font-medium mb-1">No jobs yet</p>
-            <p className="text-sm text-gray-500 max-w-xs">
-              Upload a genome file above to run your first interpretation. Supports GenBank (.gb, .gbk) and FASTA (.fa, .fasta).
-            </p>
+            <div className="rounded-xl border border-cyan-400/15 bg-cyan-400/5 p-4">
+              <p className="text-xs uppercase tracking-wider text-cyan-300 mb-2">Stage-ready demo</p>
+              <p className="text-sm text-gray-300 mb-4">
+                Lambda phage report with gene map, evidence ladder, dark-matter calls, and reasoning chain.
+              </p>
+              <Link
+                href={`/jobs/${DEMO_JOB_ID}`}
+                className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-500/15 hover:bg-cyan-500/20 border border-cyan-400/25 px-4 py-2 text-sm font-medium text-cyan-100 transition-colors"
+              >
+                <PlayCircle size={15} />
+                Open sample
+              </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-2">

@@ -15,6 +15,10 @@
   --surface-hover: #16162a;
   --divider: rgba(255, 255, 255, 0.06);
   --divider-strong: rgba(255, 255, 255, 0.10);
+  --accent-structure: #22d3ee;
+  --accent-evidence: #34d399;
+  --accent-uncertainty: #fbbf24;
+  --accent-novel: #f59e0b;
 
   --fg: #f1f5f9;
   --fg-bright: #ffffff;
@@ -42,6 +46,10 @@
   --fg-muted: #475569;
   --fg-faint: #64748b;
   --fg-dim: #94a3b8;
+  --accent-structure: #0891b2;
+  --accent-evidence: #059669;
+  --accent-uncertainty: #d97706;
+  --accent-novel: #b45309;
 
   --tooltip-bg: #0f172a;
   --scroll-track: #e2e8f0;
@@ -141,6 +149,15 @@ body {
   }
   .glow-emerald {
     box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+  }
+  .science-panel {
+    background:
+      linear-gradient(180deg, rgba(34, 211, 238, 0.045), transparent 42%),
+      var(--surface);
+    border: 1px solid var(--divider);
+  }
+  .stage-readable {
+    text-wrap: balance;
   }
   .text-gradient {
     background: linear-gradient(135deg, var(--fg-bright) 0%, var(--fg-muted) 100%);
