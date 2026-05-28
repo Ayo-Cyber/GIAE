@@ -15,6 +15,7 @@ import {
   Database,
   Microscope,
   GitBranch,
+  CircleDotDashed,
 } from "lucide-react";
 import type { Evidence, CompetingHypothesis } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -30,10 +31,113 @@ const SOURCE_PALETTE = [
   "#fb7185", // rose-400
 ];
 
+const EVIDENCE_LADDER = [
+  {
+    key: "genbank",
+    label: "Curated annotation",
+    hint: "GenBank or trusted reference record",
+  },
+  {
+    key: "hmmer",
+    label: "Domain search",
+    hint: "HMMER / Pfam family evidence",
+  },
+  {
+    key: "prosite",
+    label: "Motif signature",
+    hint: "PROSITE pattern or profile",
+  },
+  {
+    key: "uniprot",
+    label: "Reviewed homolog",
+    hint: "UniProt or Swiss-Prot match",
+  },
+  {
+    key: "interpro",
+    label: "Integrated family",
+    hint: "InterPro cross-database support",
+  },
+  {
+    key: "esm",
+    label: "Protein LM signal",
+    hint: "Optional AI/embedding evidence",
+  },
+];
+
 function hashColour(source: string): string {
   let h = 0;
   for (let i = 0; i < source.length; i++) h = (h * 31 + source.charCodeAt(i)) | 0;
   return SOURCE_PALETTE[Math.abs(h) % SOURCE_PALETTE.length];
+}
+
+function sourceMatches(evidence: Evidence[], key: string) {
+  return evidence.find((ev) =>
+    `${ev.source} ${ev.label}`.toLowerCase().includes(key)
+  );
+}
+
+/* ───────── 0. Evidence ladder ───────── */
+interface EvidenceLadderProps {
+  evidence: Evidence[];
+  isDark?: boolean;
+}
+
+export function EvidenceLadder({ evidence, isDark }: EvidenceLadderProps) {
+  return (
+    <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
+      <div className="flex items-center gap-2 mb-1">
+        <CircleDotDashed size={14} className="text-cyan-300" />
+        <p className="text-xs text-gray-400 font-medium uppercase tracking-wider">
+          Evidence ladder
+        </p>
+      </div>
+      <p className="text-xs text-gray-600 mb-4">
+        A fast audit of which evidence classes supported this call.
+      </p>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-2">
+        {EVIDENCE_LADDER.map((step) => {
+          const hit = sourceMatches(evidence, step.key);
+          const active = Boolean(hit);
+          return (
+            <div
+              key={step.key}
+              className={cn(
+                "rounded-lg border px-3 py-2.5 min-h-[74px]",
+                active
+                  ? "bg-emerald-500/10 border-emerald-500/20"
+                  : isDark
+                  ? "bg-amber-500/5 border-amber-500/15"
+                  : "bg-white/[0.03] border-white/6"
+              )}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                {active ? (
+                  <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                ) : (
+                  <XCircle
+                    size={13}
+                    className={cn("shrink-0", isDark ? "text-amber-500" : "text-gray-600")}
+                  />
+                )}
+                <p
+                  className={cn(
+                    "text-xs font-medium",
+                    active ? "text-gray-100" : isDark ? "text-amber-200/90" : "text-gray-500"
+                  )}
+                >
+                  {step.label}
+                </p>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                {active ? hit?.label : step.hint}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 /* ───────── 1. Confidence composition donut ───────── */

@@ -20,6 +20,12 @@ const config: Config = {
           muted: "rgba(99,102,241,0.15)",
           border: "rgba(99,102,241,0.25)",
         },
+        science: {
+          structure: "#22d3ee",
+          evidence: "#34d399",
+          uncertainty: "#fbbf24",
+          novel: "#f59e0b",
+        },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

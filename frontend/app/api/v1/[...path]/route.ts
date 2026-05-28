@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { authOptions } from "@/auth/auth-options";
 import { NextRequest } from "next/server";
 
 // Paths that don't require a logged-in session
