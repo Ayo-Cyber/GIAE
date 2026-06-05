@@ -6,6 +6,7 @@ import { AppNav } from "@/components/nav";
 import { Search, Zap, FlaskConical } from "lucide-react";
 import { api } from "@/lib/api";
 import type { DarkGene } from "@/lib/types";
+import { toast } from "sonner";
 
 function StatusChip({ s }: { s: string }) {
   if (s === "Uncharacterized")
@@ -21,7 +22,7 @@ export default function DatabasePage() {
   useEffect(() => {
     api.listDarkGenes()
       .then(setGenes)
-      .catch(() => {})
+      .catch(() => toast.error("Could not load dark gene database — check your connection."))
       .finally(() => setLoading(false));
   }, []);
 
@@ -39,7 +40,8 @@ export default function DatabasePage() {
   return (
     <div className="min-h-screen bg-[#0a0a14]">
       <AppNav />
-      <div className="pt-14 max-w-5xl mx-auto px-6 py-10">
+      <div className="app-shell">
+      <div className="max-w-5xl mx-auto px-6 py-10">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -138,6 +140,7 @@ export default function DatabasePage() {
         <p className="text-xs text-gray-600 text-center mt-4">
           {genes.length} entries from your jobs · Export and API access require Enterprise plan
         </p>
+      </div>
       </div>
     </div>
   );

@@ -29,7 +29,7 @@ export const authOptions: NextAuthOptions = {
             lastName: data.user.lastName,
             accessToken: data.access_token,
             accessTokenExpires: Date.now() + data.expires_in * 1000,
-          } as any;
+          };
         } catch {
           return null;
         }
@@ -45,22 +45,20 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.id = (user as any).id;
-        token.firstName = (user as { firstName?: string }).firstName;
-        token.lastName = (user as { lastName?: string }).lastName;
-        token.accessToken = (user as any).accessToken;
-        token.accessTokenExpires = (user as any).accessTokenExpires;
+        token.id = user.id;
+        token.firstName = user.firstName;
+        token.lastName = user.lastName;
+        token.accessToken = user.accessToken;
+        token.accessTokenExpires = user.accessTokenExpires;
       }
       return token;
     },
     async session({ session, token }) {
-      if (token && session.user) {
-        (session.user as { id?: string }).id = token.id as string;
-        (session.user as { firstName?: string }).firstName = token.firstName as string;
-        (session.user as { lastName?: string }).lastName = token.lastName as string;
-        (session as any).accessToken = token.accessToken;
-        (session as any).accessTokenExpires = token.accessTokenExpires;
-      }
+      session.user.id = token.id;
+      session.user.firstName = token.firstName;
+      session.user.lastName = token.lastName;
+      session.accessToken = token.accessToken;
+      session.accessTokenExpires = token.accessTokenExpires;
       return session;
     },
   },

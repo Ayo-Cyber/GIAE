@@ -12,11 +12,14 @@ import {
 import { ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 import type { GeneRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import type { Operon } from "@/lib/operons";
 
 interface GenomeTrackProps {
   genes: GeneRow[];
   selectedId?: string | null;
   onSelect: (gene: GeneRow) => void;
+  operons?: Operon[];
+  geneToOperon?: Map<string, Operon>;
 }
 
 function confidenceFill(g: GeneRow): string {
@@ -43,7 +46,7 @@ const MINI_HEIGHT = 36;
 const PAD_L = 12;
 const PAD_R = 12;
 
-export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
+export function GenomeTrack({ genes, selectedId, onSelect, operons = [], geneToOperon = new Map() }: GenomeTrackProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(800);
   const [hovered, setHovered] = useState<GeneRow | null>(null);
@@ -354,6 +357,46 @@ export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
             strokeWidth={1}
           />
 
+          {/* Operon brackets — forward (above) */}
+          {operons.filter((op) => op.strand !== -1).map((op) => {
+            const x1 = xOf(op.start);
+            const x2 = xOf(op.end);
+            const w  = x2 - x1;
+            if (w < 2) return null;
+            const isActive = selectedId ? geneToOperon.get(selectedId)?.id === op.id : true;
+            return (
+              <g key={`op-fwd-${op.id}`} opacity={isActive ? 1 : 0.2}>
+                <rect x={x1} y={FWD_Y - 6} width={w} height={3} rx={1.5} fill={op.color} />
+                {w >= 28 && (
+                  <text x={x1 + w / 2} y={FWD_Y - 8} fontSize="8" fill={op.color}
+                    textAnchor="middle" fontWeight="600" opacity={0.85}>
+                    {op.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
+          {/* Operon brackets — reverse (below) */}
+          {operons.filter((op) => op.strand === -1).map((op) => {
+            const x1 = xOf(op.start);
+            const x2 = xOf(op.end);
+            const w  = x2 - x1;
+            if (w < 2) return null;
+            const isActive = selectedId ? geneToOperon.get(selectedId)?.id === op.id : true;
+            return (
+              <g key={`op-rev-${op.id}`} opacity={isActive ? 1 : 0.2}>
+                <rect x={x1} y={REV_Y + TRACK_H + 2} width={w} height={3} rx={1.5} fill={op.color} />
+                {w >= 28 && (
+                  <text x={x1 + w / 2} y={REV_Y + TRACK_H + 13} fontSize="8" fill={op.color}
+                    textAnchor="middle" fontWeight="600" opacity={0.85}>
+                    {op.label}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+
           {/* Genes — forward strand */}
           {forwardGenes.map((g) => {
             const x1 = xOf(g.start as number);
@@ -361,6 +404,8 @@ export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
             const w = Math.max(x2 - x1, 1.5);
             const isSel = g.id === selectedId;
             const isHov = hovered?.id === g.id;
+            const operon = geneToOperon.get(g.id);
+            const sameOperon = selectedId && operon && geneToOperon.get(selectedId)?.id === operon.id;
             return (
               <g key={g.id}>
                 <rect
@@ -370,9 +415,9 @@ export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
                   height={TRACK_H}
                   rx={2}
                   fill={confidenceFill(g)}
-                  opacity={selectedId == null || isSel || isHov ? 1 : 0.5}
-                  stroke={isSel ? "#ffffff" : "transparent"}
-                  strokeWidth={isSel ? 1.5 : 0}
+                  opacity={selectedId == null || isSel || isHov || sameOperon ? 1 : 0.35}
+                  stroke={isSel ? "#ffffff" : sameOperon ? operon.color : "transparent"}
+                  strokeWidth={isSel ? 1.5 : sameOperon ? 1 : 0}
                   className="cursor-pointer transition-opacity"
                   onMouseEnter={() => setHovered(g)}
                   onMouseDown={(e) => e.stopPropagation()}
@@ -402,6 +447,8 @@ export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
             const w = Math.max(x2 - x1, 1.5);
             const isSel = g.id === selectedId;
             const isHov = hovered?.id === g.id;
+            const operon = geneToOperon.get(g.id);
+            const sameOperon = selectedId && operon && geneToOperon.get(selectedId)?.id === operon.id;
             return (
               <g key={g.id}>
                 <rect
@@ -411,9 +458,9 @@ export function GenomeTrack({ genes, selectedId, onSelect }: GenomeTrackProps) {
                   height={TRACK_H}
                   rx={2}
                   fill={confidenceFill(g)}
-                  opacity={selectedId == null || isSel || isHov ? 1 : 0.5}
-                  stroke={isSel ? "#ffffff" : "transparent"}
-                  strokeWidth={isSel ? 1.5 : 0}
+                  opacity={selectedId == null || isSel || isHov || sameOperon ? 1 : 0.35}
+                  stroke={isSel ? "#ffffff" : sameOperon ? operon.color : "transparent"}
+                  strokeWidth={isSel ? 1.5 : sameOperon ? 1 : 0}
                   className="cursor-pointer transition-opacity"
                   onMouseEnter={() => setHovered(g)}
                   onMouseDown={(e) => e.stopPropagation()}

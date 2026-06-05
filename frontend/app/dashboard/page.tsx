@@ -8,6 +8,7 @@ import { ArrowRight, CheckCircle2, Clock, AlertCircle, Dna, PlayCircle, Sparkles
 import { api } from "@/lib/api";
 import type { Job } from "@/lib/types";
 import { DEMO_JOB_ID } from "@/data/demo-data";
+import { toast } from "sonner";
 
 function StatusBadge({ status }: { status: string }) {
   if (status === "COMPLETED")
@@ -43,7 +44,7 @@ export default function DashboardPage() {
     api
       .listJobs()
       .then(setJobs)
-      .catch(() => {})
+      .catch(() => toast.error("Could not load jobs — check your connection."))
       .finally(() => setLoading(false));
   }, []);
 

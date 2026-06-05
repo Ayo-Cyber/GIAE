@@ -58,7 +58,8 @@ export default function JobsPage() {
   return (
     <div className="min-h-screen bg-[#0a0a14]">
       <AppNav />
-      <div className="pt-14 max-w-5xl mx-auto px-6 py-10">
+      <div className="app-shell">
+      <div className="max-w-5xl mx-auto px-6 py-10">
         {/* Header */}
         <div className="flex items-start justify-between mb-8 gap-6">
           <div>
@@ -177,6 +178,7 @@ export default function JobsPage() {
             </div>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

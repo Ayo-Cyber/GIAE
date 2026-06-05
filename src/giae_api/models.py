@@ -9,6 +9,7 @@ from sqlalchemy.sql import func
 from .database import Base
 
 
+# Keep in sync with JobStatus type in frontend/lib/types.ts
 class JobStatus(str, enum.Enum):
     PENDING = "PENDING"
     RUNNING = "RUNNING"
@@ -69,7 +70,28 @@ class Job(Base):
     dark_count = Column(Integer, nullable=True)
     processing_time_seconds = Column(Integer, nullable=True)
     genes_json = Column(Text, nullable=True)
+    previous_genes_json = Column(Text, nullable=True)  # snapshot before last re-run
     celery_task_id = Column(String(128), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+
+class ShareToken(Base):
+    __tablename__ = "share_tokens"
+
+    token = Column(String(64), primary_key=True, index=True)
+    job_id = Column(String(64), ForeignKey("jobs.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at = Column(DateTime(timezone=True), nullable=True)
+
+
+class WatchlistEntry(Base):
+    __tablename__ = "watchlist_entries"
+
+    id = Column(String(36), primary_key=True, index=True)
+    user_id = Column(String(36), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    locus = Column(String(256), nullable=False, index=True)
+    gene_name = Column(String(256), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
 

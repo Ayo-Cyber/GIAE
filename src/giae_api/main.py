@@ -1,14 +1,17 @@
 from __future__ import annotations
 
 import json as _json
+import logging
 import os
 import shutil
+import time
 import uuid
+from collections import defaultdict
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, EmailStr, Field
@@ -16,6 +19,44 @@ from sqlalchemy.orm import Session
 
 from . import auth, database, models
 from .worker import process_genome_task
+
+# ---------------------------------------------------------------------------
+# Logging
+# ---------------------------------------------------------------------------
+class _JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        payload: dict = {
+            "ts": datetime.utcnow().isoformat() + "Z",
+            "level": record.levelname,
+            "logger": record.name,
+            "msg": record.getMessage(),
+        }
+        if record.exc_info:
+            payload["exc"] = self.formatException(record.exc_info)
+        return _json.dumps(payload)
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(_JsonFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
+logger = logging.getLogger("giae.api")
+
+# ---------------------------------------------------------------------------
+# In-memory rate limiter (per-IP, sliding window)
+# ---------------------------------------------------------------------------
+_rate_store: dict[str, list[float]] = defaultdict(list)
+
+def _check_rate(key: str, limit: int, window_secs: int) -> None:
+    now = time.monotonic()
+    hits = _rate_store[key]
+    # drop timestamps outside the window
+    _rate_store[key] = [t for t in hits if now - t < window_secs]
+    if len(_rate_store[key]) >= limit:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many requests. Max {limit} per {window_secs}s.",
+            headers={"Retry-After": str(window_secs)},
+        )
+    _rate_store[key].append(now)
 
 # Absolute base directory — always the repo root regardless of process CWD
 _BASE_DIR = Path(__file__).resolve().parents[2]  # src/giae_api → src → repo root
@@ -100,6 +141,24 @@ REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 
+@app.middleware("http")
+async def log_requests(request: Request, call_next):
+    t0 = time.monotonic()
+    response = await call_next(request)
+    ms = round((time.monotonic() - t0) * 1000)
+    logger.info(
+        "request",
+        extra={
+            "method": request.method,
+            "path": request.url.path,
+            "status": response.status_code,
+            "ms": ms,
+            "ip": request.client.host if request.client else "unknown",
+        },
+    )
+    return response
+
+
 # ---------------------------------------------------------------------------
 # Health
 # ---------------------------------------------------------------------------
@@ -112,7 +171,9 @@ def health_check():
 # Auth
 # ---------------------------------------------------------------------------
 @app.post("/api/v1/auth/signup", status_code=201, response_model=TokenResponse)
-def signup(body: RegisterRequest, db: Session = Depends(database.get_db)):
+def signup(body: RegisterRequest, request: Request, db: Session = Depends(database.get_db)):
+    ip = request.client.host if request.client else "unknown"
+    _check_rate(f"signup:{ip}", limit=5, window_secs=60)
     email = body.email.lower()
     existing = db.query(models.User).filter(models.User.email == email).first()
     if existing:
@@ -128,6 +189,7 @@ def signup(body: RegisterRequest, db: Session = Depends(database.get_db)):
     db.commit()
     db.refresh(user)
     token, expires_in = auth.create_access_token(user.id, user.email)
+    logger.info("user_signup", extra={"user_id": user.id, "email": email})
     return TokenResponse(
         access_token=token,
         expires_in=expires_in,
@@ -148,12 +210,16 @@ def register(body: RegisterRequest, db: Session = Depends(database.get_db)):
 
 
 @app.post("/api/v1/auth/login", response_model=TokenResponse)
-def login(body: LoginRequest, db: Session = Depends(database.get_db)):
+def login(body: LoginRequest, request: Request, db: Session = Depends(database.get_db)):
+    ip = request.client.host if request.client else "unknown"
+    _check_rate(f"login:{ip}", limit=10, window_secs=60)
     email = body.email.lower()
     user = db.query(models.User).filter(models.User.email == email).first()
     if not user or not user.is_active or not auth.verify_password(body.password, user.hashed_password):
+        logger.warning("login_failed", extra={"email": email, "ip": ip})
         raise HTTPException(status_code=401, detail="Invalid credentials.")
     token, expires_in = auth.create_access_token(user.id, user.email)
+    logger.info("login_success", extra={"user_id": user.id, "email": email})
     return TokenResponse(
         access_token=token,
         expires_in=expires_in,
@@ -188,7 +254,6 @@ def create_api_key(
     raw, prefix, digest = auth.generate_api_key()
     expires_at = None
     if body.expires_in_days:
-        from datetime import timedelta
         expires_at = datetime.now(timezone.utc) + timedelta(days=body.expires_in_days)
 
     key = models.APIKey(
@@ -344,6 +409,10 @@ def rerun_job(
     if not os.path.exists(file_path):
         raise HTTPException(status_code=409, detail="Original upload file not found")
 
+    # Snapshot current genes before clearing so history diff is available
+    if job.genes_json:
+        job.previous_genes_json = job.genes_json
+
     job.status = models.JobStatus.PENDING.value
     job.error_message = None
     job.total_genes = None
@@ -390,9 +459,12 @@ def get_job_status(
 
 @app.get("/api/v1/dark-genes")
 def list_dark_genes(
+    limit: int = 100,
+    offset: int = 0,
     db: Session = Depends(database.get_db),
     current_user: models.User = Depends(auth.get_current_user),
 ):
+    limit = max(1, min(limit, 500))  # clamp: 1–500
     jobs = (
         db.query(models.Job)
         .filter(
@@ -404,7 +476,7 @@ def list_dark_genes(
     )
 
     dark = []
-    seen_ids = set()
+    seen_ids: set[str] = set()
     for job in jobs:
         genes = _json.loads(job.genes_json)
         for g in genes:
@@ -420,7 +492,9 @@ def list_dark_genes(
                     }
                 )
 
-    return {"total": len(dark), "genes": dark}
+    total = len(dark)
+    page = dark[offset : offset + limit]
+    return {"total": total, "offset": offset, "limit": limit, "genes": page}
 
 
 @app.post("/api/v1/jobs/{job_id}/cancel")
@@ -452,10 +526,235 @@ def worker_status():
     try:
         from .worker import celery_app
         inspector = celery_app.control.inspect(timeout=2.0)
-        online = bool(inspector.ping())
+        ping = inspector.ping() or {}
+        online = bool(ping)
+        if online:
+            active = inspector.active() or {}
+            reserved = inspector.reserved() or {}
+            active_count = sum(len(v) for v in active.values())
+            queued_count = sum(len(v) for v in reserved.values())
+            worker_names = list(ping.keys())
+        else:
+            active_count = 0
+            queued_count = 0
+            worker_names = []
     except Exception:
         online = False
-    return {"online": online}
+        active_count = 0
+        queued_count = 0
+        worker_names = []
+
+    return {
+        "online": online,
+        "workers": worker_names,
+        "active_tasks": active_count,
+        "queued_tasks": queued_count,
+        "checked_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Notifications (derived from recent job state changes)
+# ---------------------------------------------------------------------------
+@app.get("/api/v1/notifications")
+def list_notifications(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    jobs = (
+        db.query(models.Job)
+        .filter(
+            models.Job.user_id == current_user.id,
+            models.Job.status.in_(["COMPLETED", "FAILED", "CANCELLED"]),
+        )
+        .order_by(models.Job.created_at.desc())
+        .limit(30)
+        .all()
+    )
+
+    # Also surface watched loci that got annotated in recent completed jobs
+    watched = (
+        db.query(models.WatchlistEntry)
+        .filter(models.WatchlistEntry.user_id == current_user.id)
+        .all()
+    )
+    watched_loci = {w.locus for w in watched}
+
+    notifications = []
+    for j in jobs:
+        ntype = "completed" if j.status == "COMPLETED" else "failed" if j.status == "FAILED" else "cancelled"
+        notifications.append({
+            "id": f"job:{j.id}",
+            "type": ntype,
+            "job_id": j.id,
+            "filename": j.filename,
+            "message": (
+                f"Annotation complete — {j.total_genes} genes interpreted"
+                if j.status == "COMPLETED"
+                else f"Job failed: {j.error_message or 'unknown error'}"
+                if j.status == "FAILED"
+                else "Job was cancelled"
+            ),
+            "created_at": j.created_at.isoformat() if j.created_at else None,
+        })
+
+        # Check if any watched loci appear as non-dark in this job
+        if j.status == "COMPLETED" and j.genes_json and watched_loci:
+            genes = _json.loads(j.genes_json)
+            for g in genes:
+                if g.get("locus") in watched_loci and not g.get("is_dark"):
+                    notifications.append({
+                        "id": f"watch:{j.id}:{g['locus']}",
+                        "type": "watch_hit",
+                        "job_id": j.id,
+                        "filename": j.filename,
+                        "message": f"Watched gene {g.get('name', g['locus'])} was annotated: {g.get('function', 'unknown function')}",
+                        "created_at": j.created_at.isoformat() if j.created_at else None,
+                    })
+
+    return {"notifications": notifications}
+
+
+# ---------------------------------------------------------------------------
+# Annotation history diff
+# ---------------------------------------------------------------------------
+@app.get("/api/v1/jobs/{job_id}/history")
+def get_job_history(
+    job_id: str,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    if not job or job.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if not job.previous_genes_json:
+        raise HTTPException(status_code=404, detail="No previous run to compare")
+
+    return {
+        "previous_genes": _json.loads(job.previous_genes_json),
+        "current_genes": _json.loads(job.genes_json) if job.genes_json else [],
+    }
+
+
+# ---------------------------------------------------------------------------
+# Gene watchlist
+# ---------------------------------------------------------------------------
+@app.get("/api/v1/watchlist")
+def list_watchlist(
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    entries = (
+        db.query(models.WatchlistEntry)
+        .filter(models.WatchlistEntry.user_id == current_user.id)
+        .order_by(models.WatchlistEntry.created_at.desc())
+        .all()
+    )
+    return {
+        "entries": [
+            {"id": e.id, "locus": e.locus, "gene_name": e.gene_name, "created_at": e.created_at.isoformat()}
+            for e in entries
+        ]
+    }
+
+
+class WatchlistAddRequest(BaseModel):
+    locus: str
+    gene_name: str
+
+
+@app.post("/api/v1/watchlist", status_code=201)
+def add_to_watchlist(
+    body: WatchlistAddRequest,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    existing = db.query(models.WatchlistEntry).filter(
+        models.WatchlistEntry.user_id == current_user.id,
+        models.WatchlistEntry.locus == body.locus,
+    ).first()
+    if existing:
+        return {"id": existing.id, "locus": existing.locus, "status": "already_watching"}
+
+    entry = models.WatchlistEntry(
+        id=str(uuid.uuid4()),
+        user_id=current_user.id,
+        locus=body.locus,
+        gene_name=body.gene_name,
+    )
+    db.add(entry)
+    db.commit()
+    return {"id": entry.id, "locus": entry.locus, "status": "watching"}
+
+
+@app.delete("/api/v1/watchlist/{locus:path}", status_code=204)
+def remove_from_watchlist(
+    locus: str,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    entry = db.query(models.WatchlistEntry).filter(
+        models.WatchlistEntry.user_id == current_user.id,
+        models.WatchlistEntry.locus == locus,
+    ).first()
+    if entry:
+        db.delete(entry)
+        db.commit()
+    return None
+
+
+# ---------------------------------------------------------------------------
+# Share tokens (public read access to a completed job)
+# ---------------------------------------------------------------------------
+@app.post("/api/v1/jobs/{job_id}/share", status_code=201)
+def create_share_token(
+    job_id: str,
+    db: Session = Depends(database.get_db),
+    current_user: models.User = Depends(auth.get_current_user),
+):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    if not job or job.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.status != "COMPLETED":
+        raise HTTPException(status_code=409, detail="Only completed jobs can be shared")
+
+    # Reuse existing token if one exists for this job
+    existing = db.query(models.ShareToken).filter(models.ShareToken.job_id == job_id).first()
+    if existing:
+        return {"token": existing.token, "url": f"/report/{existing.token}"}
+
+    token = str(uuid.uuid4()).replace("-", "")
+    db.add(models.ShareToken(token=token, job_id=job_id))
+    db.commit()
+    logger.info("share_created", extra={"job_id": job_id, "user_id": current_user.id})
+    return {"token": token, "url": f"/report/{token}"}
+
+
+@app.get("/api/v1/share/{token}")
+def get_shared_job(token: str, db: Session = Depends(database.get_db)):
+    share = db.query(models.ShareToken).filter(models.ShareToken.token == token).first()
+    if not share:
+        raise HTTPException(status_code=404, detail="Share link not found or expired")
+
+    job = db.query(models.Job).filter(models.Job.id == share.job_id).first()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    genes = _json.loads(job.genes_json) if job.genes_json else []
+    return {
+        "job_id": job.id,
+        "filename": job.filename,
+        "status": job.status,
+        "total_genes": job.total_genes,
+        "interpreted_genes": job.interpreted_genes,
+        "high_confidence_count": job.high_confidence_count,
+        "dark_count": job.dark_count,
+        "processing_time_seconds": job.processing_time_seconds,
+        "created_at": job.created_at.isoformat() if job.created_at else None,
+        "report_url": job.report_url,
+        "error_message": None,
+        "genes": genes,
+    }
 
 
 # ---------------------------------------------------------------------------

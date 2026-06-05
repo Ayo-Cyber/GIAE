@@ -1,0 +1,105 @@
+LOCUS       NC_010483            1877693 bp    DNA     circular CON 13-AUG-2024
+DEFINITION  Thermotoga sp. RQ2, complete sequence.
+ACCESSION   NC_010483 NZ_ABIJ01000000 NZ_ABIJ01000001-NZ_ABIJ01000022
+VERSION     NC_010483.1
+DBLINK      BioProject: PRJNA224116
+            BioSample: SAMN00000279
+            Assembly: GCF_000019625.1
+KEYWORDS    RefSeq.
+SOURCE      Thermotoga sp. RQ2
+  ORGANISM  Thermotoga sp. RQ2
+            Bacteria; Thermotogati; Thermotogota; Thermotogae; Thermotogales;
+            Thermotogaceae; Thermotoga.
+REFERENCE   1  (bases 1 to 1877693)
+  AUTHORS   Swithers,K.S., DiPippo,J.L., Bruce,D.C., Detter,C., Tapia,R.,
+            Han,S., Saunders,E., Goodwin,L.A., Han,J., Woyke,T., Pitluck,S.,
+            Pennacchio,L., Nolan,M., Mikhailova,N., Lykidis,A., Land,M.L.,
+            Brettin,T., Stetter,K.O., Nelson,K.E., Gogarten,J.P. and Noll,K.M.
+  TITLE     Genome sequence of Thermotoga sp. strain RQ2, a hyperthermophilic
+            bacterium isolated from a geothermally heated region of the
+            seafloor near Ribeira Quente, the Azores
+  JOURNAL   J Bacteriol 193 (20), 5869-5870 (2011)
+   PUBMED   21952543
+REFERENCE   2  (bases 1 to 1877693)
+  AUTHORS   Copeland,A., Lucas,S., Lapidus,A., Barry,K., Glavina del Rio,T.,
+            Dalin,E., Tice,H., Bruce,D.B., Goodwin,L., Pitluck,S., Saunders,E.,
+            Brettin,T., Detter,J.C., Han,C., Schmutz,J., Larimer,F., Land,M.,
+            Hauser,L., Kyrpides,N., Mikhailova,N., Nelson,K., Gogarten,J.P.,
+            Noll,K. and Richardson,P.
+  CONSRTM   US DOE Joint Genome Institute
+  TITLE     Complete sequence of Thermotoga sp. RQ2
+  JOURNAL   Unpublished
+REFERENCE   3  (bases 1 to 1877693)
+  AUTHORS   Copeland,A., Lucas,S., Lapidus,A., Barry,K., Glavina del Rio,T.,
+            Dalin,E., Tice,H., Bruce,D., Goodwin,L., Pitluck,S., Saunders,E.,
+            Brettin,T., Detter,J.C., Han,C., Schmutz,J., Larimer,F., Land,M.,
+            Hauser,L., Kyrpides,N., Mikhailova,N., Nelson,K., Gogarten,J.P.,
+            Noll,K. and Richardson,P.
+  CONSRTM   US DOE Joint Genome Institute
+  TITLE     Direct Submission
+  JOURNAL   Submitted (13-MAR-2008) US DOE Joint Genome Institute, 2800
+            Mitchell Drive B100, Walnut Creek, CA 94598-1698, USA
+COMMENT     REFSEQ INFORMATION: The reference sequence is identical to
+            CP000969.1.
+            URL -- http://www.jgi.doe.gov
+            JGI Project ID: 4003959
+            Source DNA and bacteria available from Kenneth Noll
+            (kenneth.noll@uconn.edu)
+            Contacts: Kenneth Noll (kenneth.noll@uconn.edu)
+                      Paul Richardson (microbes@cuba.jgi-psf.org)
+            Quality assurance done by JGI-Stanford
+            Annotation done by JGI-ORNL and JGI-PGF
+            Finishing done by JGI-LANL
+            Finished microbial genomes have been curated to close all gaps with
+            greater than 98% coverage of at least two independent clones. Each
+            base pair has a minimum q (quality) value of 30 and the total error
+            rate is less than one per 50000.
+            The JGI and collaborators endorse the principles for the
+            distribution and use of large scale sequencing data adopted by the
+            larger genome sequencing community and urge users of this data to
+            follow them. It is our intention to publish the work of this
+            project in a timely fashion and we welcome collaborative
+            interaction on the project and analysis.
+            (http://www.genome.gov/page.cfm?pageID=10506376).
+            The annotation was added by the NCBI Prokaryotic Genome Annotation
+            Pipeline (PGAP). Information about PGAP can be found here:
+            https://www.ncbi.nlm.nih.gov/genome/annotation_prok/
+            
+            ##Genome-Annotation-Data-START##
+            Annotation Provider               :: NCBI RefSeq
+            Annotation Name                   :: GCF_000019625.1-RS_2024_08_13
+            Annotation Date                   :: 08/13/2024 00:50:19
+            Annotation Pipeline               :: NCBI Prokaryotic Genome
+                                                 Annotation Pipeline (PGAP)
+            Annotation Method                 :: Best-placed reference protein
+                                                 set; GeneMarkS-2+
+            Annotation Software revision      :: 6.8
+            Features Annotated                :: Gene; CDS; rRNA; tRNA; ncRNA
+            Genes (total)                     :: 1,912
+            CDSs (total)                      :: 1,860
+            Genes (coding)                    :: 1,844
+            CDSs (with protein)               :: 1,844
+            Genes (RNA)                       :: 52
+            rRNAs                             :: 1, 1, 1 (5S, 16S, 23S)
+            complete rRNAs                    :: 1, 1, 1 (5S, 16S, 23S)
+            tRNAs                             :: 46
+            ncRNAs                            :: 3
+            Pseudo Genes (total)              :: 16
+            CDSs (without protein)            :: 16
+            Pseudo Genes (ambiguous residues) :: 0 of 16
+            Pseudo Genes (frameshifted)       :: 6 of 16
+            Pseudo Genes (incomplete)         :: 7 of 16
+            Pseudo Genes (internal stop)      :: 4 of 16
+            Pseudo Genes (multiple problems)  :: 1 of 16
+            CRISPR Arrays                     :: 7
+            ##Genome-Annotation-Data-END##
+            COMPLETENESS: full length.
+FEATURES             Location/Qualifiers
+     source          1..1877693
+                     /organism="Thermotoga sp. RQ2"
+                     /mol_type="genomic DNA"
+                     /strain="RQ2"
+                     /db_xref="taxon:126740"
+CONTIG      join(CP000969.1:1..1877693)
+//
+
