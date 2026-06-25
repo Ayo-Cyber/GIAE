@@ -12,17 +12,16 @@ import { toast } from "sonner";
 import { api } from "@/lib/api";
 import type { Job, GeneRow } from "@/lib/types";
 import { AppNav } from "@/components/nav";
+import { ThemeToggle } from "@/components/theme";
 import { toGff3, toTsv, toJson, toGenbank, downloadBlob } from "@/lib/export";
 import { isBookmarked, toggleBookmark } from "@/lib/bookmarks";
 import { getNote, setNote } from "@/lib/notes";
 import { cn } from "@/lib/utils";
 import {
-  ConfidenceComposition,
-  EvidenceLadder,
   ReasoningChain,
-  CompetingHypothesesChart,
   UncertaintyNotes,
   DarkMatterResearchCard,
+  CompetingHypothesesChart,
 } from "@/components/explainability-panel";
 import { GenomeTrack } from "@/components/genome-track";
 import { DEMO_JOB_ID, demoJob } from "@/data/demo-data";
@@ -31,16 +30,218 @@ import type { Operon } from "@/lib/operons";
 import { flagGenes } from "@/lib/amr";
 import type { BioHit } from "@/lib/amr";
 
+// ── COG category colour map ──────────────────────────────────────────────────
+const COG_MAP: Record<string, [string, string]> = {
+  A: ["#fb7185", "RNA processing"],
+  C: ["#fb923c", "Energy production"],
+  D: ["#c084fc", "Cell cycle"],
+  E: ["#22d3ee", "Amino-acid transport"],
+  F: ["#4ade80", "Nucleotide metabolism"],
+  G: ["#facc15", "Carbohydrate"],
+  H: ["#c4b5fd", "Coenzyme transport"],
+  I: ["#9ca94b", "Lipid metabolism"],
+  J: ["#2dd4bf", "Translation"],
+  K: ["#6d8bff", "Transcription"],
+  L: ["#818cf8", "Replication & repair"],
+  M: ["#bd8b5e", "Cell wall/membrane"],
+  N: ["#9ca3af", "Cell motility"],
+  O: ["#f87171", "Post-translational mod."],
+  P: ["#8ca0b3", "Inorganic ion transport"],
+  Q: ["#a3e635", "Secondary metabolites"],
+  R: ["#cbd5e1", "General prediction"],
+  S: ["#6b7280", "Function unknown"],
+  T: ["#f472b6", "Signal transduction"],
+  U: ["#f97362", "Intracellular trafficking"],
+  V: ["#34d399", "Defense mechanisms"],
+  X: ["#f59e0b", "Mobilome: prophages, transposons"],
+};
+
+function cogColor(l: string | null | undefined) {
+  return l ? (COG_MAP[l]?.[0] ?? "#6b7280") : "#6b7280";
+}
+function cogName(l: string | null | undefined) {
+  return l ? (COG_MAP[l]?.[1] ?? "Unknown") : "";
+}
+function ha(hex: string, a: number) {
+  const n = parseInt(hex.replace("#", ""), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function confColor(level: string | null | undefined) {
+  return ({ HIGH: "#34d399", MODERATE: "#f59e0b", LOW: "#818cf8", SPECULATIVE: "#a78bfa" } as Record<string, string>)[level ?? ""] ?? "#9ca3af";
+}
+
+function sourceStyle(src: string): { short: string; color: string } {
+  const s = src.toLowerCase();
+  if (s.includes("pfam") || s.includes("hmmer"))  return { short: "HMMER/Pfam", color: "#34d399" };
+  if (s.includes("prosite"))                       return { short: "PROSITE",    color: "#facc15" };
+  if (s.includes("uniprot"))                       return { short: "UniProt",    color: "#818cf8" };
+  if (s.includes("interpro"))                      return { short: "InterPro",   color: "#a78bfa" };
+  if (s.includes("esm"))                           return { short: "ESM-2",      color: "#f472b6" };
+  if (s.includes("genbank") || s.includes("card")) return { short: "GenBank",    color: "#22d3ee" };
+  return { short: src.split(/[\s/]/)[0].slice(0, 10), color: "#9ca3af" };
+}
+
+function evidenceMetric(ev: { source: string; label: string; conf: number }): string {
+  const lbl = ev.label ?? "";
+  const pctMatch = lbl.match(/(\d+\.?\d*)\s*%/);
+  if (pctMatch) return `${pctMatch[1]}% id`;
+  const eMatch = lbl.match(/[Ee][- ]([\d.e+-]+)/);
+  if (eMatch) return `E ${eMatch[1]}`;
+  const src = (ev.source ?? "").toLowerCase();
+  if (src.includes("prosite")) return "pattern";
+  if (src.includes("genbank") || src.includes("card")) return "curated";
+  if (src.includes("pfam") || src.includes("hmmer")) return "profile";
+  return "—";
+}
+
+function CogChip({ letter, size = "sm" }: { letter?: string | null; size?: "sm" | "lg" }) {
+  if (!letter) return null;
+  const c = cogColor(letter);
+  if (size === "lg") {
+    return (
+      <span
+        title={`${letter} · ${cogName(letter)}`}
+        className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-full border font-medium shrink-0"
+        style={{ color: c, backgroundColor: ha(c, 0.12), borderColor: ha(c, 0.3) }}
+      >
+        <span
+          className="inline-flex items-center justify-center font-mono font-bold text-[11px] w-4 h-4 rounded"
+          style={{ backgroundColor: c, color: "#0a0a14" }}
+        >
+          {letter}
+        </span>
+        {cogName(letter)}
+      </span>
+    );
+  }
+  return (
+    <span
+      title={`${letter} · ${cogName(letter)}`}
+      className="inline-flex items-center justify-center font-mono font-bold text-[9px] w-3.5 h-3.5 rounded shrink-0"
+      style={{ backgroundColor: ha(c, 0.18), color: c, border: `1px solid ${ha(c, 0.45)}` }}
+    >
+      {letter}
+    </span>
+  );
+}
+
+// ── Inline: Evidence Ladder ──────────────────────────────────────────────────
+function EvidenceLadder({ gene }: { gene: GeneRow }) {
+  const ev = gene.evidence ?? [];
+  if (ev.length === 0 && !gene.is_dark) return null;
+  if (gene.is_dark) {
+    return (
+      <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-[18px]">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="w-3 h-3 rounded-full border-2 border-dashed border-gray-600 shrink-0" />
+          <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Evidence ladder</span>
+          <span className="ml-auto text-[10px] text-gray-600">no hits recorded</span>
+        </div>
+        <p className="text-xs text-gray-600">GIAE queried all evidence databases and returned no hits for this locus.</p>
+      </div>
+    );
+  }
+  const maxConf = Math.max(...ev.map((e) => e.conf), 0.01);
+  const allSources = ["HMMER/Pfam", "PROSITE", "UniProt", "InterPro", "GenBank", "ESM-2"];
+  const haveSources = new Set(ev.map((e) => sourceStyle(e.source).short));
+  const missing = allSources.filter((s) => !haveSources.has(s));
+  return (
+    <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-[18px]">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="w-3 h-3 rounded-full border-2 border-dashed border-cyan-500/60 shrink-0" />
+        <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Evidence ladder</span>
+        <span className="ml-auto text-[10px] text-gray-600">bar = confidence · color = source class</span>
+      </div>
+      <div className="flex flex-col gap-3 mt-4">
+        {ev.map((e, i) => {
+          const { short, color } = sourceStyle(e.source);
+          const pct = Math.round((e.conf / maxConf) * 100);
+          const metric = evidenceMetric(e);
+          return (
+            <div key={i}>
+              <div className="flex items-center gap-2.5">
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                <span className="w-24 shrink-0 font-mono text-[11px] font-semibold" style={{ color }}>{short}</span>
+                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                </div>
+                <span className="w-8 text-right shrink-0 font-mono text-[11px] text-gray-400">{e.conf.toFixed(2)}</span>
+                <span className="w-20 text-right shrink-0 font-mono text-[10px] text-gray-600">{metric}</span>
+              </div>
+              <div className="text-[11px] text-gray-600 pl-[26px] mt-0.5 truncate">{e.label}</div>
+            </div>
+          );
+        })}
+      </div>
+      {missing.length > 0 && (
+        <div className="mt-3.5 pt-3 border-t border-white/5">
+          <div className="text-[10px] text-gray-700 mb-1.5">No signal from:</div>
+          <div className="flex flex-wrap gap-1.5">
+            {missing.map((m) => (
+              <span key={m} className="text-[10px] font-mono px-2 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", color: "#4b5563" }}>{m}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Inline: Confidence Donut ─────────────────────────────────────────────────
+function ConfidenceDonut({ gene, operon }: { gene: GeneRow; operon?: Operon }) {
+  if (gene.is_dark || gene.score == null) return null;
+  const score = gene.score;
+  const level = gene.confidence ?? "LOW";
+  const c = confColor(level);
+  const pct = Math.round(score * 100);
+  const ev = gene.evidence ?? [];
+  const strongest = ev.length ? ev.reduce((a, b) => (b.conf > a.conf ? b : a)) : null;
+  const { short: strongShort, color: strongColor } = strongest ? sourceStyle(strongest.source) : { short: "—", color: "#9ca3af" };
+  const stats = [
+    { label: "Confidence level", value: level, color: c },
+    { label: "Evidence sources", value: String(ev.length), color: "#e5e7eb" },
+    { label: "Strongest hit", value: strongest ? `${strongShort} ${strongest.conf.toFixed(2)}` : "—", color: strongColor },
+    { label: "COG category", value: gene.cog_category ? `${gene.cog_category} · ${cogName(gene.cog_category)}` : "—", color: cogColor(gene.cog_category) },
+  ];
+  return (
+    <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-[18px]">
+      <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-4">Confidence</div>
+      <div className="flex items-center gap-4">
+        <div
+          className="w-[100px] h-[100px] rounded-full shrink-0 flex items-center justify-center"
+          style={{
+            background: `conic-gradient(from -90deg, ${c} 0% ${pct}%, var(--divider) ${pct}% 100%)`,
+          }}
+        >
+          <div className="w-[72px] h-[72px] rounded-full bg-[#0f0f1e] flex flex-col items-center justify-center">
+            <span className="text-xl font-bold font-mono leading-none" style={{ color: c }}>{score.toFixed(2)}</span>
+            <span className="text-[9px] uppercase tracking-widest text-gray-600 mt-0.5">{level}</span>
+          </div>
+        </div>
+        <div className="flex-1 flex flex-col gap-2.5 min-w-0">
+          {stats.map((s) => (
+            <div key={s.label} className="flex flex-col gap-0.5">
+              <span className="text-[10px] text-gray-600">{s.label}</span>
+              <span className="text-xs font-mono truncate" style={{ color: s.color }}>{s.value}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Type ─────────────────────────────────────────────────────────────────────
 type GeneFilter = "all" | "high" | "moderate" | "low" | "dark" | "amr" | "virulence";
 
 const FILTER_TABS: { key: GeneFilter; label: string; color?: string }[] = [
-  { key: "all",       label: "All"    },
-  { key: "high",      label: "High"   },
-  { key: "moderate",  label: "Mod"    },
-  { key: "low",       label: "Low"    },
-  { key: "dark",      label: "Dark"   },
-  { key: "amr",       label: "AMR",       color: "#f87171" },
-  { key: "virulence", label: "Virulence",  color: "#fb923c" },
+  { key: "all",       label: "All"  },
+  { key: "high",      label: "High" },
+  { key: "moderate",  label: "Mod"  },
+  { key: "low",       label: "Low"  },
+  { key: "dark",      label: "Dark" },
+  { key: "amr",       label: "AMR",  color: "#f87171" },
+  { key: "virulence", label: "Vir",  color: "#fb923c" },
 ];
 
 export default function JobPage() {
@@ -48,6 +249,7 @@ export default function JobPage() {
   const [job, setJob]           = useState<Job | null>(null);
   const [selected, setSelected] = useState<GeneRow | null>(null);
   const [filter, setFilter]     = useState<GeneFilter>("all");
+  const [cogFilter, setCogFilter] = useState<string | null>(null);
   const [query, setQuery]       = useState("");
   const [rerunning, setRerunning]   = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -76,7 +278,6 @@ export default function JobPage() {
     api.workerStatus().then((s) => setWorkerOnline(s.online)).catch(() => setWorkerOnline(false));
   }, [job?.status]);
 
-  // Sync bookmark + note + watch state when selected gene changes
   useEffect(() => {
     if (!selected) return;
     setBookmarked(isBookmarked(selected.id));
@@ -90,12 +291,11 @@ export default function JobPage() {
     }
   }, [selected?.id, id]);
 
-  // Load annotation history when job completes (if a previous run exists)
   useEffect(() => {
     if (job?.status !== "COMPLETED") return;
     api.getJobHistory(id)
       .then((h) => setHistoryDiff({ previous: h.previous_genes, current: h.current_genes }))
-      .catch(() => {}); // 404 just means no previous run — silent
+      .catch(() => {});
   }, [job?.status, id]);
 
   const isRunning    = job?.status === "RUNNING" || job?.status === "PENDING";
@@ -115,6 +315,11 @@ export default function JobPage() {
   const amrCount       = amrFlags.size;
   const virulenceCount = Array.from(amrFlags.values()).filter((hits) => hits.some((h: BioHit) => h.type === "virulence")).length;
 
+  const cogLetters = useMemo(() => {
+    const letters = Array.from(new Set((job?.genes ?? []).map((g) => g.cog_category).filter(Boolean))) as string[];
+    return letters.sort();
+  }, [job?.genes]);
+
   const genes = (job?.genes ?? []).filter((g) => {
     if (filter === "high"     && !(g.confidence === "HIGH" && !g.is_dark)) return false;
     if (filter === "moderate" && !(g.confidence === "MODERATE" && !g.is_dark)) return false;
@@ -122,6 +327,7 @@ export default function JobPage() {
     if (filter === "dark"      && !g.is_dark) return false;
     if (filter === "amr"       && !amrFlags.has(g.id)) return false;
     if (filter === "virulence" && !(amrFlags.get(g.id) ?? []).some((h) => h.type === "virulence")) return false;
+    if (cogFilter && g.cog_category !== cogFilter) return false;
     if (query.trim()) {
       const q   = query.trim().toLowerCase();
       const hay = `${g.name} ${g.locus} ${g.function ?? ""} ${g.normalized_product ?? ""}`.toLowerCase();
@@ -135,35 +341,42 @@ export default function JobPage() {
     : 0;
 
   return (
-    /* Full viewport — sidebar nav on left, content to the right */
     <div className="h-screen overflow-hidden bg-[#0a0a14] flex">
       <AppNav />
 
-      {/* Content column — fills space right of sidebar */}
       <div className="app-shell flex flex-col flex-1 min-w-0 h-screen overflow-hidden">
 
-        {/* ── Top toolbar ─────────────────────────────────────────── */}
-        <div className="shrink-0 h-12 border-b border-white/5 flex items-center gap-3 px-4 bg-[#0a0a14]">
+        {/* ── Toolbar ───────────────────────────────────────────────── */}
+        <div className="shrink-0 h-13 border-b border-white/5 flex items-center gap-3 px-4 bg-[#0a0a14]" style={{ height: 52 }}>
           <Link href="/dashboard" className="text-gray-500 hover:text-gray-300 transition-colors">
             <ChevronLeft size={15} />
           </Link>
 
+          {/* GIAE logo badge */}
+          <div className="w-6 h-6 rounded-md flex items-center justify-center font-bold text-[11px] text-white shrink-0"
+            style={{ background: "linear-gradient(135deg,#6366f1,#818cf8)" }}>
+            G
+          </div>
+
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium text-white truncate">{job?.filename ?? id}</p>
+              <p className="text-[13px] font-semibold text-white font-mono truncate">{job?.filename ?? id}</p>
               {isDemo && (
                 <span className="inline-flex items-center gap-1 text-[10px] text-cyan-200 bg-cyan-400/10 border border-cyan-400/20 px-1.5 py-0.5 rounded-full shrink-0">
-                  <FlaskConical size={9} /> sample
+                  <FlaskConical size={9} /> sample · λ
                 </span>
               )}
             </div>
-            <p className="text-[11px] text-gray-500 mono">
-              {job?.total_genes != null ? `${job.total_genes} genes · ${job.processing_time_seconds ?? "—"}s` : "Loading…"}
+            <p className="text-[11px] text-gray-500 font-mono">
+              {job?.total_genes != null
+                ? `${job.total_genes} features · ${job.processing_time_seconds ?? "—"}s`
+                : "Loading…"}
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
+            <ThemeToggle />
+
             {job?.status === "COMPLETED" && (
               <button
                 onClick={async () => {
@@ -178,18 +391,17 @@ export default function JobPage() {
                     toast.error("Could not generate share link.");
                   }
                 }}
-                className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors"
+                className="flex items-center gap-1.5 text-xs bg-white/4 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors"
               >
                 <Share2 size={11} /> {copied ? "Copied!" : "Share"}
               </button>
             )}
 
-            {/* Export dropdown */}
             {job?.status === "COMPLETED" && (
               <div className="relative">
                 <button
                   onClick={() => setExportOpen((v) => !v)}
-                  className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors"
+                  className="flex items-center gap-1.5 text-xs bg-white/4 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors"
                 >
                   <Download size={11} /> Export
                 </button>
@@ -198,15 +410,15 @@ export default function JobPage() {
                     <div className="fixed inset-0 z-30" onClick={() => setExportOpen(false)} />
                     <div className="absolute right-0 top-8 z-40 bg-[#0f0f1e] border border-white/10 rounded-xl shadow-xl p-1.5 w-44">
                       {[
-                        { label: "GFF3", ext: "gff3", mime: "text/plain",       fn: () => toGff3(job)    },
-                        { label: "TSV",  ext: "tsv",  mime: "text/tab-separated-values", fn: () => toTsv(job) },
-                        { label: "JSON", ext: "json", mime: "application/json", fn: () => toJson(job)    },
-                        { label: "GenBank (simplified)", ext: "gbk", mime: "text/plain", fn: () => toGenbank(job) },
+                        { label: "GFF3", ext: "gff3", mime: "text/plain",       fn: () => toGff3(job!)    },
+                        { label: "TSV",  ext: "tsv",  mime: "text/tab-separated-values", fn: () => toTsv(job!) },
+                        { label: "JSON", ext: "json", mime: "application/json", fn: () => toJson(job!)    },
+                        { label: "GenBank (simplified)", ext: "gbk", mime: "text/plain", fn: () => toGenbank(job!) },
                       ].map(({ label, ext, mime, fn }) => (
                         <button
                           key={ext}
                           onClick={() => {
-                            const base = job.filename.replace(/\.[^.]+$/, "");
+                            const base = job!.filename.replace(/\.[^.]+$/, "");
                             downloadBlob(fn(), `${base}.giae.${ext}`, mime);
                             setExportOpen(false);
                             toast.success(`Downloaded ${base}.giae.${ext}`);
@@ -222,6 +434,7 @@ export default function JobPage() {
                 )}
               </div>
             )}
+
             {isCancellable && (
               <button
                 onClick={async () => {
@@ -237,6 +450,7 @@ export default function JobPage() {
                 {cancelling ? "Cancelling…" : "Cancel"}
               </button>
             )}
+
             {!isDemo && (job?.status === "COMPLETED" || job?.status === "FAILED") && (
               <button
                 onClick={async () => {
@@ -246,11 +460,12 @@ export default function JobPage() {
                   finally { setRerunning(false); }
                 }}
                 disabled={rerunning}
-                className="flex items-center gap-1.5 text-xs bg-white/5 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 text-xs bg-white/4 hover:bg-white/8 border border-white/10 px-2.5 py-1.5 rounded-lg text-gray-400 transition-colors disabled:opacity-50"
               >
                 <RefreshCw size={11} className={rerunning ? "animate-spin" : ""} /> Re-run
               </button>
             )}
+
             {job?.report_url && (
               <a href={job.report_url} target="_blank"
                 className="flex items-center gap-1.5 text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-lg font-medium transition-colors">
@@ -260,21 +475,21 @@ export default function JobPage() {
           </div>
         </div>
 
-        {/* ── Worker offline banner ───────────────────────────────── */}
+        {/* ── Worker offline banner ──────────────────────────────────── */}
         {isRunning && workerOnline === false && (
           <div className="shrink-0 mx-4 mt-3 flex items-center gap-3 bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5">
             <WifiOff size={14} className="text-amber-400 shrink-0" />
             <p className="text-xs text-amber-300">
               Worker not running — start it with{" "}
-              <span className="mono bg-amber-500/10 px-1 rounded">make worker</span>
+              <span className="font-mono bg-amber-500/10 px-1 rounded">make worker</span>
             </p>
           </div>
         )}
 
-        {/* ── Initial loading skeleton ─────────────────────────────── */}
+        {/* ── Loading skeleton ───────────────────────────────────────── */}
         {!job && !isDemo && (
           <div className="flex flex-1 overflow-hidden">
-            <div className="w-64 border-r border-white/5 p-3 space-y-2">
+            <div className="w-[290px] border-r border-white/5 p-3 space-y-2">
               {[0,1,2,3,4,5].map((i) => (
                 <div key={i} className="h-14 bg-white/4 rounded-lg animate-pulse" style={{ opacity: 1 - i * 0.1 }} />
               ))}
@@ -289,7 +504,7 @@ export default function JobPage() {
           </div>
         )}
 
-        {/* ── Running state ─────────────────────────────────────────── */}
+        {/* ── Running ───────────────────────────────────────────────── */}
         {isRunning && (
           <div className="flex flex-col items-center justify-center flex-1 px-6 py-20 text-center">
             <div className="w-16 h-16 rounded-2xl bg-indigo-600/15 border border-indigo-500/25 flex items-center justify-center mb-6 relative">
@@ -298,7 +513,7 @@ export default function JobPage() {
             </div>
             <h2 className="text-lg font-semibold text-white mb-2">Interpreting genome…</h2>
             <p className="text-gray-400 text-sm mb-6">{job?.filename}</p>
-            <p className="text-xs text-gray-500 mono">
+            <p className="text-xs text-gray-500 font-mono">
               {job?.status === "PENDING" ? "Queued — waiting for worker" : "Running GIAE pipeline…"}
             </p>
           </div>
@@ -322,146 +537,221 @@ export default function JobPage() {
           </div>
         )}
 
-        {/* ── Completed — three-pane workstation ────────────────────── */}
+        {/* ── Completed ─────────────────────────────────────────────── */}
         {job?.status === "COMPLETED" && (
           <div className="flex flex-1 overflow-hidden">
 
-            {/* Pane 1 — Gene list */}
-            <div className="w-64 shrink-0 border-r border-white/5 flex flex-col overflow-hidden bg-[#0c0c18]">
-              {/* Search + filters */}
+            {/* ── Left pane: gene list ────────────────────────────── */}
+            <div className="w-[290px] shrink-0 border-r border-white/5 flex flex-col overflow-hidden bg-[#0b0b16]">
+
+              {/* Search + filter tabs + COG chips */}
               <div className="p-2.5 border-b border-white/5 space-y-2">
                 <div className="relative">
                   <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-600 pointer-events-none" />
                   <input
                     type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Search genes…"
-                    className="w-full text-xs bg-white/4 border border-white/8 rounded-md pl-7 pr-2 py-1.5 text-gray-200 placeholder-gray-600 outline-none focus:border-indigo-500/40 transition-colors"
+                    placeholder="Search genes, loci, products…"
+                    className="w-full text-xs bg-white/4 border border-white/8 rounded-md pl-7 pr-2 py-1.5 text-gray-200 placeholder-gray-600 outline-none focus:border-indigo-500/40 transition-colors font-mono"
                   />
                 </div>
-                <div className="flex gap-1 flex-wrap">
+
+                {/* Filter tabs */}
+                <div className="flex gap-1">
                   {FILTER_TABS.map(({ key, label, color }) => {
                     const count = key === "amr" ? amrCount : key === "virulence" ? virulenceCount : null;
                     const active = filter === key;
                     return (
                       <button key={key} onClick={() => setFilter(key)}
-                        className={cn(
-                          "flex-1 text-[10px] py-1 rounded transition-colors flex items-center justify-center gap-0.5",
-                          active
-                            ? color
-                              ? "border font-semibold"
-                              : "bg-indigo-600/20 text-indigo-400 border border-indigo-500/30"
-                            : "text-gray-600 hover:text-gray-400 border border-transparent"
-                        )}
-                        style={active && color ? { color, borderColor: color + "50", backgroundColor: color + "18" } : {}}
+                        className="flex-1 text-[10px] font-mono font-semibold py-1 rounded-md transition-colors flex items-center justify-center gap-0.5"
+                        style={{
+                          background: active ? (color ? ha(color, 0.16) : "rgba(99,102,241,0.18)") : "transparent",
+                          color: active ? (color ?? "#a5b4fc") : "#6b7280",
+                          border: `1px solid ${active ? (color ? ha(color, 0.4) : "rgba(99,102,241,0.35)") : "transparent"}`,
+                        }}
                       >
                         {label}
                         {count !== null && count > 0 && (
-                          <span className="ml-0.5 text-[9px]">({count})</span>
+                          <span className="opacity-60 text-[9px]">{count}</span>
                         )}
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-[10px] text-gray-600 mono px-0.5">
-                  {genes.length} / {job.total_genes ?? 0} genes
+
+                {/* COG letter chips */}
+                {cogLetters.length > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] text-gray-600 uppercase tracking-wider shrink-0">COG</span>
+                    <div className="flex gap-1 flex-wrap">
+                      {cogLetters.map((l) => {
+                        const c = cogColor(l);
+                        const active = cogFilter === l;
+                        return (
+                          <button
+                            key={l}
+                            onClick={() => setCogFilter(cogFilter === l ? null : l)}
+                            title={`${l} · ${cogName(l)}`}
+                            className="font-mono text-[10px] font-bold w-[18px] h-[18px] flex items-center justify-center rounded cursor-pointer transition-all"
+                            style={{
+                              background: active ? c : ha(c, 0.16),
+                              color: active ? "#0a0a14" : c,
+                              border: `1px solid ${active ? c : ha(c, 0.4)}`,
+                            }}
+                          >
+                            {l}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <p className="text-[10px] text-gray-600 font-mono">
+                  {genes.length} / {job.total_genes ?? 0} features
                 </p>
               </div>
 
               {/* Gene rows */}
-              <div className="flex-1 overflow-y-auto p-1.5 space-y-px">
+              <div className="flex-1 overflow-y-auto p-1.5">
                 {genes.length === 0 ? (
                   <div className="px-2 py-8 text-center">
                     <p className="text-xs text-gray-600">No matches</p>
-                    {(filter !== "all" || query) && (
-                      <button onClick={() => { setFilter("all"); setQuery(""); }}
+                    {(filter !== "all" || query || cogFilter) && (
+                      <button onClick={() => { setFilter("all"); setQuery(""); setCogFilter(null); }}
                         className="text-[11px] text-indigo-400 hover:text-indigo-300 mt-1.5">
                         Clear filters
                       </button>
                     )}
                   </div>
-                ) : genes.map((g) => {
-                  const isSel    = selected?.id === g.id;
-                  const operon   = geneToOperon.get(g.id);
-                  const gFlags   = amrFlags.get(g.id) ?? [];
-                  const hasAmr   = gFlags.some((h: BioHit) => h.type === "amr");
-                  const hasVir   = gFlags.some((h: BioHit) => h.type === "virulence");
-                  const stripCol = g.is_dark ? "bg-amber-600"
-                    : g.confidence === "HIGH"     ? "bg-emerald-400"
-                    : g.confidence === "MODERATE" ? "bg-amber-500"
-                    : "bg-indigo-400";
-                  return (
-                    <button key={g.id} onClick={() => setSelected(g)}
-                      className={cn(
-                        "group w-full text-left pl-2 pr-2.5 py-2 rounded-lg transition-all relative overflow-hidden",
-                        isSel ? "bg-indigo-600/15 ring-1 ring-indigo-500/30" : "hover:bg-white/5"
-                      )}
-                    >
-                      <span className={cn("absolute left-0 top-1.5 bottom-1.5 w-0.5 rounded-r", stripCol)} />
-                      <div className="pl-2">
-                        <div className="flex items-center justify-between gap-2 mb-0.5">
-                          <span className={cn("text-xs font-medium truncate", isSel ? "text-white" : "text-gray-200")}>
-                            {g.name}
+                ) : (() => {
+                  const rows: React.ReactNode[] = [];
+                  let prevOpId: number | null = null;
+                  genes.forEach((g) => {
+                    const isSel  = selected?.id === g.id;
+                    const op     = geneToOperon.get(g.id);
+                    const gFlags = amrFlags.get(g.id) ?? [];
+                    const hasAmr = gFlags.some((h: BioHit) => h.type === "amr");
+                    const hasVir = gFlags.some((h: BioHit) => h.type === "virulence");
+                    const stripCol = g.is_dark ? "#b45309"
+                      : g.confidence === "HIGH"     ? "#34d399"
+                      : g.confidence === "MODERATE" ? "#f59e0b"
+                      : "#818cf8";
+
+                    // Operon group header
+                    if (op && op.id !== prevOpId) {
+                      prevOpId = op.id;
+                      rows.push(
+                        <div key={`op-header-${op.id}`} className="flex items-center gap-1.5 px-2 pt-2 pb-0.5">
+                          <span className="w-2 h-px rounded" style={{ background: op.color }} />
+                          <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color: op.color }}>
+                            {op.label} operon
                           </span>
-                          <div className="flex items-center gap-1 shrink-0">
-                            {hasAmr && (
-                              <span className="text-[9px] px-1 py-0.5 rounded bg-red-500/15 text-red-400 border border-red-500/25 font-semibold leading-none">AMR</span>
-                            )}
-                            {hasVir && (
-                              <span className="text-[9px] px-1 py-0.5 rounded bg-orange-500/15 text-orange-400 border border-orange-500/25 font-semibold leading-none">VIR</span>
-                            )}
-                            {operon && (
-                              <span
-                                className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: operon.color }}
-                                title={operon.label}
-                              />
-                            )}
-                            {g.length != null && (
-                              <span className="text-[10px] mono text-gray-600">
-                                {g.length < 1000 ? `${g.length}b` : `${(g.length / 1000).toFixed(1)}k`}
-                              </span>
-                            )}
-                          </div>
+                          <span className="flex-1 h-px" style={{ background: `linear-gradient(90deg, ${op.color}, transparent)` }} />
                         </div>
-                        <p className="text-[11px] text-gray-500 truncate leading-tight">
-                          {g.normalized_product ?? g.function ?? (g.is_dark ? "Dark matter" : "Unannotated")}
-                        </p>
-                        <p className="text-[10px] text-gray-700 mono mt-0.5 truncate">{g.locus}</p>
-                      </div>
-                    </button>
-                  );
-                })}
+                      );
+                    } else if (!op) {
+                      prevOpId = null;
+                    }
+
+                    rows.push(
+                      <button key={g.id} onClick={() => setSelected(g)}
+                        className={cn(
+                          "group w-full text-left pl-2 pr-2.5 py-2 rounded-lg transition-all relative overflow-hidden mb-px",
+                          isSel ? "bg-indigo-600/13 ring-1 ring-indigo-500/30" : op ? "hover:bg-white/[0.04]" : "hover:bg-white/5"
+                        )}
+                        style={op && !isSel ? { background: ha(op.color, 0.04) } : undefined}
+                      >
+                        <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r" style={{ background: stripCol }} />
+                        <div className="pl-2">
+                          <div className="flex items-center justify-between gap-2 mb-0.5">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className={cn("font-mono text-xs font-semibold truncate", isSel ? "text-white" : "text-gray-200")}>
+                                {g.name}
+                              </span>
+                              <CogChip letter={g.cog_category} />
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                              {hasAmr && (
+                                <span className="text-[9px] px-1 py-0.5 rounded font-bold leading-none" style={{ background: "rgba(239,68,68,0.14)", color: "#f87171", border: "1px solid rgba(239,68,68,0.3)" }}>AMR</span>
+                              )}
+                              {hasVir && (
+                                <span className="text-[9px] px-1 py-0.5 rounded font-bold leading-none" style={{ background: "rgba(249,115,22,0.14)", color: "#fb923c", border: "1px solid rgba(249,115,22,0.3)" }}>VIR</span>
+                              )}
+                              {op && (
+                                <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: op.color }} />
+                              )}
+                              {g.length != null && (
+                                <span className="text-[10px] font-mono text-gray-600">
+                                  {g.length < 1000 ? `${g.length}b` : `${(g.length / 1000).toFixed(1)}k`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-500 truncate leading-tight">
+                            {g.normalized_product ?? g.function ?? (g.is_dark ? "Dark matter — uncharacterized" : "Hypothetical protein")}
+                          </p>
+                          <p className="text-[10px] text-gray-700 font-mono mt-0.5 truncate">{g.locus}</p>
+                        </div>
+                      </button>
+                    );
+                  });
+                  return rows;
+                })()}
               </div>
             </div>
 
-            {/* Pane 2 — Detail panel */}
-            <div className="flex-1 overflow-y-auto flex flex-col min-w-0">
-              {/* Genome track — pinned at top of detail area */}
+            {/* ── Right area ──────────────────────────────────────── */}
+            <div className="flex-1 overflow-hidden flex flex-col min-w-0">
+
+              {/* Genome track */}
               <div className="shrink-0 border-b border-white/5 px-4 py-3 bg-[#0a0a14]">
-                <GenomeTrack
-                  genes={job.genes ?? []}
-                  selectedId={selected?.id ?? null}
-                  onSelect={setSelected}
-                  operons={operons}
-                  geneToOperon={geneToOperon}
-                />
+                <div className="bg-[#0f0f1e] border border-white/6 rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between gap-4 px-4 pt-3 pb-1">
+                    <div>
+                      <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
+                        Genome map{job.filename ? ` · ` : ""}<span className="text-gray-600">{job.filename}</span>
+                      </div>
+                      <div className="text-[11px] text-gray-600 mt-0.5">Forward strand above · reverse below · click a gene to inspect</div>
+                    </div>
+                    <div className="flex items-center gap-2.5 flex-wrap justify-end shrink-0">
+                      {[
+                        { c: "#34d399", l: "HIGH" }, { c: "#f59e0b", l: "MOD" },
+                        { c: "#818cf8", l: "LOW"  }, { c: "#4b5563", l: "DARK", dashed: true },
+                        { c: "#ef4444", l: "AMR"  }, { c: "#f97316", l: "VIR"  },
+                      ].map(({ c, l, dashed }) => (
+                        <span key={l} className="flex items-center gap-1 text-[10px] text-gray-600">
+                          <span className="w-2 h-2 rounded-sm shrink-0" style={{ background: c, border: dashed ? `1px dashed #6b7280` : "none" }} />
+                          {l}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="px-4 pb-3">
+                    <GenomeTrack
+                      genes={job.genes ?? []}
+                      selectedId={selected?.id ?? null}
+                      onSelect={setSelected}
+                      operons={operons}
+                      geneToOperon={geneToOperon}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Stats bar */}
-              <div className="shrink-0 flex items-center gap-6 px-5 py-3 border-b border-white/5 bg-[#0a0a14]">
+              <div className="shrink-0 flex items-center gap-6 px-5 py-2.5 border-b border-white/5 bg-[#0a0a14]">
                 {[
-                  { v: String(job.total_genes ?? 0),        label: "Genes",       c: "text-white"       },
-                  { v: String(job.high_confidence_count ?? 0), label: "High conf", c: "text-emerald-400" },
-                  { v: String(job.dark_count ?? 0),          label: "Dark matter", c: "text-amber-400"   },
-                  { v: `${successRate}%`,                    label: "Success",     c: "text-indigo-400"  },
+                  { v: String(job.total_genes ?? 0),           label: "features",    c: "#ffffff"  },
+                  { v: String(job.high_confidence_count ?? 0), label: "high conf",   c: "#34d399"  },
+                  { v: String(job.dark_count ?? 0),            label: "dark matter", c: "#f59e0b"  },
+                  { v: `${successRate}%`,                      label: "interpreted", c: "#818cf8"  },
                 ].map((s) => (
-                  <div key={s.label} className="flex items-baseline gap-2">
-                    <span className={cn("text-lg font-bold mono", s.c)}>{s.v}</span>
-                    <span className="text-xs text-gray-500">{s.label}</span>
+                  <div key={s.label} className="flex items-baseline gap-1.5">
+                    <span className="text-lg font-bold font-mono" style={{ color: s.c }}>{s.v}</span>
+                    <span className="text-[11px] text-gray-500">{s.label}</span>
                   </div>
                 ))}
 
-                {/* Confidence bar */}
                 {job.total_genes && job.total_genes > 0 && (() => {
                   const all  = job.genes ?? [];
                   const high = all.filter((g) => g.confidence === "HIGH" && !g.is_dark).length;
@@ -470,13 +760,13 @@ export default function JobPage() {
                   const dark = all.filter((g) => g.is_dark).length;
                   const t    = job.total_genes;
                   return (
-                    <div className="flex-1 flex items-center gap-2 min-w-0 ml-2">
+                    <div className="flex-1 flex items-center min-w-0 ml-2">
                       <div className="flex-1 flex rounded-full overflow-hidden h-1.5 bg-white/4">
                         {[
-                          { n: high, c: "bg-emerald-500" }, { n: mod, c: "bg-amber-500" },
-                          { n: low,  c: "bg-indigo-500"  }, { n: dark, c: "bg-amber-700" },
+                          { n: high, c: "#34d399" }, { n: mod, c: "#f59e0b" },
+                          { n: low,  c: "#818cf8" }, { n: dark, c: "#b45309" },
                         ].map((s, i) => s.n > 0 ? (
-                          <div key={i} className={s.c} style={{ width: `${(s.n / t) * 100}%` }} />
+                          <div key={i} style={{ width: `${(s.n / t) * 100}%`, background: s.c }} />
                         ) : null)}
                       </div>
                     </div>
@@ -484,7 +774,7 @@ export default function JobPage() {
                 })()}
               </div>
 
-              {/* Annotation history diff banner */}
+              {/* History diff banner */}
               {historyDiff && (
                 <div className="shrink-0 border-b border-white/5 px-5 py-2 bg-indigo-500/5 flex items-center gap-3">
                   <span className="text-xs text-indigo-300">Previous run available —</span>
@@ -519,9 +809,9 @@ export default function JobPage() {
                             return (
                               <div key={g.locus} className="flex items-center gap-3 text-xs">
                                 <span className="text-gray-400 truncate flex-1">{g.name}</span>
-                                <span className="mono text-gray-600">{p?.is_dark ? "dark" : p?.confidence ?? "—"}</span>
+                                <span className="font-mono text-gray-600">{p?.is_dark ? "dark" : p?.confidence ?? "—"}</span>
                                 <span className="text-gray-600">→</span>
-                                <span className={cn("mono", g.is_dark ? "text-amber-400" : g.confidence === "HIGH" ? "text-emerald-400" : "text-indigo-400")}>
+                                <span className={cn("font-mono", g.is_dark ? "text-amber-400" : g.confidence === "HIGH" ? "text-emerald-400" : "text-indigo-400")}>
                                   {g.is_dark ? "dark" : g.confidence ?? "—"}
                                 </span>
                               </div>
@@ -540,17 +830,20 @@ export default function JobPage() {
                 );
               })()}
 
-              {/* Selected gene detail */}
-              <div className="flex-1 p-5 space-y-4 overflow-y-auto">
+              {/* ── Gene detail panel ───────────────────────────── */}
+              <div className="flex-1 overflow-y-auto">
                 {selected ? (
-                  <>
-                    {/* Gene header */}
-                    <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
-                      <div className="flex items-start justify-between gap-4 mb-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <h3 className="text-base font-semibold text-white">{selected.name}</h3>
-                            {/* Bookmark toggle */}
+                  <div className="max-w-[880px] mx-auto px-5 py-4 space-y-3.5 pb-10">
+
+                    {/* Header card */}
+                    <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
+
+                          {/* Name row */}
+                          <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                            <h2 className="text-xl font-bold text-white font-mono">{selected.name}</h2>
+
                             <button
                               onClick={() => {
                                 if (!job) return;
@@ -571,135 +864,140 @@ export default function JobPage() {
                               title={bookmarked ? "Remove bookmark" : "Bookmark gene"}
                               className={cn(
                                 "p-1 rounded transition-colors",
-                                bookmarked
-                                  ? "text-amber-400 hover:text-amber-300"
-                                  : "text-gray-600 hover:text-amber-400"
+                                bookmarked ? "text-amber-400 hover:text-amber-300" : "text-gray-600 hover:text-amber-400"
                               )}
                             >
                               <Bookmark size={14} fill={bookmarked ? "currentColor" : "none"} />
                             </button>
-                            {selected.confidence && (
-                              <span className={cn("text-xs px-2 py-0.5 rounded-full border",
-                                selected.confidence === "HIGH"     ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                                : selected.confidence === "MODERATE" ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                                : "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"
-                              )}>{selected.confidence}</span>
-                            )}
-                            {selected.is_dark && (
-                              <span className="text-xs px-2 py-0.5 rounded-full border bg-amber-500/10 text-amber-400 border-amber-500/20">
+
+                            {/* Confidence badge */}
+                            {selected.is_dark ? (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border tracking-wider"
+                                style={{ background: "rgba(245,158,11,0.1)", color: "#f59e0b", borderColor: "rgba(245,158,11,0.25)" }}>
                                 DARK MATTER
                               </span>
+                            ) : selected.confidence && (
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full border tracking-wider"
+                                style={{
+                                  background: ha(confColor(selected.confidence), 0.1),
+                                  color: confColor(selected.confidence),
+                                  borderColor: ha(confColor(selected.confidence), 0.25),
+                                }}>
+                                {selected.confidence}
+                              </span>
                             )}
+
+                            {/* COG chip */}
+                            <CogChip letter={selected.cog_category} size="lg" />
+
+                            {/* Pfam badge */}
                             {selected.pfam_id && (
-                              <span className="text-xs px-2 py-0.5 rounded-full border bg-purple-500/10 text-purple-400 border-purple-500/20 mono">
+                              <span className="text-[11px] font-mono px-2 py-0.5 rounded-full border" style={{ background: "rgba(167,139,250,0.1)", color: "#c4b5fd", borderColor: "rgba(167,139,250,0.22)" }}>
                                 {selected.pfam_id}
                               </span>
                             )}
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <p className="text-xs text-gray-500 mono">{selected.locus}</p>
+
+                          {/* Locus + coords + operon chip */}
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-xs text-gray-500 font-mono">{selected.locus}</span>
+                            {selected.start != null && selected.end != null && (
+                              <span className="text-xs text-gray-600 font-mono">
+                                {selected.start.toLocaleString()}–{selected.end.toLocaleString()} · {selected.strand === -1 ? "−" : "+"}
+                              </span>
+                            )}
                             {selectedOperon && (
                               <span
-                                className="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full border font-medium"
+                                className="inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full border font-semibold"
                                 style={{
                                   color: selectedOperon.color,
-                                  borderColor: selectedOperon.color + "40",
-                                  backgroundColor: selectedOperon.color + "15",
+                                  borderColor: ha(selectedOperon.color, 0.4),
+                                  background: ha(selectedOperon.color, 0.12),
                                 }}
                               >
-                                <span
-                                  className="w-1.5 h-1.5 rounded-full"
-                                  style={{ backgroundColor: selectedOperon.color }}
-                                />
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: selectedOperon.color }} />
                                 {selectedOperon.label} · {selectedOperon.genes.length} genes
                               </span>
                             )}
                           </div>
+
+                          {/* Product */}
+                          {(selected.normalized_product || selected.function) && (
+                            <p className="text-sm text-gray-300 leading-relaxed mt-3 max-w-[560px]">
+                              {selected.normalized_product || selected.function}
+                            </p>
+                          )}
+
+                          {/* GO terms */}
+                          {selected.go_terms && selected.go_terms.length > 0 && (
+                            <div className="flex flex-wrap gap-1.5 mt-3">
+                              {selected.go_terms.map((go) => (
+                                <span key={go} className="text-[10px] font-mono bg-white/4 border border-white/6 text-gray-400 px-2 py-0.5 rounded">{go}</span>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Annotation note */}
+                          <div className="mt-4 pt-4 border-t border-white/5">
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <StickyNote size={11} className="text-gray-600" />
+                              <p className="text-[10px] text-gray-600 uppercase tracking-wider">Note</p>
+                            </div>
+                            <textarea
+                              value={note}
+                              onChange={(e) => {
+                                setNoteState(e.target.value);
+                                setNote(id, selected.id, e.target.value);
+                              }}
+                              placeholder="Add a private annotation note…"
+                              rows={2}
+                              className="w-full text-xs bg-white/[0.03] border border-white/6 rounded-lg px-3 py-2 text-gray-300 placeholder-gray-700 outline-none focus:border-indigo-500/40 resize-none transition-colors"
+                            />
+                          </div>
                         </div>
-                        {selected.score != null && (
+
+                        {/* Score */}
+                        {selected.score != null && !selected.is_dark && (
                           <div className="text-right shrink-0">
-                            <p className="text-xs text-gray-500 mb-0.5">Score</p>
-                            <p className={cn("text-3xl font-bold mono",
-                              selected.confidence === "HIGH"     ? "text-emerald-400"
-                              : selected.confidence === "MODERATE" ? "text-amber-400"
-                              : selected.confidence === "LOW"      ? "text-indigo-400"
-                              : "text-gray-500"
-                            )}>{selected.score.toFixed(2)}</p>
+                            <p className="text-[11px] text-gray-600 mb-0.5">Score</p>
+                            <p className="text-4xl font-bold font-mono leading-none" style={{ color: confColor(selected.confidence) }}>
+                              {selected.score.toFixed(2)}
+                            </p>
                           </div>
                         )}
-                      </div>
-                      {(selected.normalized_product || selected.function) && (
-                        <p className="text-sm text-gray-300 leading-relaxed">
-                          {selected.normalized_product || selected.function}
-                        </p>
-                      )}
-                      {selected.go_terms && selected.go_terms.length > 0 && (
-                        <div className="flex flex-wrap gap-1.5 mt-3">
-                          {selected.go_terms.map((go) => (
-                            <span key={go} className="text-[10px] mono bg-white/4 border border-white/6 text-gray-400 px-2 py-0.5 rounded">{go}</span>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Annotation note */}
-                      <div className="mt-4 pt-4 border-t border-white/5">
-                        <div className="flex items-center gap-1.5 mb-2">
-                          <StickyNote size={11} className="text-gray-600" />
-                          <p className="text-[10px] text-gray-600 uppercase tracking-wider">Note</p>
-                        </div>
-                        <textarea
-                          value={note}
-                          onChange={(e) => {
-                            setNoteState(e.target.value);
-                            setNote(id, selected.id, e.target.value);
-                          }}
-                          placeholder="Add a private annotation note…"
-                          rows={2}
-                          className="w-full text-xs bg-white/[0.03] border border-white/6 rounded-lg px-3 py-2 text-gray-300 placeholder-gray-700 outline-none focus:border-indigo-500/40 resize-none transition-colors"
-                        />
                       </div>
                     </div>
 
                     {/* AMR / Virulence flags */}
                     {selectedFlags.length > 0 && (
-                      <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
+                      <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-5">
                         <div className="flex items-center gap-2 mb-3">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-red-400">
-                            ⚠ Resistance / Virulence Flags
-                          </span>
-                          <span className="text-[10px] text-gray-600 ml-auto">heuristic match</span>
+                          <span className="text-xs font-semibold uppercase tracking-wider text-red-400">⚠ Resistance / Virulence Flags</span>
+                          <span className="text-[10px] text-gray-600 ml-auto">heuristic match · overrides confidence color</span>
                         </div>
                         <div className="space-y-3">
                           {selectedFlags.map((hit, i) => {
                             const isAmr = hit.type === "amr";
                             return (
-                              <div key={i} className={cn(
-                                "rounded-lg border px-3.5 py-3",
-                                isAmr
-                                  ? "bg-red-500/5 border-red-500/15"
-                                  : "bg-orange-500/5 border-orange-500/15"
-                              )}>
+                              <div key={i} className="rounded-xl border px-3.5 py-3"
+                                style={{
+                                  background: isAmr ? "rgba(239,68,68,0.05)" : "rgba(249,115,22,0.05)",
+                                  borderColor: isAmr ? "rgba(239,68,68,0.15)" : "rgba(249,115,22,0.15)",
+                                }}>
                                 <div className="flex items-center gap-2 mb-1">
-                                  <span className={cn(
-                                    "text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border",
-                                    isAmr
-                                      ? "text-red-400 bg-red-500/10 border-red-500/20"
-                                      : "text-orange-400 bg-orange-500/10 border-orange-500/20"
-                                  )}>
+                                  <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border"
+                                    style={{
+                                      color: isAmr ? "#f87171" : "#fb923c",
+                                      background: isAmr ? "rgba(239,68,68,0.1)" : "rgba(249,115,22,0.1)",
+                                      borderColor: isAmr ? "rgba(239,68,68,0.2)" : "rgba(249,115,22,0.2)",
+                                    }}>
                                     {isAmr ? "AMR" : "VIR"}
                                   </span>
-                                  <span className={cn(
-                                    "text-xs font-medium",
-                                    isAmr ? "text-red-300" : "text-orange-300"
-                                  )}>{hit.label}</span>
-                                  <span className="ml-auto text-[10px] text-gray-600 capitalize">{hit.category.replace(/-/g, " ")}</span>
+                                  <span className="text-xs font-medium" style={{ color: isAmr ? "#fca5a5" : "#fdba74" }}>{hit.label}</span>
+                                  <span className="ml-auto text-[10px] text-gray-600 capitalize">{hit.category?.replace(/-/g, " ")}</span>
                                 </div>
                                 <p className="text-[11px] text-gray-400 leading-relaxed">{hit.description}</p>
-                                <p className={cn(
-                                  "text-[10px] mt-1.5",
-                                  hit.confidence === "high"     ? "text-red-500/60"    :
-                                  hit.confidence === "moderate" ? "text-amber-500/60"  : "text-gray-600"
-                                )}>
+                                <p className="text-[10px] mt-1.5" style={{ color: hit.confidence === "high" ? "#dc2626" : hit.confidence === "moderate" ? "#d97706" : "#6b7280" }}>
                                   Match confidence: {hit.confidence}
                                 </p>
                               </div>
@@ -709,14 +1007,19 @@ export default function JobPage() {
                       </div>
                     )}
 
+                    {/* Dark matter card */}
                     {selected.is_dark && (
                       <>
-                        <div className="bg-amber-500/5 border border-amber-500/15 rounded-xl p-4">
+                        <div className="border border-dashed rounded-[14px] p-4"
+                          style={{ background: "rgba(245,158,11,0.03)", borderColor: "rgba(245,158,11,0.18)" }}>
                           <div className="flex items-start justify-between gap-3">
                             <div>
-                              <p className="text-sm text-amber-300 font-medium mb-1">Dark matter gene</p>
-                              <p className="text-xs text-gray-400 leading-relaxed">
-                                No motif hits, no domain evidence. Added to the global dark matter index as a high-priority research target.
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                                <span className="text-[11px] font-bold uppercase tracking-wider text-amber-300">Dark matter · discovery opportunity</span>
+                              </div>
+                              <p className="text-xs text-gray-400 leading-relaxed max-w-md">
+                                No motif, domain, homology, or curated evidence. Added to the global dark-matter index as a high-priority research target.
                               </p>
                             </div>
                             <button
@@ -750,33 +1053,72 @@ export default function JobPage() {
                       </>
                     )}
 
-                    <EvidenceLadder evidence={selected.evidence} isDark={selected.is_dark} />
+                    {/* Evidence ladder */}
+                    <EvidenceLadder gene={selected} />
 
+                    {/* Confidence donut + competing hypotheses */}
                     {!selected.is_dark && selected.score != null && (
-                      <div className="grid lg:grid-cols-2 gap-4">
-                        <ConfidenceComposition evidence={selected.evidence} score={selected.score} level={selected.confidence} />
+                      <div className="grid lg:grid-cols-2 gap-3.5">
+                        <ConfidenceDonut gene={selected} operon={selectedOperon} />
+
                         {selected.competing_hypotheses && selected.competing_hypotheses.length > 0 && selected.function && (
-                          <CompetingHypothesesChart
-                            primary={{ hypothesis: selected.function, confidence: selected.score }}
-                            competing={selected.competing_hypotheses}
-                          />
+                          <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-[18px]">
+                            <div className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider mb-1">Hypotheses considered</div>
+                            <div className="text-[11px] text-gray-600 mb-3.5">
+                              The engine ranked {1 + selected.competing_hypotheses.length} candidates before settling on the accepted one.
+                            </div>
+                            <div className="flex flex-col gap-3">
+                              {(() => {
+                                const items = [
+                                  { hypothesis: selected.function!, confidence: selected.score!, accepted: true, reason: null },
+                                  ...selected.competing_hypotheses.map((c) => ({ hypothesis: c.hypothesis, confidence: c.confidence, accepted: false, reason: c.reason_not_preferred })),
+                                ].sort((a, b) => b.confidence - a.confidence);
+                                const mx = Math.max(...items.map((i) => i.confidence), 1);
+                                return items.map((item, idx) => (
+                                  <div key={idx}>
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                      <span className="text-xs font-medium truncate" style={{ color: item.accepted ? "#fff" : "#6b7280" }}>
+                                        {item.accepted ? "✓" : "✕"} {item.hypothesis}
+                                      </span>
+                                      <span className="text-[11px] font-mono shrink-0" style={{ color: item.accepted ? "#34d399" : "#6b7280" }}>
+                                        {(item.confidence * 100).toFixed(0)}%
+                                      </span>
+                                    </div>
+                                    <div className="h-1.5 rounded-full overflow-hidden bg-white/5">
+                                      <div className="h-full rounded-full" style={{
+                                        width: `${Math.round(item.confidence / mx * 100)}%`,
+                                        background: item.accepted ? "#34d399" : "#374151",
+                                      }} />
+                                    </div>
+                                    {!item.accepted && item.reason && (
+                                      <div className="text-[10px] text-gray-600 italic mt-1">Rejected: {item.reason}</div>
+                                    )}
+                                  </div>
+                                ));
+                              })()}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
 
+                    {/* Reasoning chain */}
                     {selected.reasoning_steps && selected.reasoning_steps.length > 0 && (
                       <ReasoningChain steps={selected.reasoning_steps} />
                     )}
                     {(!selected.reasoning_steps || selected.reasoning_steps.length === 0) && selected.reasoning && (
-                      <div className="bg-[#0f0f1e] border border-white/6 rounded-xl p-5">
+                      <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-5">
                         <p className="text-xs text-gray-500 uppercase tracking-wider mb-2">Reasoning</p>
                         <p className="text-xs text-gray-400 leading-relaxed italic">"{selected.reasoning}"</p>
                       </div>
                     )}
+
+                    {/* Uncertainty notes */}
                     {selected.uncertainty_sources && selected.uncertainty_sources.length > 0 && (
                       <UncertaintyNotes sources={selected.uncertainty_sources} />
                     )}
-                  </>
+
+                  </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center h-full text-center py-20">
                     <p className="text-gray-500 text-sm">Select a gene from the list to inspect it</p>

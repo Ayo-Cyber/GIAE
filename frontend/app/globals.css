@@ -214,6 +214,7 @@ body {
 /* Backgrounds that aren't covered by the basic bg-[#hex] selectors */
 :root[data-theme="light"] .bg-\[\#0c0c18\] { background-color: #f8fafc !important; }
 :root[data-theme="light"] .bg-\[\#07070f\] { background-color: #f1f5f9 !important; }
+:root[data-theme="light"] .bg-\[\#0b0b16\] { background-color: var(--sidebar-bg) !important; }  /* job report left pane */
 
 /* Surfaces used in code / mono areas */
 :root[data-theme="light"] .bg-amber-500\/5 { background-color: rgba(245, 158, 11, 0.07) !important; }
@@ -224,7 +225,8 @@ body {
 /* Borders that appear invisible against white */
 :root[data-theme="light"] .border-white\/4,
 :root[data-theme="light"] .border-white\/5,
-:root[data-theme="light"] .border-white\/6 { border-color: rgba(15,23,42,0.09) !important; }
+:root[data-theme="light"] .border-white\/6,
+:root[data-theme="light"] .border-white\/7 { border-color: rgba(15,23,42,0.09) !important; }
 
 /* Dividers that vanish in light mode */
 :root[data-theme="light"] .divide-white\/4 > * + * { border-color: rgba(15,23,42,0.07) !important; }
@@ -233,6 +235,63 @@ body {
 /* Text that disappears on white */
 :root[data-theme="light"] .text-gray-600 { color: var(--fg-faint) !important; }
 :root[data-theme="light"] .text-gray-700 { color: var(--fg-dim) !important; }
+
+/* ── Landing page palette (driven by the global data-theme) ──────── */
+:root {
+  --lp-bg: #0a0a14; --lp-bg2: #0f0f1e; --lp-bg3: rgba(255,255,255,0.04);
+  --lp-text: #ffffff; --lp-text2: #e5e7eb; --lp-muted: #9ca3af; --lp-muted2: #6b7280; --lp-faint: #4b5563;
+  --lp-border: rgba(255,255,255,0.07); --lp-border2: rgba(255,255,255,0.10); --lp-hairline: rgba(255,255,255,0.05);
+  --lp-track: rgba(255,255,255,0.06); --lp-nav: rgba(10,10,20,0.78);
+  --lp-head-grad: linear-gradient(90deg,#fff,#cbd5e1);
+  --lp-accent-grad: linear-gradient(90deg,#818cf8,#a78bfa);
+  --lp-card-shadow: 0 30px 60px -20px rgba(2,4,20,0.8);
+}
+:root[data-theme="light"] {
+  --lp-bg: #eceff7; --lp-bg2: #ffffff; --lp-bg3: rgba(15,23,42,0.035);
+  --lp-text: #0b1020; --lp-text2: #1e293b; --lp-muted: #475569; --lp-muted2: #64748b; --lp-faint: #94a3b8;
+  --lp-border: rgba(15,23,42,0.09); --lp-border2: rgba(15,23,42,0.14); --lp-hairline: rgba(15,23,42,0.07);
+  --lp-track: rgba(15,23,42,0.08); --lp-nav: rgba(255,255,255,0.82);
+  --lp-head-grad: linear-gradient(90deg,#0b1020,#475569);
+  --lp-accent-grad: linear-gradient(90deg,#6366f1,#8b5cf6);
+  --lp-card-shadow: 0 24px 50px -24px rgba(30,41,59,0.28);
+}
+
+/* ── Landing page animations ────────────────────────────────────── */
+@keyframes giaeSeq  { from { transform: translateX(0) } to { transform: translateX(-50%) } }
+@keyframes giaeFloat { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-5px) } }
+@keyframes giaeGlow { 0%,100% { opacity: .55 } 50% { opacity: 1 } }
+@keyframes giaePulse { 0%,100% { opacity: 1 } 50% { opacity: .4 } }
+
+/* Scroll-reveal: hidden until .giae-in is added by the IntersectionObserver */
+.giae-rv {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1), transform .7s cubic-bezier(.22,.61,.36,1);
+  will-change: opacity, transform;
+}
+.giae-rv.giae-in { opacity: 1; transform: none; }
+
+/* Benchmark flip tiles — hover flips the card to reveal the GIAE-vs-Bakta back face */
+.giae-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform .55s cubic-bezier(.4,.1,.25,1);
+  transform-style: preserve-3d;
+}
+.giae-flip:hover { transform: rotateY(180deg); }
+.giae-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .giae-rv { opacity: 1 !important; transform: none !important; transition: none; }
+  .giae-seqrow { animation: none !important; }
+  .giae-flip:hover { transform: none; }
+}
 
 /* Mono code snippets — visible in light mode */
 :root[data-theme="light"] .mono { color: var(--fg-muted); }

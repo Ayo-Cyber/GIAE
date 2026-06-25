@@ -14,26 +14,38 @@ import {
  * Hero product-preview card. A stylised mock of the gene-detail view —
  * confidence donut + evidence chain + reasoning. Designed to read as
  * "this is what you get" in two seconds.
+ *
+ * NOTE: the card structure renders statically visible (no opacity entrance
+ * animations) so it never gets stuck blank if hydration is slow. The
+ * "alive" feel comes from the count-up donut, the pulsing glow, and the
+ * floating chips — all infinite loops that don't gate visibility.
  */
 export function HeroPreview() {
-  // Animated score counter
+  // Animated score counter — the signature side animation (0 → 0.87)
+  const target = 0.87;
   const [score, setScore] = useState(0);
   useEffect(() => {
     let raf = 0;
-    const target = 0.87;
-    const start = performance.now();
+    let startTs: number | null = null;
+    const delay = 200;
+    const duration = 1100;
     const tick = (t: number) => {
-      const p = Math.min(1, Math.max(0, (t - start - 600) / 1100));
+      if (startTs === null) startTs = t; // baseline from the first frame
+      const p = Math.min(1, Math.max(0, (t - startTs - delay) / duration));
       const eased = 1 - Math.pow(1 - p, 3);
       setScore(eased * target);
       if (p < 1) raf = requestAnimationFrame(tick);
     };
     raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+    // Safety net: if rAF is throttled/stalled, guarantee the final value.
+    const safety = window.setTimeout(() => setScore(target), delay + duration + 400);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(safety);
+    };
+  }, [target]);
 
-  const dash = 2 * Math.PI * 38;
-  const offset = dash - (score / 1) * dash;
+  const donutPct = Math.round(score * 100);
 
   const sources = [
     { label: "UniProt", pct: 41, colour: "#818cf8" },
@@ -49,13 +61,8 @@ export function HeroPreview() {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
-      className="relative"
-    >
-      {/* Floating ambient glow */}
+    <div className="relative">
+      {/* Floating ambient glow — infinite loop, no visibility gating */}
       <motion.div
         className="absolute -inset-4 bg-gradient-to-tr from-indigo-600/15 via-transparent to-violet-500/15 blur-2xl rounded-3xl pointer-events-none"
         animate={{ opacity: [0.6, 1, 0.6] }}
@@ -77,12 +84,7 @@ export function HeroPreview() {
         </div>
 
         {/* Gene header */}
-        <motion.div
-          className="px-5 pt-5 pb-3"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
+        <div className="px-5 pt-5 pb-3">
           <div className="flex items-start justify-between gap-4 mb-2">
             <div>
               <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -106,7 +108,7 @@ export function HeroPreview() {
             Lambda repressor protein CI — lysogeny maintenance transcription
             factor
           </p>
-        </motion.div>
+        </div>
 
         {/* Confidence composition */}
         <div className="px-5 pb-4">
@@ -118,54 +120,27 @@ export function HeroPreview() {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* Donut */}
-            <div className="relative w-[92px] h-[92px] shrink-0">
-              <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="none"
-                  stroke="rgba(255,255,255,0.05)"
-                  strokeWidth="10"
-                />
-                <circle
-                  cx="50"
-                  cy="50"
-                  r="38"
-                  fill="none"
-                  stroke="url(#heroGrad)"
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                  strokeDasharray={dash}
-                  strokeDashoffset={offset}
-                />
-                <defs>
-                  <linearGradient id="heroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#34d399" />
-                    <stop offset="100%" stopColor="#10b981" />
-                  </linearGradient>
-                </defs>
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-xl font-bold text-emerald-400 mono tabular-nums">
+            {/* Donut — CSS conic-gradient driven by the count-up score */}
+            <div
+              className="w-[92px] h-[92px] shrink-0 rounded-full flex items-center justify-center"
+              style={{
+                background: `conic-gradient(from -90deg, #34d399 0% ${donutPct}%, var(--divider) ${donutPct}% 100%)`,
+              }}
+            >
+              <div className="w-[68px] h-[68px] rounded-full surface flex flex-col items-center justify-center">
+                <p className="text-xl font-bold text-emerald-400 mono tabular-nums leading-none">
                   {score.toFixed(2)}
                 </p>
-                <p className="text-[8px] text-gray-500 uppercase tracking-wider">
+                <p className="text-[8px] text-gray-500 uppercase tracking-wider mt-0.5">
                   HIGH
                 </p>
               </div>
             </div>
 
-            {/* Sources — staggered bar fills */}
+            {/* Sources — static bars, always visible */}
             <div className="flex-1 min-w-0 space-y-1.5">
-              {sources.map((s, i) => (
-                <motion.div
-                  key={s.label}
-                  initial={{ opacity: 0, x: 6 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: 0.7 + i * 0.12 }}
-                >
+              {sources.map((s) => (
+                <div key={s.label}>
                   <div className="flex items-center justify-between mb-0.5">
                     <div className="flex items-center gap-1.5">
                       <span
@@ -178,20 +153,13 @@ export function HeroPreview() {
                       {s.pct}%
                     </span>
                   </div>
-                  <div className="h-[3px] bg-white/[0.04] rounded-full overflow-hidden">
-                    <motion.div
+                  <div className="h-[3px] rounded-full overflow-hidden" style={{ background: "var(--divider)" }}>
+                    <div
                       className="h-full rounded-full"
-                      style={{ backgroundColor: s.colour }}
-                      initial={{ width: 0 }}
-                      animate={{ width: `${s.pct}%` }}
-                      transition={{
-                        duration: 0.9,
-                        delay: 0.9 + i * 0.12,
-                        ease: [0.22, 1, 0.36, 1],
-                      }}
+                      style={{ width: `${s.pct}%`, backgroundColor: s.colour }}
                     />
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -210,13 +178,7 @@ export function HeroPreview() {
           </div>
           <ol className="space-y-2.5">
             {reasoning.map((step, i) => (
-              <motion.li
-                key={i}
-                className="flex items-start gap-2.5"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 1.4 + i * 0.18 }}
-              >
+              <li key={i} className="flex items-start gap-2.5">
                 <div className="flex flex-col items-center mt-0.5">
                   <div className="w-4 h-4 rounded-full bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center shrink-0">
                     <span className="mono text-[8px] font-semibold text-indigo-400">
@@ -228,18 +190,13 @@ export function HeroPreview() {
                   )}
                 </div>
                 <p className="text-[11px] text-gray-300 leading-relaxed">{step}</p>
-              </motion.li>
+              </li>
             ))}
           </ol>
         </div>
 
         {/* Verdict footer */}
-        <motion.div
-          className="px-5 py-3 border-t border-white/5 bg-emerald-500/[0.04] flex items-center gap-2"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 2.05 }}
-        >
+        <div className="px-5 py-3 border-t border-white/5 bg-emerald-500/[0.04] flex items-center gap-2">
           <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
           <p className="text-[11px] text-emerald-300/90">
             Three independent sources agree.{" "}
@@ -247,47 +204,33 @@ export function HeroPreview() {
               No competing hypothesis above 25%.
             </span>
           </p>
-        </motion.div>
+        </div>
       </div>
 
-      {/* Floating chip top-right */}
+      {/* Floating chip top-right — infinite bob loop */}
       <motion.div
-        className="absolute -top-3 -right-3 hidden sm:flex items-center gap-1.5 bg-[#0f0f1e] border border-indigo-500/30 rounded-full pl-2 pr-3 py-1.5 shadow-xl shadow-indigo-950/40"
-        initial={{ opacity: 0, y: -10, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, delay: 1.1 }}
+        className="absolute -top-3 -right-3 hidden sm:flex items-center gap-1.5 bg-[#0f0f1e] border border-indigo-500/30 rounded-full pl-2 pr-3 py-1.5 shadow-xl shadow-indigo-950/40 z-10"
+        animate={{ y: [0, -4, 0] }}
+        transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
       >
-        <motion.div
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 3.6, repeat: Infinity, ease: "easeInOut" }}
-          className="flex items-center gap-1.5"
-        >
-          <Sparkles size={11} className="text-indigo-400" />
-          <span className="text-[11px] text-gray-300 font-medium">
-            Explainable by design
-          </span>
-        </motion.div>
+        <Sparkles size={11} className="text-indigo-400" />
+        <span className="text-[11px] text-gray-300 font-medium">
+          Explainable by design
+        </span>
       </motion.div>
 
-      {/* Floating chip bottom-left — moved further down so it doesn't overlap the verdict */}
+      {/* Floating chip bottom-left — infinite bob loop */}
       <motion.div
-        className="absolute -bottom-5 left-4 hidden sm:flex items-center gap-1.5 bg-[#0f0f1e] border border-amber-500/30 rounded-full pl-2 pr-3 py-1.5 shadow-xl shadow-amber-950/30"
-        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, delay: 2.4 }}
+        className="absolute -bottom-5 left-4 hidden sm:flex items-center gap-1.5 bg-[#0f0f1e] border border-amber-500/30 rounded-full pl-2 pr-3 py-1.5 shadow-xl shadow-amber-950/30 z-10"
+        animate={{ y: [0, 4, 0] }}
+        transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
       >
-        <motion.div
-          animate={{ y: [0, 3, 0] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: "easeInOut" }}
-          className="flex items-center gap-1.5"
-        >
-          <span className="w-2 h-2 rounded-full bg-amber-400" />
-          <span className="text-[11px] text-gray-300 font-medium">
-            44 dark-matter genes flagged
-          </span>
-          <ArrowUpRight size={10} className="text-amber-400" />
-        </motion.div>
+        <span className="w-2 h-2 rounded-full bg-amber-400" />
+        <span className="text-[11px] text-gray-300 font-medium">
+          44 dark-matter genes flagged
+        </span>
+        <ArrowUpRight size={10} className="text-amber-400" />
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
