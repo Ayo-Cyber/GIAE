@@ -324,7 +324,10 @@ class MotifScanner:
         """
         Analyze a gene for motifs and return evidence.
 
-        Uses protein sequence if available.
+        PROSITE patterns are amino-acid signatures, so this scans the protein
+        sequence. When a gene has no stored translation, the coding sequence is
+        translated first — scanning raw nucleotides with protein patterns would
+        produce false positives (A/C/G/T/N are all valid amino-acid letters).
 
         Args:
             gene: Gene object to analyze.
@@ -332,8 +335,19 @@ class MotifScanner:
         Returns:
             List of Evidence objects from motif scanning.
         """
-        sequence = gene.protein.sequence if gene.protein else gene.sequence
+        sequence: str | None = None
+        if gene.protein and gene.protein.sequence:
+            sequence = gene.protein.sequence
+        elif getattr(gene, "sequence", None):
+            nt = gene.sequence[: len(gene.sequence) // 3 * 3]
+            if nt:
+                from Bio.Seq import Seq
 
+                sequence = str(Seq(nt).translate(to_stop=False))
+        if not sequence:
+            return []
+
+        sequence = sequence.replace("*", "X")
         matches = self.scan(sequence)
         return self.matches_to_evidence(matches, gene.id)
 

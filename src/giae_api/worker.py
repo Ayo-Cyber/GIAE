@@ -28,6 +28,7 @@ def _serialize_genes(results, genome) -> str:
         is_dark = interp is None
 
         evidence_list = []
+        domains = []
         if r.aggregated_evidence:
             for ev in r.aggregated_evidence.get_top_evidence(5):
                 tool = ev.provenance.tool_name if ev.provenance else ev.evidence_type.value
@@ -36,6 +37,34 @@ def _serialize_genes(results, genome) -> str:
                     "source": tool,
                     "conf": round(ev.confidence, 3),
                 })
+            # Domain architecture blocks — any evidence whose raw_data carries
+            # amino-acid coordinates (PROSITE motifs, HMMER/Pfam domain hits).
+            for evlist in r.aggregated_evidence.groups_by_type.values():
+                for ev in evlist:
+                    rd = ev.raw_data or {}
+                    s, e = rd.get("start"), rd.get("end")
+                    if isinstance(s, int) and isinstance(e, int) and e > s:
+                        tool = ev.provenance.tool_name if ev.provenance else ev.evidence_type.value
+                        domains.append({
+                            "start": s,
+                            "end": e,
+                            "label": rd.get("motif_description") or rd.get("hmm_name") or ev.description,
+                            "source": tool,
+                            "kind": ev.evidence_type.value,
+                        })
+
+        # Amino-acid sequence for the sequence viewer. Prefer the stored
+        # /translation; fall back to translating the (strand-corrected) coding
+        # sequence so genes without a GenBank translation still show a protein.
+        aa_seq = None
+        if gene:
+            if gene.protein and gene.protein.sequence:
+                aa_seq = gene.protein.sequence.rstrip("*")
+            elif getattr(gene, "sequence", None):
+                nt = gene.sequence[: len(gene.sequence) // 3 * 3]
+                if nt:
+                    from Bio.Seq import Seq
+                    aa_seq = str(Seq(nt).translate(to_stop=False)).rstrip("*") or None
 
         # confidence_level values are lowercase ("high") — uppercase for the frontend
         conf_value = interp.confidence_level.value.upper() if interp else None
@@ -76,6 +105,9 @@ def _serialize_genes(results, genome) -> str:
             ],
             "uncertainty_sources": list(interp.uncertainty_sources) if interp else [],
             "evidence": evidence_list,
+            "aa_sequence": aa_seq,
+            "aa_length": len(aa_seq) if aa_seq else None,
+            "domains": domains,
         })
     return json.dumps(out)
 

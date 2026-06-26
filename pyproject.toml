@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "giae"
-version = "0.2.2"
+version = "0.2.3"
 description = "Genome Interpretation & Annotation Engine - An Explainable, Evidence-Centric Framework for Genomic Interpretation"
 readme = "README.md"
 license = "MIT"

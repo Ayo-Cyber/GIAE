@@ -23,7 +23,26 @@ from giae.engine.interpreter import Interpreter
 from giae.parsers.genbank import GenBankParser
 
 CASE_DIR = Path(__file__).parent.parent / "case_studies"
-GENOMES = ["phiX174.gb", "lambda_phage.gb", "T7.gb"]
+GENOMES = [
+    "phiX174.gb",
+    "lambda_phage.gb",
+    "T7.gb",
+    "T3.gb",
+    "T4.gb",
+    "P22.gb",
+    "HK97.gb",
+    "HK022.gb",
+    "phi29.gb",
+    "N4.gb",
+    "phage_P1.gb",
+    "Felix01.gb",
+    "SPP1.gb",
+    "SP6.gb",
+    "Mu.gb",
+    "80alpha.gb",
+    "crAssphage.gb",
+    "PRD1.gb",
+]
 BAKTA_DB = Path.home() / ".bakta_db" / "db-light"
 
 parser = GenBankParser()

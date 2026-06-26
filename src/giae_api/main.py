@@ -60,8 +60,12 @@ def _check_rate(key: str, limit: int, window_secs: int) -> None:
 
 # Absolute base directory — always the repo root regardless of process CWD
 _BASE_DIR = Path(__file__).resolve().parents[2]  # src/giae_api → src → repo root
-UPLOAD_DIR = _BASE_DIR / "uploads"
-REPORTS_DIR = _BASE_DIR / "public_reports"
+
+# Vercel's root fs is read-only; redirect writes to /tmp when running there.
+_ON_VERCEL = bool(os.getenv("VERCEL"))
+_TMP = Path("/tmp")
+UPLOAD_DIR = (_TMP / "giae_uploads") if _ON_VERCEL else _BASE_DIR / "uploads"
+REPORTS_DIR = (_TMP / "giae_reports") if _ON_VERCEL else _BASE_DIR / "public_reports"
 
 
 # ---------------------------------------------------------------------------
@@ -136,9 +140,10 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type", "X-API-Key"],
 )
 
-# Static reports
-REPORTS_DIR.mkdir(parents=True, exist_ok=True)
-app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
+# Static reports (skip on Vercel — no persistent filesystem for serving files)
+if not _ON_VERCEL:
+    REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+    app.mount("/reports", StaticFiles(directory=str(REPORTS_DIR)), name="reports")
 
 
 @app.middleware("http")
@@ -205,8 +210,8 @@ def signup(body: RegisterRequest, request: Request, db: Session = Depends(databa
 # Kept as an alias so the existing Next.js signup page (which posts to /register)
 # does not break. Prefer /signup in new clients.
 @app.post("/api/v1/auth/register", status_code=201, response_model=TokenResponse)
-def register(body: RegisterRequest, db: Session = Depends(database.get_db)):
-    return signup(body, db)
+def register(body: RegisterRequest, request: Request, db: Session = Depends(database.get_db)):
+    return signup(body, request, db)
 
 
 @app.post("/api/v1/auth/login", response_model=TokenResponse)

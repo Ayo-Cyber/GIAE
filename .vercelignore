@@ -1,0 +1,13 @@
+frontend/
+frontend/node_modules/
+.venv/
+dist/
+site/
+docs/
+case_studies/
+data/
+dump.rdb
+*.db
+*.db.bak
+uploads/
+public_reports/

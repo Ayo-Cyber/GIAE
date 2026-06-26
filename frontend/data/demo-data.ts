@@ -60,6 +60,17 @@ export const demoJob: Job = {
         { source: "UniProt", label: "P03722 reviewed lambda tail fiber protein", conf: 0.9 },
         { source: "PROSITE", label: "PS51123 phage tail fiber repeat", conf: 0.82 },
       ],
+      aa_sequence:
+        "MANKLFTSILVAGLMSQAFAVTGGTITFSGEVVDAACSVSTKSADQTVDL" +
+        "GQVRSAQLAAAGSTSAAVGFNIQLNDCDTNVAAKAGVAFTGTADSANNSL" +
+        "LALQNTAGSAAQGVGIQILDRTGAALKLDGATFSAAATLNNGTNTIPFQA" +
+        "RYYATGAATPGAANADATFKVQYQNDGTNVDVTPALSFNGKVYDANNQEI" +
+        "GAYSGNVSLQLNFPSGITSGAYRGVVSITTNGGSTSAAYTLNVRRNGSVL" +
+        "NQGSAVTSLGQLVKDNAGNPISGQYDVQLGSITAAGNGYTVPANTPVQVT",
+      domains: [
+        { start: 38, end: 205, label: "PF09255 Phage tail-fibre domain", source: "HMMER / Pfam", kind: "domain_hit" },
+        { start: 222, end: 258, label: "PS51123 phage tail-fibre repeat", source: "PROSITE", kind: "motif_match" },
+      ],
     },
     {
       id: "demo-gene-s",

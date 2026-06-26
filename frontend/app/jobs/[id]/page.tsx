@@ -231,6 +231,98 @@ function ConfidenceDonut({ gene, operon }: { gene: GeneRow; operon?: Operon }) {
   );
 }
 
+// ── Domain architecture + amino-acid sequence viewer ─────────────────────────
+function DomainSequenceCard({ gene }: { gene: GeneRow }) {
+  const seq = gene.aa_sequence;
+  if (!seq) return null;
+  const len = gene.aa_length ?? seq.length;
+  const domains = (gene.domains ?? []).filter((d) => d.end > d.start);
+
+  // Per-residue color from the first covering domain → merged into segments.
+  const colorAt: (string | null)[] = new Array(seq.length).fill(null);
+  for (const d of domains) {
+    const c = sourceStyle(d.source).color;
+    for (let i = Math.max(0, d.start); i < Math.min(seq.length, d.end); i++) {
+      if (!colorAt[i]) colorAt[i] = c;
+    }
+  }
+  const segs: { color: string | null; text: string }[] = [];
+  for (let i = 0; i < seq.length; i++) {
+    const c = colorAt[i];
+    const last = segs[segs.length - 1];
+    if (!last || last.color !== c) segs.push({ color: c, text: seq[i] });
+    else last.text += seq[i];
+  }
+
+  // Legend: unique sources present in the domain blocks.
+  const legend = Array.from(new Set(domains.map((d) => d.source))).map((s) => ({
+    label: sourceStyle(s).short,
+    color: sourceStyle(s).color,
+  }));
+
+  return (
+    <div className="bg-[#0f0f1e] border border-white/7 rounded-[14px] p-[18px]">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">Domain architecture</span>
+        <span className="ml-auto text-[10px] font-mono text-gray-600">{len} aa</span>
+      </div>
+
+      {domains.length > 0 ? (
+        <>
+          {/* track */}
+          <div className="relative h-[54px] my-4">
+            <div className="absolute left-0 right-0 top-6 h-1.5 rounded-full" style={{ background: "var(--divider)" }} />
+            {domains.map((d, i) => {
+              const left = (d.start / len) * 100;
+              const width = Math.max(((d.end - d.start) / len) * 100, 0.6);
+              const c = sourceStyle(d.source).color;
+              return (
+                <div key={i}>
+                  <div
+                    title={d.label}
+                    className="absolute top-[18px] h-3.5 rounded"
+                    style={{ left: `${left}%`, width: `${width}%`, minWidth: 3, background: ha(c, 0.22), border: `1px solid ${ha(c, 0.55)}` }}
+                  />
+                  {width > 8 && (
+                    <div className="absolute top-1 text-[9px] font-mono whitespace-nowrap overflow-hidden"
+                      style={{ left: `${left}%`, maxWidth: `${width}%`, color: c }}>
+                      {sourceStyle(d.source).short}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            <span className="absolute left-0 bottom-0 text-[9px] font-mono text-gray-600">1</span>
+            <span className="absolute right-0 bottom-0 text-[9px] font-mono text-gray-600">{len}</span>
+          </div>
+          {/* legend */}
+          <div className="flex flex-wrap gap-3 mb-3.5 pt-3 border-t border-white/5">
+            {legend.map((l) => (
+              <span key={l.label} className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                <span className="w-2.5 h-2.5 rounded" style={{ background: ha(l.color, 0.22), border: `1px solid ${ha(l.color, 0.55)}` }} />
+                {l.label}
+              </span>
+            ))}
+          </div>
+        </>
+      ) : (
+        <div className="text-[11px] text-gray-600 my-3">No positional domain or motif hits — sequence shown below.</div>
+      )}
+
+      <div className="text-[10px] text-gray-600 uppercase tracking-wider mb-2">
+        Amino-acid sequence{domains.length > 0 ? " · motifs highlighted" : ""}
+      </div>
+      <div className="font-mono text-[11px] leading-[1.85] tracking-[1.5px] break-all max-h-[150px] overflow-y-auto bg-[#0a0a14] border border-white/5 rounded-[9px] px-3 py-2.5">
+        {segs.map((s, i) => (
+          <span key={i} style={s.color ? { background: ha(s.color, 0.2), color: s.color, borderRadius: 2 } : { color: "#9ca3af" }}>
+            {s.text}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── Type ─────────────────────────────────────────────────────────────────────
 type GeneFilter = "all" | "high" | "moderate" | "low" | "dark" | "amr" | "virulence";
 
@@ -1101,6 +1193,9 @@ export default function JobPage() {
                         )}
                       </div>
                     )}
+
+                    {/* Domain architecture + amino-acid sequence */}
+                    {selected.aa_sequence && <DomainSequenceCard gene={selected} />}
 
                     {/* Reasoning chain */}
                     {selected.reasoning_steps && selected.reasoning_steps.length > 0 && (

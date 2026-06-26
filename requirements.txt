@@ -1,0 +1,16 @@
+# Vercel reads this file to install Python dependencies.
+# Keep in sync with pyproject.toml [project.optional-dependencies.api].
+fastapi[standard]>=0.100.0
+celery>=5.3.0
+redis>=5.0.0
+sqlalchemy>=2.0.0
+python-multipart>=0.0.6
+psycopg2-binary>=2.9.9
+passlib[bcrypt]>=1.7.4
+bcrypt<4.0
+python-jose[cryptography]>=3.3.0
+email-validator>=2.0.0
+python-dotenv>=1.0.0
+biopython>=1.83
+numpy>=1.20.0
+pyrodigal>=3.0

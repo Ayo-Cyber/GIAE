@@ -1,5 +1,5 @@
 <h1 align="center">
-  <img src="docs/assets/mark.svg" alt="GIAE" width="64" align="middle"/>
+  <img src="https://raw.githubusercontent.com/Ayo-Cyber/GIAE/main/docs/assets/mark.svg" alt="GIAE" width="64" align="middle"/>
   <br/>
   GIAE — Genome Interpretation &amp; Annotation Engine
 </h1>
@@ -10,9 +10,9 @@
 
 <p align="center">
   <a href="https://github.com/Ayo-Cyber/GIAE/actions"><img src="https://img.shields.io/github/actions/workflow/status/Ayo-Cyber/GIAE/ci.yml?branch=main&label=CI&logo=github" alt="CI"/></a>
-  <a href="pyproject.toml"><img src="https://img.shields.io/badge/version-0.2.2-2ea44f" alt="Version"/></a>
+  <a href="https://github.com/Ayo-Cyber/GIAE/blob/main/pyproject.toml"><img src="https://img.shields.io/badge/version-0.2.3-2ea44f" alt="Version"/></a>
   <a href="https://python.org"><img src="https://img.shields.io/badge/python-3.9%2B-blue?logo=python&logoColor=white" alt="Python"/></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License"/></a>
+  <a href="https://github.com/Ayo-Cyber/GIAE/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-yellow" alt="License"/></a>
   <a href="https://Ayo-Cyber.github.io/GIAE/"><img src="https://img.shields.io/badge/docs-mkdocs--material-526CFE" alt="Docs"/></a>
   <img src="https://img.shields.io/badge/tests-166%20passing-success" alt="Tests"/>
 </p>
@@ -37,7 +37,7 @@ GIAE config: pyrodigal + rescue + phage_mode (no UniProt/BLAST/InterPro).
 Bakta config: light db, --skip-* for missing tools, CDS pipeline active.
 ```
 
-[Reproduce these numbers →](post_assets/bakta_comparison.py)
+[Reproduce these numbers →](https://github.com/Ayo-Cyber/GIAE/blob/main/post_assets/bakta_comparison.py)
 
 ---
 
@@ -89,7 +89,7 @@ Bakta config: light db, --skip-* for missing tools, CDS pipeline active.
                 Markdown · JSON · Interactive HTML report · REST API
 ```
 
-[Full architecture doc →](docs/architecture.md)
+[Full architecture doc →](https://Ayo-Cyber.github.io/GIAE/architecture/)
 
 ---
 
@@ -190,7 +190,7 @@ curl -X POST http://localhost:8000/api/v1/jobs \
   -F "phage_mode=true"
 ```
 
-[Full REST API reference →](docs/rest_api.md)
+[Full REST API reference →](https://Ayo-Cyber.github.io/GIAE/rest_api/)
 
 ---
 
@@ -253,7 +253,7 @@ Every prediction carries a numeric score `[0.0, 1.0]` mapped to a named level:
 | **NONE** | — | No evidence at all (dark matter) |
 
 Scoring penalties and bonuses are explicit and documented:
-[architecture.md → Confidence model](docs/architecture.md#confidence-model)
+[architecture.md → Confidence model](https://Ayo-Cyber.github.io/GIAE/architecture/#confidence-model)
 
 ---
 
@@ -284,16 +284,16 @@ Scoring penalties and bonuses are explicit and documented:
 
 | Topic | Link |
 |---|---|
-| **Quickstart** (5 minutes) | [docs/quickstart.md](docs/quickstart.md) |
-| **CLI reference** | [docs/cli.md](docs/cli.md) |
-| **Python library API** | [docs/python_api.md](docs/python_api.md) |
-| **REST API reference** | [docs/rest_api.md](docs/rest_api.md) |
-| **Architecture & confidence model** | [docs/architecture.md](docs/architecture.md) |
-| **Benchmarks** (vs Bakta) | [docs/benchmarks.md](docs/benchmarks.md) |
-| **Deployment** (Docker, scaling) | [docs/deployment.md](docs/deployment.md) |
-| **Extending GIAE** (plugins) | [docs/extending.md](docs/extending.md) |
-| **Roadmap** | [docs/roadmap.md](docs/roadmap.md) |
-| **Contributing** | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| **Quickstart** (5 minutes) | [docs/quickstart](https://Ayo-Cyber.github.io/GIAE/quickstart/) |
+| **CLI reference** | [docs/cli](https://Ayo-Cyber.github.io/GIAE/cli/) |
+| **Python library API** | [docs/python_api](https://Ayo-Cyber.github.io/GIAE/python_api/) |
+| **REST API reference** | [docs/rest_api](https://Ayo-Cyber.github.io/GIAE/rest_api/) |
+| **Architecture & confidence model** | [docs/architecture](https://Ayo-Cyber.github.io/GIAE/architecture/) |
+| **Benchmarks** (vs Bakta) | [docs/benchmarks](https://Ayo-Cyber.github.io/GIAE/benchmarks/) |
+| **Deployment** (Docker, scaling) | [docs/deployment](https://Ayo-Cyber.github.io/GIAE/deployment/) |
+| **Extending GIAE** (plugins) | [docs/extending](https://Ayo-Cyber.github.io/GIAE/extending/) |
+| **Roadmap** | [docs/roadmap](https://Ayo-Cyber.github.io/GIAE/roadmap/) |
+| **Contributing** | [CONTRIBUTING.md](https://github.com/Ayo-Cyber/GIAE/blob/main/CONTRIBUTING.md) |
 | **Hosted docs** | [Ayo-Cyber.github.io/GIAE/](https://Ayo-Cyber.github.io/GIAE/) |
 
 ---
@@ -306,15 +306,15 @@ GIAE is an evolving platform. The next horizon:
 - **Bacterial genome scaling** — currently validated on phages; next target is 4–6 Mb bacterial genomes
 - **Translational coupling detection** — recover compact-phage overlapping genes that lack canonical SD signals
 - **Comparative-genomics mode** — diff two interpretations side-by-side
-- **Hosted SaaS** — see [PRODUCT_STRATEGY.md](PRODUCT_STRATEGY.md) for the broader vision
+- **Hosted SaaS** — see [PRODUCT_STRATEGY.md](https://github.com/Ayo-Cyber/GIAE/blob/main/PRODUCT_STRATEGY.md) for the broader vision
 
-[Detailed roadmap →](docs/roadmap.md)
+[Detailed roadmap →](https://Ayo-Cyber.github.io/GIAE/roadmap/)
 
 ---
 
 ## Contributing
 
-Contributions are welcome — issues, PRs, benchmark genomes, plugin ideas. Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
+Contributions are welcome — issues, PRs, benchmark genomes, plugin ideas. Read [CONTRIBUTING.md](https://github.com/Ayo-Cyber/GIAE/blob/main/CONTRIBUTING.md) before opening a PR.
 
 ```bash
 # Quickly run the test suite
@@ -324,7 +324,7 @@ pytest tests/ -q
 .venv/bin/python post_assets/bakta_comparison.py
 ```
 
-By participating you agree to the [Code of Conduct](CODE_OF_CONDUCT.md). Security issues should follow [SECURITY.md](SECURITY.md).
+By participating you agree to the [Code of Conduct](https://github.com/Ayo-Cyber/GIAE/blob/main/CODE_OF_CONDUCT.md). Security issues should follow [SECURITY.md](https://github.com/Ayo-Cyber/GIAE/blob/main/SECURITY.md).
 
 ---
 
@@ -337,7 +337,7 @@ If GIAE contributes to your published work, please cite:
   author  = {{GIAE Contributors}},
   title   = {GIAE: Genome Interpretation and Annotation Engine},
   year    = {2026},
-  version = {0.2.2},
+  version = {0.2.3},
   url     = {https://github.com/Ayo-Cyber/GIAE},
 }
 ```
@@ -348,7 +348,7 @@ A formal application-note manuscript is in preparation (Phase 8).
 
 ## License
 
-[MIT](LICENSE) — use it, fork it, build on it. We only ask that you cite GIAE when it contributes to a publication.
+[MIT](https://github.com/Ayo-Cyber/GIAE/blob/main/LICENSE) — use it, fork it, build on it. We only ask that you cite GIAE when it contributes to a publication.
 
 ---
 

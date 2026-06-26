@@ -156,7 +156,7 @@ class NestedOrfFinder:
     def __init__(
         self,
         min_aa: int = 50,
-        rbs_threshold: float = 0.7,
+        rbs_threshold: float = 0.75,
         codon_threshold: float = 0.012,
         boundary_margin: int = 9,
     ) -> None:

@@ -41,7 +41,10 @@ export const authOptions: NextAuthOptions = {
     newUser: "/signup",
     error: "/login",
   },
-  session: { strategy: "jwt" },
+  // Keep the NextAuth session in sync with the backend access-token TTL
+  // (JWT_ACCESS_TOKEN_TTL_MINUTES). Otherwise the session outlives the token
+  // and every API call returns 401 until the user signs in again.
+  session: { strategy: "jwt", maxAge: 7 * 24 * 60 * 60 },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

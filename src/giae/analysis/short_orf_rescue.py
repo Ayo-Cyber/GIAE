@@ -129,8 +129,8 @@ class ShortOrfRescue:
 
     def __init__(
         self,
-        min_aa: int = 20,
-        codon_usage_threshold: float = 0.010,
+        min_aa: int = 30,
+        codon_usage_threshold: float = 0.012,
         scan_nested: bool = False,
     ) -> None:
         self.min_aa = min_aa
