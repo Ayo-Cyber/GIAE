@@ -1,0 +1,54 @@
+============================================================
+GIAE Confidence Calibration
+============================================================
+Gradeable functional calls : 2318
+  (GIAE gave an informative label AND coordinate-matched a
+   RefSeq gene with an informative curated product)
+Explicit abstentions       : 397  ('Ambiguous interpretation:
+   X vs Y' — GIAE declined to commit; excluded from grading)
+
+Overall accuracy           : 0.080
+Mean predicted confidence  : 0.361
+Gap (conf − acc)           : +0.281
+
+Calibration metrics (lower = better)
+------------------------------------------------------------
+  Expected Calibration Error (ECE) : 0.281
+  Maximum  Calibration Error (MCE) : 0.351
+  Brier score                      : 0.153
+
+Accuracy by confidence level
+------------------------------------------------------------
+  Level              n  accuracy  mean_conf
+  Moderate          12     0.167      0.504
+  Low             2304     0.080      0.361
+  Speculative        2     0.000      0.234
+
+Reading this
+------------------------------------------------------------
+  If accuracy RISES monotonically with confidence level, the score is
+  a useful ranking signal — users can trust HIGH calls more than LOW.
+  A positive gap (conf > acc) means GIAE is OVER-confident; negative
+  means UNDER-confident (conservative). For a zero-hallucination tool,
+  mild under-confidence is the safer failure mode.
+
+CRITICAL CAVEAT — this is the OFFLINE / motif-only configuration
+------------------------------------------------------------
+  Confidence range observed   : 0.23 – 0.55
+  Distinct confidence levels  : 3 (of 4 possible)
+  Benchmark config: use_hmmer=False, use_uniprot=False,
+  use_diamond=False, use_local_blast=False — i.e. the conservative
+  worker config with NO homology/domain database.
+
+  Consequence: the only functional evidence is PROSITE motifs, so the
+  annotator emits broad motif CATEGORIES ('ATP/GTP binding protein',
+  'Lipoprotein') rather than specific gene-product names. These rarely
+  token-match curated RefSeq products, hence the low graded accuracy.
+
+  KEY POINT for the pitch: offline GIAE NEVER claims high confidence on
+  function (caps at 0.55). It does not hallucinate 0.9 calls.
+  A specific, high-confidence functional layer requires a homology/
+  domain DB (Pfam via HMMER, or Swiss-Prot via diamond — both wired in
+  the engine, just not loaded for this no-network benchmark). Calibrate
+  THAT config separately to characterise the full confidence range.
+============================================================
