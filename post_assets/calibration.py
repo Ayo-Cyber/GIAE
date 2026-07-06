@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import sys
 from pathlib import Path
 
@@ -33,9 +34,28 @@ from benchmark_figure import (  # noqa: E402
     CASE_DIR, BACT_DIR, parser, _GIAE, _GIAE_PHAGE,
     func_agree, informative, overlap,
 )
+from giae.engine.interpreter import Interpreter  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "post_assets"
+
+# Homology config — adds local Diamond (Swiss-Prot) on top of the offline motif
+# layer. Still no network (UniProt off) and no Pfam (HMMER off). This is the
+# config that produces specific product names AND the full confidence range, so
+# it is the one worth calibrating to answer "does confidence 0.9 mean correct?".
+# Built lazily so the offline run doesn't pay for an unused interpreter.
+_HOMOLOGY: Interpreter | None = None
+_HOMOLOGY_PHAGE: Interpreter | None = None
+
+
+def _homology_interps() -> tuple[Interpreter, Interpreter]:
+    global _HOMOLOGY, _HOMOLOGY_PHAGE
+    if _HOMOLOGY is None:
+        common = dict(use_uniprot=False, use_interpro=False, use_local_blast=False,
+                      use_diamond=True, use_hmmer=False, use_esm=False, use_cache=False)
+        _HOMOLOGY = Interpreter(**common)
+        _HOMOLOGY_PHAGE = Interpreter(phage_mode=True, **common)
+    return _HOMOLOGY, _HOMOLOGY_PHAGE
 
 
 def is_abstention(product: str | None) -> bool:
@@ -45,7 +65,23 @@ def is_abstention(product: str | None) -> bool:
     return bool(product) and product.startswith("Ambiguous interpretation")
 
 
-def collect_samples(gb: Path, phage_mode: bool, abstentions: list[int]) -> list[dict]:
+_UNIPROT_HDR = re.compile(r"^(sp|tr)\|\S+\|\S+\s+", re.I)
+
+
+def clean_product(product: str | None) -> str | None:
+    """Strip a leading UniProt FASTA header ('sp|ACC|NAME ') from a Diamond hit
+    title so grading sees the human description ('Terminase, large subunit'),
+    not accession tokens that would unfairly dilute the token-overlap score."""
+    if not product:
+        return product
+    cleaned = _UNIPROT_HDR.sub("", product)
+    # also drop trailing UniProt metadata fields (OS=, OX=, GN=, PE=, SV=)
+    cleaned = re.split(r"\s+(?:OS|OX|GN|PE|SV)=", cleaned, maxsplit=1)[0]
+    return cleaned.strip() or product
+
+
+def collect_samples(gb: Path, phage_mode: bool, abstentions: list[int],
+                    homology: bool = False) -> list[dict]:
     """Return calibration samples for one genome. `abstentions[0]` is incremented
     for each matched gene where GIAE explicitly declined to commit."""
     g = parser.parse(gb)
@@ -57,7 +93,11 @@ def collect_samples(gb: Path, phage_mode: bool, abstentions: list[int]) -> list[
     ]
     g.genes.clear()
     g.file_format = "fasta"
-    interp = _GIAE_PHAGE if phage_mode else _GIAE
+    if homology:
+        h, hp = _homology_interps()
+        interp = hp if phage_mode else h
+    else:
+        interp = _GIAE_PHAGE if phage_mode else _GIAE
     summary = interp.interpret_genome(g)
     gmap = {x.id: x for x in g.genes}
 
@@ -74,6 +114,7 @@ def collect_samples(gb: Path, phage_mode: bool, abstentions: list[int]) -> list[
         if is_abstention(pred_product):
             abstentions[0] += 1
             continue  # GIAE explicitly declined to commit — not a prediction
+        pred_product = clean_product(pred_product)  # strip UniProt header for fair grading
         if not informative(pred_product):
             continue  # GIAE gave no informative label — nothing to calibrate
 
@@ -135,7 +176,7 @@ def metrics(samples: list[dict], n_bins: int = 10):
     return ece, mce, brier
 
 
-def make_figure(samples: list[dict]) -> None:
+def make_figure(samples: list[dict], suffix: str = "") -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -181,7 +222,7 @@ def make_figure(samples: list[dict]) -> None:
     ax2.grid(True, axis="y", alpha=0.2)
 
     fig.tight_layout()
-    path = OUT / "calibration_curve.png"
+    path = OUT / f"calibration_curve{suffix}.png"
     fig.savefig(path, dpi=160)
     print(f"calibration figure → {path}")
 
@@ -189,9 +230,24 @@ def make_figure(samples: list[dict]) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--set", choices=["phages", "bacteria", "all"], default="all")
+    ap.add_argument("--genomes", nargs="*", help="explicit .gb paths (overrides --set)")
+    ap.add_argument("--homology", action="store_true",
+                    help="enable local Diamond/Swiss-Prot (full confidence range)")
     args = ap.parse_args()
 
-    if args.set == "phages":
+    suffix = "_homology" if args.homology else ""
+    if args.homology:
+        h, _ = _homology_interps()
+        from giae.analysis.diamond import DiamondPlugin
+        if not DiamondPlugin().is_available():
+            print("ERROR: --homology requires the Diamond Swiss-Prot DB at "
+                  "~/.giae/diamond/swissprot.dmnd", file=sys.stderr)
+            return 1
+        print("Homology mode: Diamond/Swiss-Prot enabled (this is slower).")
+
+    if args.genomes:
+        genomes = [Path(p) for p in args.genomes]
+    elif args.set == "phages":
         genomes = sorted(CASE_DIR.glob("*.gb"))
     elif args.set == "bacteria":
         genomes = sorted(BACT_DIR.glob("*.gb"))
@@ -203,7 +259,7 @@ def main() -> int:
     for gb in genomes:
         phage_mode = str(CASE_DIR) in str(gb.resolve())
         try:
-            s = collect_samples(gb, phage_mode, abstentions)
+            s = collect_samples(gb, phage_mode, abstentions, homology=args.homology)
         except Exception as exc:  # noqa: BLE001
             print(f"  skip {gb.stem}: {exc}", file=sys.stderr)
             continue
@@ -215,14 +271,14 @@ def main() -> int:
         return 1
 
     # raw CSV
-    csv_path = OUT / "calibration_samples.csv"
+    csv_path = OUT / f"calibration_samples{suffix}.csv"
     with csv_path.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=[
             "genome", "gene", "confidence", "level", "pred_product", "truth_product", "correct"])
         w.writeheader()
         w.writerows(all_samples)
 
-    make_figure(all_samples)
+    make_figure(all_samples, suffix=suffix)
 
     ece, mce, brier = metrics(all_samples)
     n = len(all_samples)
@@ -276,29 +332,46 @@ def main() -> int:
         "  means UNDER-confident (conservative). For a zero-hallucination tool,",
         "  mild under-confidence is the safer failure mode.",
         "",
-        "CRITICAL CAVEAT — this is the OFFLINE / motif-only configuration",
-        "-" * 60,
-        f"  Confidence range observed   : {conf_min:.2f} – {conf_max:.2f}",
-        f"  Distinct confidence levels  : {n_levels} (of 4 possible)",
-        "  Benchmark config: use_hmmer=False, use_uniprot=False,",
-        "  use_diamond=False, use_local_blast=False — i.e. the conservative",
-        "  worker config with NO homology/domain database.",
-        "",
-        "  Consequence: the only functional evidence is PROSITE motifs, so the",
-        "  annotator emits broad motif CATEGORIES ('ATP/GTP binding protein',",
-        "  'Lipoprotein') rather than specific gene-product names. These rarely",
-        "  token-match curated RefSeq products, hence the low graded accuracy.",
-        "",
-        "  KEY POINT for the pitch: offline GIAE NEVER claims high confidence on",
-        f"  function (caps at {conf_max:.2f}). It does not hallucinate 0.9 calls.",
-        "  A specific, high-confidence functional layer requires a homology/",
-        "  domain DB (Pfam via HMMER, or Swiss-Prot via diamond — both wired in",
-        "  the engine, just not loaded for this no-network benchmark). Calibrate",
-        "  THAT config separately to characterise the full confidence range.",
-        "=" * 60,
     ]
+    if args.homology:
+        lines += [
+            "CONFIG — HOMOLOGY (Diamond / Swiss-Prot, no network, no Pfam)",
+            "-" * 60,
+            f"  Confidence range observed   : {conf_min:.2f} – {conf_max:.2f}",
+            f"  Distinct confidence levels  : {n_levels} (of 4 possible)",
+            "  Config: use_diamond=True (full Swiss-Prot, 575k proteins),",
+            "  use_uniprot=False, use_hmmer=False, use_local_blast=False.",
+            "",
+            "  This is the config that produces specific gene-product names and",
+            "  the full confidence range — the right one to ask 'does confidence",
+            "  0.9 mean the call is correct?'. Compare the per-level accuracy",
+            "  table above: a monotone rise = the score is a trustworthy ranking",
+            "  signal users can threshold on.",
+            "=" * 60,
+        ]
+    else:
+        lines += [
+            "CRITICAL CAVEAT — this is the OFFLINE / motif-only configuration",
+            "-" * 60,
+            f"  Confidence range observed   : {conf_min:.2f} – {conf_max:.2f}",
+            f"  Distinct confidence levels  : {n_levels} (of 4 possible)",
+            "  Benchmark config: use_hmmer=False, use_uniprot=False,",
+            "  use_diamond=False, use_local_blast=False — i.e. the conservative",
+            "  worker config with NO homology/domain database.",
+            "",
+            "  Consequence: the only functional evidence is PROSITE motifs, so the",
+            "  annotator emits broad motif CATEGORIES ('ATP/GTP binding protein',",
+            "  'Lipoprotein') rather than specific gene-product names. These rarely",
+            "  token-match curated RefSeq products, hence the low graded accuracy.",
+            "",
+            "  KEY POINT for the pitch: offline GIAE NEVER claims high confidence on",
+            f"  function (caps at {conf_max:.2f}). It does not hallucinate 0.9 calls.",
+            "  A specific, high-confidence functional layer requires a homology/",
+            "  domain DB (run with --homology to calibrate the Diamond config).",
+            "=" * 60,
+        ]
     report = "\n".join(lines)
-    (OUT / "calibration_summary.txt").write_text(report)
+    (OUT / f"calibration_summary{suffix}.txt").write_text(report)
     print(report)
     print(f"\nsamples → {csv_path}")
     return 0
