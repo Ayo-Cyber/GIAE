@@ -1,0 +1,52 @@
+genome,gene,confidence,level,pred_product,truth_product,correct
+phi29,gene_4ceb31841dd1,1.0,high,primer terminal protein,DNA terminal protein,0
+phi29,gene_204f9d37e5fb,1.0,high,single-stranded dna-binding protein,single strand DNA binding protein,1
+phi29,gene_847261d2bf77,1.0,high,dna polymerase,DNA polymerase,1
+phi29,gene_507f6ac3b0e6,0.9942,high,capsid assembly scaffolding protein,head scaffolding protein,0
+phi29,gene_48eccbc8334f,1.0,high,histone-like protein p6,dsDNA binding protein,0
+phi29,gene_f3e7a2928403,0.9927,high,tail knob protein gp9,tail protein,1
+phi29,gene_525625b74a2a,1.0,high,proximal tail tube connector protein,adaptor Ad4,0
+phi29,gene_f4bd2acf332a,0.9656,high,capsid fiber protein,head fiber protein,0
+phi29,gene_cd9ede8acd78,1.0,high,major capsid protein,major head protein,0
+phi29,gene_c2c556fa69c9,1.0,high,portal protein,upper collar connector,0
+phi29,gene_6beb82388071,1.0,high,pre-neck appendage protein,pre-neck appendage protein,1
+phi29,gene_c28d97343681,1.0,high,antiholin,holin family protein,0
+phi29,gene_49bcbbb54f4f,1.0,high,morphogenesis protein 1,tail-type lysozyme domain-containing protein,0
+phi29,gene_10af9a4161db,1.0,high,endolysin,endolysin,1
+phi29,gene_6369bdbde2e4,1.0,high,dna replication protein 16.7,GP16.7-like replication protein,0
+phi29,gene_dbe9410a9d51,1.0,high,gene product 16.6,YgiT-type zinc finger protein,0
+phi29,gene_ae8be978c15e,1.0,high,dna packaging protein,terminase,0
+phi29,gene_4ff971dbf8ba,0.9058,high,dna replication protein 17,replication protein,1
+T7,gene_4f325c4c956c,0.95,high,protein ocr,ocr-like anti-restriction,1
+T7,gene_8323c63414ec,0.95,high,inhibitor of dgtpase,dGTPase inhibitor; target for F exclusion,1
+T7,gene_77c753464a2e,0.95,high,protein kinase 0.7,serine-threonine kinase,1
+T7,gene_929f4fa1cd1a,1.0,high,t7 rna polymerase,RNA polymerase,1
+T7,gene_73f4249e467e,0.95,high,nucleotide kinase gp1.7,nucleotide kinase,1
+T7,gene_bceac59c32f9,1.0,high,dna ligase,DNA ligase,1
+T7,gene_53fe5e54b197,0.7932,moderate,bacterial rna polymerase inhibitor,RNA polymerase inhibitor,1
+T7,gene_172287ed1821,1.0,high,single-stranded dna-binding protein,Gp2.5-like ssDNA binding protein and ssDNA annealing protein,0
+T7,gene_a1075259988b,0.95,high,protein 2.8,endonuclease,0
+T7,gene_5c563a1d0d85,1.0,high,endonuclease i,endonuclease,1
+T7,gene_66ff5a516506,1.0,high,endolysin,amidase,0
+T7,gene_234c6c612681,0.8435,high,dna helicase/primase,DNA primase/helicase,1
+T7,gene_8a0217f0104b,0.95,high,protein 3.8,HNH endonuclease,0
+T7,gene_0c6b341faa1a,1.0,high,dna-directed dna polymerase,DNA polymerase I,1
+T7,gene_fe8a2d3272ec,0.95,high,recbcd inhibitor gp5.9,Gp5.9-like inihibitor of recBCD nuclease,1
+T7,gene_19c71a4b313a,1.0,high,protein suppressor of silencing,DUF2675 domain-containing protein,0
+T7,gene_7ba05cc9da87,1.0,high,exonuclease,exonuclease,1
+T7,gene_f191f922e9e8,0.95,high,protein 6.5,DUF2717 domain-containing protein,0
+T7,gene_2185788a3294,0.95,high,protein 6.7,DUF5476 family protein,0
+T7,gene_b9a5e004355a,0.95,high,protein 7,host range and adsorption protein,0
+T7,gene_367551062ad5,0.95,high,protein 7.7,HNH endonuclease,0
+T7,gene_9ef9ba46616b,0.9934,high,portal protein,head-tail adaptor,0
+T7,gene_55405cc652d2,1.0,high,capsid assembly scaffolding protein,head assembly,0
+T7,gene_a9434b820947,0.95,high,protein 7.3,host range and adsorption protein,0
+T7,gene_aecc4ae17013,0.9747,high,tail tubular protein gp11,tail protein,1
+T7,gene_57ac2e08f0b4,1.0,high,major capsid protein,major head protein,0
+T7,gene_827339f0f470,0.95,high,scaffold protein gp13,internal virion protein,0
+T7,gene_253b6f75d1a9,0.95,high,internal virion protein gp14,internal virion protein,1
+T7,gene_f34c6e00bd04,0.95,high,internal virion protein gp15,internal virion protein,1
+T7,gene_b34ef6c35ef0,0.35,low,Lipoprotein,Rz-like spanin,0
+T7,gene_a47c3551f894,1.0,high,holin,holin,1
+T7,gene_b1d1270eab30,1.0,high,tail fiber protein,tail fiber protein,1
+T7,gene_a872f33ef5f4,0.9,high,spanin,Rz-like spanin,1
