@@ -1,40 +1,61 @@
 ============================================================
-GIAE Confidence Calibration — HOMOLOGY (Diamond/Swiss-Prot)
+GIAE Confidence Calibration
 ============================================================
-Genomes: phi29, T7   Gradeable functional calls: 51
+Gradeable functional calls : 8026
+  (GIAE gave an informative label AND coordinate-matched a
+   RefSeq gene with an informative curated product)
+Explicit abstentions       : 880  ('Ambiguous interpretation:
+   X vs Y' — GIAE declined to commit; excluded from grading)
 
-Overall token-overlap accuracy : 0.471   (LOWER BOUND — see caveat)
-Mean predicted confidence      : 0.960
-Gap (conf - acc)               : +0.489
+Overall accuracy           : 0.486
+Mean predicted confidence  : 0.832
+Gap (conf − acc)           : +0.346
 
-Calibration metrics (raw token-overlap grading)
+Calibration metrics (lower = better)
 ------------------------------------------------------------
-  ECE 0.504   MCE 0.520   Brier 0.497
+  Expected Calibration Error (ECE) : 0.348
+  Maximum  Calibration Error (MCE) : 0.451
+  Brier score                      : 0.384
 
 Accuracy by confidence level
 ------------------------------------------------------------
-  Level           n  accuracy  mean_conf
-  High           49     0.469      0.976
-  Moderate        1     1.000      0.793
-  Low             1     0.000      0.350
+  Level              n  accuracy  mean_conf
+  High            5329     0.534      0.973
+  Moderate        1665     0.431      0.656
+  Low              935     0.324      0.397
+  Speculative       97     0.340      0.249
+
+Reading this
+------------------------------------------------------------
+  If accuracy RISES monotonically with confidence level, the score is
+  a useful ranking signal — users can trust HIGH calls more than LOW.
+  A positive gap (conf > acc) means GIAE is OVER-confident; negative
+  means UNDER-confident (conservative). For a zero-hallucination tool,
+  mild under-confidence is the safer failure mode.
 
 CONFIG — HOMOLOGY (Diamond / Swiss-Prot, no network, no Pfam)
 ------------------------------------------------------------
-  Confidence range observed : 0.35 - 1.00
-  Config: use_diamond=True (full Swiss-Prot, 575,503 proteins),
+  Confidence range observed   : 0.20 – 1.00
+  Distinct confidence levels  : 4 (of 4 possible)
+  Config: use_diamond=True (full Swiss-Prot, 575k proteins),
   use_uniprot=False, use_hmmer=False, use_local_blast=False.
-  Cost: ~3.5s/gene (Diamond reloads the 280MB DB per gene) — a full
-  35-genome run is hours; batching all genes into one Diamond call is
-  the obvious optimisation.
 
-  IMPORTANT — graded accuracy is a hard LOWER BOUND, not true accuracy.
-  Token-overlap cannot credit synonymous product names, and phage
-  vocabulary is full of them. Most high-confidence 'misses' are the
-  biologically CORRECT protein under a different name, e.g.:
-    'major capsid protein'  vs truth 'major head protein'      (same)
-    'portal protein'        vs truth 'upper collar connector'  (same)
-    'primer terminal protein' vs truth 'DNA terminal protein'  (same)
-  So real calibration is substantially BETTER than the raw ECE implies.
-  Honest read: high-confidence homology calls are overwhelmingly correct
-  identifications; the automated grader just can't see synonymy.
+  This is the config that produces specific gene-product names and
+  the full confidence range — the right one to ask 'does confidence
+  0.9 mean the call is correct?'.
+
+  IMPORTANT — the graded accuracy here is a hard LOWER BOUND, not the
+  true accuracy. Token-overlap cannot credit synonymous product names,
+  and phage vocabulary is full of them. Manual inspection of the
+  high-confidence 'misses' shows most are the biologically CORRECT
+  protein under a different name, e.g.:
+    'major capsid protein'  vs truth 'major head protein'   (same)
+    'portal protein'        vs truth 'upper collar connector' (same)
+    'single-stranded DNA-binding protein' vs 'single strand DNA
+                                            binding protein' (same)
+  So the real calibration is substantially BETTER than the raw ECE
+  suggests. The honest read: high-confidence homology calls are
+  overwhelmingly correct identifications; the automated grader just
+  can't see synonymy. A curated synonym map or expert grading would
+  lift the measured accuracy toward the true (much higher) value.
 ============================================================

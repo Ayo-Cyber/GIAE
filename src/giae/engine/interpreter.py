@@ -339,6 +339,11 @@ class Interpreter:
                 ):
                     genome.add_gene(gene)
 
+        # Pre-scan batch-capable plugins (e.g. Diamond) once over the whole
+        # genome. Diamond reloads its DB per process, so a single call here is
+        # orders of magnitude faster than one subprocess per gene below.
+        self.plugin_manager.prescan(list(genome.genes))
+
         # Interpret genes in parallel — each gene is independent at this stage.
         # Cap workers at 8 to avoid thrashing; online mode is I/O-bound so
         # threads help even more there.
