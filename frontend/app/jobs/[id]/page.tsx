@@ -70,6 +70,24 @@ function confColor(level: string | null | undefined) {
   return ({ HIGH: "#34d399", MODERATE: "#f59e0b", LOW: "#818cf8", SPECULATIVE: "#a78bfa" } as Record<string, string>)[level ?? ""] ?? "#9ca3af";
 }
 
+// Empirical reliability ramp for the CALIBRATED probability of correctness.
+// Distinct axis from the model's confidence LEVEL (confColor): this answers
+// "how much should I actually trust this call?" — green safe → amber verify →
+// red hypothesis-only. Colors reuse the palette's existing semantic vocabulary.
+function reliabilityColor(p: number) {
+  if (p >= 0.65) return "#34d399"; // emerald — dependable
+  if (p >= 0.4) return "#f59e0b";  // amber — a lead, verify
+  return "#f87171";                // red — hypothesis only
+}
+
+function reliabilityVerdict(p: number): { tag: string; note: string } {
+  if (p >= 0.65)
+    return { tag: "Dependable", note: "High empirical reliability — safe to carry forward." };
+  if (p >= 0.4)
+    return { tag: "Verify", note: "A credible lead — confirm before relying on it." };
+  return { tag: "Hypothesis only", note: "Low reliability — treat as a direction to test, not a conclusion." };
+}
+
 function sourceStyle(src: string): { short: string; color: string } {
   const s = src.toLowerCase();
   if (s.includes("pfam") || s.includes("hmmer"))  return { short: "HMMER/Pfam", color: "#34d399" };
@@ -227,6 +245,90 @@ function ConfidenceDonut({ gene, operon }: { gene: GeneRow; operon?: Operon }) {
           ))}
         </div>
       </div>
+      <CalibratedReliability gene={gene} />
+    </div>
+  );
+}
+
+// ── Calibrated reliability ───────────────────────────────────────────────────
+// The model's raw confidence is over-confident (benchmarked: mean 0.83 vs 0.54
+// accuracy). When a homology hit backs the call, GIAE reports a cross-validated,
+// calibrated probability of correctness. We show it on the SAME 0–100 scale as
+// the raw score with the raw value marked, so the researcher sees the model's
+// self-assessment shrink to its empirical reliability.
+function CalibratedReliability({ gene }: { gene: GeneRow }) {
+  const cal = gene.calibrated_confidence;
+  if (cal == null) return null;
+  const raw = gene.score ?? cal;
+  const calPct = Math.round(cal * 100);
+  const rawPct = Math.round(raw * 100);
+  const rc = reliabilityColor(cal);
+  const { tag, note } = reliabilityVerdict(cal);
+  const shrinks = rawPct - calPct >= 3;
+
+  return (
+    <div className="mt-4 pt-4 border-t" style={{ borderColor: "var(--divider)" }}>
+      <div className="flex items-center gap-2 mb-3">
+        <span className="text-[11px] text-gray-400 font-semibold uppercase tracking-wider">
+          Calibrated reliability
+        </span>
+        <span
+          className="text-[10px] font-medium px-1.5 py-0.5 rounded"
+          style={{ color: rc, backgroundColor: ha(rc, 0.13), border: `1px solid ${ha(rc, 0.3)}` }}
+        >
+          {tag}
+        </span>
+        {gene.calibration_model && (
+          <span
+            className="ml-auto text-[9px] font-mono text-gray-600 truncate"
+            title={`Calibration model: ${gene.calibration_model}`}
+          >
+            {gene.calibration_model}
+          </span>
+        )}
+      </div>
+
+      {/* meter: calibrated fill + raw-score marker on one 0–100 scale */}
+      <div className="flex items-baseline gap-2 mb-1.5">
+        <span className="text-2xl font-bold font-mono leading-none" style={{ color: rc }}>
+          {calPct}%
+        </span>
+        <span className="text-[11px] text-gray-500">P(matches curated product)</span>
+      </div>
+      <div
+        className="relative h-2.5 rounded-full overflow-visible"
+        style={{ background: "var(--divider)" }}
+        role="meter"
+        aria-valuenow={calPct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="Calibrated probability of correctness"
+      >
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{ width: `${calPct}%`, background: rc }}
+        />
+        {shrinks && (
+          <span
+            className="absolute top-1/2 -translate-y-1/2 h-4 w-[2px] rounded"
+            style={{ left: `calc(${rawPct}% - 1px)`, background: "var(--fg-faint, #9ca3af)", opacity: 0.7 }}
+            title={`Raw model confidence ${raw.toFixed(2)}`}
+          />
+        )}
+      </div>
+
+      {shrinks && (
+        <p className="text-[10.5px] text-gray-600 mt-2 font-mono">
+          model said <span className="text-gray-400">{raw.toFixed(2)}</span>
+          <span className="mx-1">→</span>
+          calibrated <span style={{ color: rc }}>{cal.toFixed(2)}</span>
+          <span className="text-gray-700"> · marker = raw</span>
+        </p>
+      )}
+      <p className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+        {note} Out-of-sample probability this annotation matches a curated RefSeq
+        product name — conservative, since synonymous names aren&apos;t credited.
+      </p>
     </div>
   );
 }
