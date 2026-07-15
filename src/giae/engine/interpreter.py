@@ -20,6 +20,7 @@ from giae.analysis.nested_orf_finder import NestedOrfFinder
 from giae.analysis.short_orf_rescue import ShortOrfRescue
 from giae.analysis.blast_local import BlastLocalPlugin
 from giae.analysis.cache import DiskCache
+from giae.analysis.confidence_calibration import CALIBRATION_MODEL, ConfidenceCalibrator
 from giae.analysis.diamond import DiamondPlugin
 from giae.analysis.hmmer import HmmerPlugin
 from giae.analysis.motif import MotifScanner
@@ -158,6 +159,11 @@ class Interpreter:
         self.rescue_scanner = ShortOrfRescue()
         self.nested_finder = NestedOrfFinder()
         self.functional_annotator = FunctionalAnnotator()
+
+        # Post-hoc confidence calibration (raw score -> P(correct)). Loaded
+        # once; a no-op if the mapping file is absent. Applied only to
+        # interpretations backed by homology evidence (the config it was fit on).
+        self.confidence_calibrator = ConfidenceCalibrator()
 
         # Initialize API cache
         self.cache = DiskCache(enabled=self.use_cache)
@@ -550,6 +556,19 @@ class Interpreter:
                     "conflict_severity": conflict.severity.name,
                 },
             )
+
+            # Post-hoc calibrated probability of correctness. The mapping was fit
+            # on the homology configuration, so only attach it when homology
+            # (Diamond/BLAST) evidence backed this call — applying it to
+            # motif-only offline calls would be out of distribution.
+            if self.confidence_calibrator.is_loaded and any(
+                e.evidence_type == EvidenceType.BLAST_HOMOLOGY for e in evidence
+            ):
+                calibrated = self.confidence_calibrator.calibrate(final_confidence)
+                if calibrated is not None:
+                    interpretation.metadata["calibrated_confidence"] = round(calibrated, 4)
+                    interpretation.metadata["calibration_model"] = CALIBRATION_MODEL
+
             self.functional_annotator.annotate(interpretation, hypotheses, evidence)
 
             return InterpretationResult(

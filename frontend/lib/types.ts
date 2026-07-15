@@ -32,6 +32,10 @@ export interface GeneRow {
   is_dark: boolean;
   confidence: "HIGH" | "MODERATE" | "LOW" | "SPECULATIVE" | null;
   score: number | null;
+  // Calibrated P(correct) from post-hoc isotonic recalibration; present only
+  // for homology-backed calls (null otherwise). See ConfidenceCalibrator.
+  calibrated_confidence?: number | null;
+  calibration_model?: string | null;
   function: string | null;
   normalized_product?: string | null;
   cog_category?: string | null;

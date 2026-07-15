@@ -39,7 +39,7 @@ Goal: make the deployed product as good as the benchmark (the good config only r
 - [ ] **(S)** Add Prokka + DFAST to the multi-tool comparison
 - [ ] **(S)** Per-tool significance table (Wilcoxon, bootstrap CIs)
 - [ ] **(T)** Fix Celery fork-safety → run HMMER/ESM in production (subprocess pool or separate service)
-- [ ] **(T)** Bake the calibrated confidence mapping into the engine
+- [x] **(T)** Bake the calibrated confidence mapping into the engine — `ConfidenceCalibrator` loads the isotonic mapping, applied to homology-backed calls, surfaced as `calibrated_confidence`
 - [ ] **(T)** Surface the auto-detected genetic code in output (the zero-config win that took Mycoplasma)
 
 ## Phase 2 — Research front  ·  *3–12 months*

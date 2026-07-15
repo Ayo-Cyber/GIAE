@@ -85,6 +85,10 @@ def _serialize_genes(results, genome) -> str:
             "is_dark": is_dark,
             "confidence": conf_value,
             "score": round(interp.confidence_score, 3) if interp else None,
+            # Calibrated P(correct) — present only for homology-backed calls
+            # (see ConfidenceCalibrator); null otherwise.
+            "calibrated_confidence": meta.get("calibrated_confidence"),
+            "calibration_model": meta.get("calibration_model"),
             "function": interp.hypothesis if interp else None,
             "normalized_product": normalized,
             "cog_category": meta.get("cog_category"),
