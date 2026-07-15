@@ -1,0 +1,43 @@
+================================================================
+Homology calibration — synonym-adjusted functional accuracy
+================================================================
+Gradeable functional calls : 8026
+
+Raw token-overlap accuracy      : 0.486  (lower bound)
+Synonym-adjusted accuracy       : 0.536
+Calls recovered by synonym rules: 405  (+0.050)
+
+Recovered calls by rule (attribution)
+----------------------------------------------------------------
+    297  ribosomal protein nomenclature (bS6 ↔ 30S S6)
+     84  aminoacyl-tRNA synthetase naming
+     24  curated equivalence (capsid/head, portal/connector, …)
+
+Discrimination (AUC: P[conf(correct) > conf(incorrect)], 0.5 = no signal)
+----------------------------------------------------------------
+  Raw token-overlap : 0.586
+  Synonym-adjusted  : 0.636
+  → a MODEST but genuine ranking signal, not a strong one.
+
+Accuracy by confidence level (adjusted, with 95% Wilson CI)
+----------------------------------------------------------------
+  Level            n     raw  adjusted   95% CI (adj)       mean_conf
+  High          5329   0.534     0.609   [0.595, 0.622]       0.973
+  Moderate      1665   0.431     0.434   [0.411, 0.458]       0.656
+  Low            935   0.324     0.325   [0.296, 0.356]       0.397
+  Speculative     97   0.340     0.340   [0.254, 0.439]       0.249
+
+Interpretation
+----------------------------------------------------------------
+  The synonym rules are systematic naming conventions (UniProt vs
+  RefSeq), not cherry-picked matches — every recovered call is
+  attributed to a rule above. The adjusted number is a defensible
+  estimate BETWEEN the raw lower bound and true accuracy (expert
+  grading would recover the remaining phage-specific synonyms).
+
+  HIGH-confidence calls (CI above) are significantly more accurate than
+  Moderate and Low — their 95% CIs do not overlap. Speculative (n=97)
+  has too wide a CI to rank against Low; the two are indistinguishable.
+  So confidence separates HIGH from the rest reliably; the fine-grained
+  ordering at the bottom is within noise.
+================================================================
