@@ -117,10 +117,18 @@ grading.
 - **What holds**: HIGH is reliably separated from Moderate/Low (CIs don't
   overlap). **What doesn't**: Speculative (n = 97) can't be ranked against Low;
   the apparent non-monotonicity at the bottom is small-sample noise.
-- **Over-confidence**: mean confidence (0.83) exceeds adjusted accuracy (0.54),
-  so raw confidence over-states correctness. But (i) accuracy here is a lower
-  bound, and (ii) HIGH-confidence genuinely means "usually right." A calibrated
-  post-hoc mapping (isotonic/Platt) would tighten this — future work.
+- **Over-confidence — measured, then fixed.** Raw mean confidence (0.83) far
+  exceeded adjusted accuracy (0.54): raw ECE 0.30. A post-hoc **isotonic**
+  recalibration (chosen over Platt by lower CV Brier), evaluated with 5-fold
+  stratified cross-validation so the gain is **out-of-sample**, collapses this:
+  **ECE 0.301 → 0.004, Brier 0.336 → 0.232**, and mean calibrated probability
+  (0.535) now equals observed accuracy (0.535). The mapping is exported to
+  `calibration_mapping.json` (portable piecewise-linear knots; the engine
+  interpolates with no sklearn at runtime). Because the target label is a
+  lower-bound accuracy, the calibrated probability is **conservative** — it
+  will not over-state correctness. So the honest post-fix claim is: *"GIAE's
+  confidence, after isotonic recalibration, is a calibrated probability of
+  correctness (out-of-sample ECE 0.004)."* See `recalibrate.py`.
 
 ## 6. Statistical rigor & limitations
 
@@ -144,7 +152,7 @@ grading.
 | "Matches Bakta on gene finding (both use Prodigal); adds phage-aware rescue" | "GIAE's gene finder beats Bakta" |
 | "30× faster than Bakta on phages (offline config)" | "30× faster in all configs" (homology adds Diamond cost) |
 | "HIGH-confidence functional calls are right ≥ 61 % (lower bound)" | "GIAE is 61 % accurate at annotation" |
-| "Confidence is a modest ranking signal, AUC 0.64" | "GIAE's confidence is well-calibrated" |
+| "After isotonic recalibration, confidence is a calibrated probability (out-of-sample ECE 0.004); raw score is a modest ranking signal (AUC 0.64)" | "GIAE's raw confidence is well-calibrated" (raw ECE was 0.30) |
 | "On code-4 Mycoplasma, GIAE's default auto-detects the genetic code; Bakta's default (table 11) does not — a zero-config robustness win" | "GIAE beats Bakta 2× on Mycoplasma" (implies algorithmic superiority) |
 
 ## 8. Reproduce
@@ -158,4 +166,6 @@ PYTHONPATH=src .venv/bin/python post_assets/pitch_figures.py
 PYTHONPATH=src:post_assets .venv/bin/python post_assets/calibration.py --homology --set all
 # synonym-adjusted re-grade + AUC/CIs
 PYTHONPATH=src:post_assets .venv/bin/python post_assets/calibration_synonym.py
+# post-hoc recalibration (isotonic/Platt, 5-fold CV) + portable mapping export
+PYTHONPATH=src:post_assets .venv/bin/python post_assets/recalibrate.py
 ```

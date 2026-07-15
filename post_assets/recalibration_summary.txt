@@ -1,0 +1,24 @@
+==============================================================
+GIAE confidence recalibration (5-fold CV, out-of-sample)
+==============================================================
+Samples                 : 8026
+Target                  : synonym-adjusted correctness (lower bound)
+
+Metric           raw    isotonic     platt   (lower = better)
+--------------------------------------------------------------
+ECE            0.301       0.004     0.017
+MCE            0.371       0.212     0.056
+Brier          0.336       0.232     0.236
+
+Chosen method (lower CV Brier): ISOTONIC
+  ECE   0.301 → 0.004   (+99%)
+  Brier 0.336 → 0.232   (+31%)
+
+Mean predicted probability after recalibration aligns with observed
+accuracy: mean_cal=0.535  vs  accuracy=0.535
+(raw mean confidence was 0.832 — the over-confidence is removed).
+
+Exported: calibration_mapping.json (portable; engine interpolates without
+sklearn at runtime). Because the target is a lower-bound accuracy, the
+calibrated probability is conservative — it will not over-state correctness.
+==============================================================

@@ -26,7 +26,7 @@ Goal: walk in with a defensible, honest story reviewers respect.
 - [ ] **(S)** Methods-paper thesis outline (one page)
 - [x] **(T)** Batch Diamond homology scan — 63× faster
 - [x] **(T)** Fix motif DNA false-positive class (translate CDS first)
-- [ ] **(T)** Confidence recalibration (isotonic/Platt) on the 8,026-call set — fixes the +0.28 over-confidence gap
+- [x] **(T)** Confidence recalibration (isotonic/Platt) on the 8,026-call set — fixed the over-confidence: out-of-sample ECE 0.301 → 0.004
 
 ## Phase 1 — Trust hardening  ·  *0–3 months*
 Goal: make the deployed product as good as the benchmark (the good config only runs offline today).
