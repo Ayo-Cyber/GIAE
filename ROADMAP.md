@@ -32,13 +32,13 @@ Goal: walk in with a defensible, honest story reviewers respect.
 Goal: make the deployed product as good as the benchmark (the good config only runs offline today).
 
 - [ ] **(P)** Auth refresh tokens — end the 401 session expiry
-- [ ] **(P)** Ship the homology config to the deployed worker
+- [x] **(P)** Ship the homology config to the deployed worker — Diamond now defaults ON in the worker (subprocess, fork-safe); homology annotation + calibration fire in prod once the Swiss-Prot DB is deployed to `~/.giae/diamond/`
 - [ ] **(P)** GO/EC ID output — synonym-invariant & machine-readable (also fixes product-name benchmarking)
 - [ ] **(P)** Surface abstention explicitly in the UI ("no confident call")
 - [ ] **(S)** Expand benchmark to 50+ genomes across phyla (powers the significance test past n=6 bacteria)
 - [ ] **(S)** Add Prokka + DFAST to the multi-tool comparison
 - [ ] **(S)** Per-tool significance table (Wilcoxon, bootstrap CIs)
-- [ ] **(T)** Fix Celery fork-safety → run HMMER/ESM in production (subprocess pool or separate service)
+- [x] **(T)** Fix Celery fork-safety → interpreters now built lazily *post-fork* (via `worker_process_init`), so fork-unsafe C extensions init in the child, never inherited across the fork. Plugins env-toggled (`GIAE_ENABLE_HMMER/ESM/DIAMOND/UNIPROT/BLAST`). HMMER/ESM architecturally safe to enable; validate with real pyhmmer+Pfam in staging before flipping on in prod
 - [x] **(T)** Bake the calibrated confidence mapping into the engine — `ConfidenceCalibrator` loads the isotonic mapping, applied to homology-backed calls, surfaced as `calibrated_confidence`
 - [ ] **(T)** Surface the auto-detected genetic code in output (the zero-config win that took Mycoplasma)
 

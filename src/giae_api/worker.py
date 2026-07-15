@@ -1,13 +1,17 @@
 import json
+import logging
 import os
 
 from celery import Celery
+from celery.signals import worker_process_init
 
 from .database import SessionLocal
 from .models import Job, JobStatus
 from giae.parsers.base import parse_genome
 from giae.engine.interpreter import Interpreter
 from giae.output.html_report import HTMLReportGenerator
+
+logger = logging.getLogger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
@@ -116,25 +120,76 @@ def _serialize_genes(results, genome) -> str:
     return json.dumps(out)
 
 
-# Default Interpreter shared across jobs — PROSITE patterns parsed once,
-# plugins loaded once. Phase 6 (functional annotator) is always on; rescue
-# is on by default; phage_mode is opt-in per job.
-_default_interpreter = Interpreter(
-    use_uniprot=False,
-    use_interpro=False,
-    use_local_blast=False,
-    use_hmmer=False,   # pyhmmer is a C extension — not fork-safe with Celery prefork
-    use_esm=False,     # torch is not fork-safe either
-)
+# ── Interpreter lifecycle & fork-safety ──────────────────────────────────────
+#
+# The interpreters MUST be created inside each forked worker child, never at
+# module import in the Celery parent. Celery's default prefork pool forks worker
+# processes; C extensions that hold thread pools or global state (pyhmmer,
+# torch/ESM) crash or deadlock when that state is inherited across a fork. By
+# building interpreters lazily per process — warmed in the `worker_process_init`
+# signal, which fires AFTER the fork — those libraries initialize fresh in each
+# child and are never inherited across a fork, so they are safe to enable.
+#
+# Plugin toggles are env-controlled so a deployment can turn homology/domain
+# search on without a code change:
+#   GIAE_ENABLE_DIAMOND (default on)  — subprocess, fork-safe; no-ops if no DB
+#   GIAE_ENABLE_HMMER   (default off) — pyhmmer; safe now that init is post-fork
+#   GIAE_ENABLE_ESM     (default off) — torch; heavy, opt-in
+#   GIAE_ENABLE_UNIPROT (default off) — network; off for offline/deterministic
 
-_phage_interpreter = Interpreter(
-    use_uniprot=False,
-    use_interpro=False,
-    use_local_blast=False,
-    use_hmmer=False,
-    use_esm=False,
-    phage_mode=True,
-)
+
+def _flag(name: str, default: bool) -> bool:
+    val = os.getenv(name)
+    if val is None:
+        return default
+    return val.strip().lower() in ("1", "true", "yes", "on")
+
+
+# Per-process interpreter cache, keyed by phage_mode. Populated post-fork; the
+# empty dict inherited across the fork is harmless.
+_interpreters: dict = {}
+
+
+def _build_interpreter(phage_mode: bool) -> Interpreter:
+    return Interpreter(
+        use_uniprot=_flag("GIAE_ENABLE_UNIPROT", False),
+        use_interpro=False,
+        use_local_blast=_flag("GIAE_ENABLE_BLAST", False),
+        use_diamond=_flag("GIAE_ENABLE_DIAMOND", True),
+        use_hmmer=_flag("GIAE_ENABLE_HMMER", False),
+        use_esm=_flag("GIAE_ENABLE_ESM", False),
+        phage_mode=phage_mode,
+    )
+
+
+def get_interpreter(phage_mode: bool) -> Interpreter:
+    """Return this process's interpreter for the mode, building it on first use.
+
+    Lazy so that even pools that do not emit worker_process_init (solo/threads)
+    still construct the interpreter inside the worker process, never the parent.
+    """
+    key = bool(phage_mode)
+    interp = _interpreters.get(key)
+    if interp is None:
+        interp = _build_interpreter(key)
+        _interpreters[key] = interp
+    return interp
+
+
+@worker_process_init.connect
+def _warm_interpreter(**_kwargs):
+    """Build the default interpreter inside each forked child (post-fork), so
+    fork-unsafe C extensions initialize in the child and are never inherited
+    across a fork. The phage interpreter is built lazily on first phage job."""
+    try:
+        get_interpreter(False)
+        logger.info(
+            "Worker process warmed (diamond=%s hmmer=%s esm=%s uniprot=%s)",
+            _flag("GIAE_ENABLE_DIAMOND", True), _flag("GIAE_ENABLE_HMMER", False),
+            _flag("GIAE_ENABLE_ESM", False), _flag("GIAE_ENABLE_UNIPROT", False),
+        )
+    except Exception:  # noqa: BLE001
+        logger.exception("Failed to warm interpreter in worker process")
 
 
 @celery_app.task(name="process_genome")
@@ -166,8 +221,8 @@ def process_genome_task(job_id: str, file_path: str, filename: str, phage_mode: 
         # 1. Parse – auto-detects GenBank vs FASTA
         genome = parse_genome(file_path)
 
-        # 2. Interpret
-        interpreter = _phage_interpreter if phage_mode else _default_interpreter
+        # 2. Interpret (interpreter built lazily inside this worker process)
+        interpreter = get_interpreter(phage_mode)
         summary = interpreter.interpret_genome(genome)
 
         # 3. Generate interactive HTML report
