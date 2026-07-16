@@ -40,6 +40,32 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# EC numbers: "EC 1.2.3.4", "EC:1.2.3.-", "(EC 3.6.4.12)". Allows '-' placeholders
+# for partial classifications. Captures the bare N.N.N.N(.-) form.
+_EC_RE = re.compile(r"EC[:\s]?(\d+\.\d+\.\d+\.(?:\d+|-))", re.I)
+
+
+def _extract_ec(text: str | None) -> str | None:
+    if not text:
+        return None
+    m = _EC_RE.search(text)
+    return m.group(1) if m else None
+
+
+def _extract_ec_from_evidence(evidence: list[Evidence]) -> str | None:
+    for ev in evidence:
+        ec = _extract_ec(getattr(ev, "description", None))
+        if ec:
+            return ec
+        raw = getattr(ev, "raw_data", None) or {}
+        for v in raw.values():
+            if isinstance(v, str):
+                ec = _extract_ec(v)
+                if ec:
+                    return ec
+    return None
+
+
 # Canonical COG categories — letters and full names.
 COG_CATEGORIES: dict[str, str] = {
     "J": "Translation, ribosomal structure and biogenesis",
@@ -119,6 +145,14 @@ class FunctionalAnnotator:
         normalized = self.normalizer.normalize(interpretation.hypothesis)
         if normalized:
             interpretation.metadata["normalized_product"] = normalized
+
+        # 1b. EC number — synonym-invariant enzyme ID. Parsed from the hypothesis
+        # or any evidence description that embeds one (e.g. "... (EC 2.7.7.7)").
+        # GO/EC IDs let downstream grading match function by ID rather than by
+        # free-text name, which is riddled with synonyms.
+        ec = _extract_ec(interpretation.hypothesis) or _extract_ec_from_evidence(evidence)
+        if ec:
+            interpretation.metadata["ec_number"] = ec
 
         # 2. Pfam-based COG / GO lookup
         pfam_id = self._extract_pfam_id(evidence)

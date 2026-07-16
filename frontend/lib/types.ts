@@ -42,6 +42,7 @@ export interface GeneRow {
   cog_name?: string | null;
   cog_source?: string | null;
   go_terms?: string[];
+  ec_number?: string | null;
   pfam_id?: string | null;
   category?: string | null;
   reasoning: string | null;

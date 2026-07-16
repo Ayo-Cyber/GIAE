@@ -127,7 +127,8 @@ export const demoJob: Job = {
       normalized_product: "Phage endolysin",
       cog_category: "M",
       cog_name: "Cell wall/membrane/envelope biogenesis",
-      go_terms: ["GO:0003796"],
+      go_terms: ["GO:0003796", "GO:0016998"],
+      ec_number: "3.2.1.17",
       pfam_id: "PF00959",
       category: "lysis",
       reasoning:

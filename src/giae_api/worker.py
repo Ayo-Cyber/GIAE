@@ -99,6 +99,7 @@ def _serialize_genes(results, genome) -> str:
             "cog_name": meta.get("cog_name"),
             "cog_source": meta.get("cog_source"),
             "go_terms": meta.get("go_terms") or [],
+            "ec_number": meta.get("ec_number"),
             "pfam_id": meta.get("pfam_id"),
             "category": meta.get("category"),
             "reasoning": " ".join(interp.reasoning_chain) if interp else None,

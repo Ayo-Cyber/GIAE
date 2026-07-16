@@ -1090,6 +1090,18 @@ export default function JobPage() {
                                 {selected.pfam_id}
                               </span>
                             )}
+                            {/* EC number — links to the ExPASy enzyme entry */}
+                            {selected.ec_number && (
+                              <a
+                                href={`https://enzyme.expasy.org/EC/${selected.ec_number}`}
+                                target="_blank" rel="noopener noreferrer"
+                                title="Enzyme Commission number — view on ExPASy"
+                                className="text-[11px] font-mono px-2 py-0.5 rounded-full border transition-colors hover:brightness-125"
+                                style={{ background: "rgba(34,211,238,0.1)", color: "#67e8f9", borderColor: "rgba(34,211,238,0.25)" }}
+                              >
+                                EC {selected.ec_number}
+                              </a>
+                            )}
                           </div>
 
                           {/* Locus + coords + operon chip */}
@@ -1122,11 +1134,20 @@ export default function JobPage() {
                             </p>
                           )}
 
-                          {/* GO terms */}
+                          {/* GO terms — clickable, resolve on QuickGO */}
                           {selected.go_terms && selected.go_terms.length > 0 && (
-                            <div className="flex flex-wrap gap-1.5 mt-3">
+                            <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                              <span className="text-[9px] uppercase tracking-wider text-gray-600 mr-0.5">GO</span>
                               {selected.go_terms.map((go) => (
-                                <span key={go} className="text-[10px] font-mono bg-white/4 border border-white/6 text-gray-400 px-2 py-0.5 rounded">{go}</span>
+                                <a
+                                  key={go}
+                                  href={`https://www.ebi.ac.uk/QuickGO/term/${go}`}
+                                  target="_blank" rel="noopener noreferrer"
+                                  title="View this GO term on QuickGO"
+                                  className="text-[10px] font-mono bg-white/4 border border-white/6 text-gray-400 px-2 py-0.5 rounded transition-colors hover:text-gray-200 hover:border-white/20"
+                                >
+                                  {go}
+                                </a>
                               ))}
                             </div>
                           )}

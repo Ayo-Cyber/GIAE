@@ -87,7 +87,22 @@ def informative(product: str | None) -> bool:
     return len(tokens(product)) > 0
 
 
+_EC_RE = re.compile(r"EC[:\s]?(\d+\.\d+\.\d+\.(?:\d+|-))", re.I)
+
+
+def _ec(product: str | None) -> str | None:
+    if not product:
+        return None
+    m = _EC_RE.search(product)
+    return m.group(1) if m else None
+
+
 def func_agree(pred: str | None, truth: str | None) -> bool:
+    # Synonym-invariant path first: if both carry an EC number and it matches,
+    # the enzyme is correctly identified regardless of product-name wording.
+    ep, et = _ec(pred), _ec(truth)
+    if ep and et:
+        return ep == et
     tp, tt = tokens(pred), tokens(truth)
     if not tp or not tt:
         return False
