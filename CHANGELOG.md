@@ -7,6 +7,43 @@ and the project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.
 
 ---
 
+## [0.2.3] — unreleased
+
+The "trust & scale" release: rigorous benchmarking, calibrated confidence,
+durable sessions, and a deployable image that actually runs the strong config.
+
+### Added
+- **Confidence calibration** — post-hoc isotonic recalibration (5-fold CV,
+  out-of-sample ECE 0.30 → 0.004) mapping raw scores to a real probability of
+  correctness. Bundled mapping (`data/calibration/`), applied to homology-backed
+  calls; surfaced in the API and the report as a "Calibrated reliability" panel.
+- **GO/EC ID output** — EC numbers parsed and emitted alongside GO terms;
+  clickable GO (QuickGO) / EC (ExPASy) chips in the report; benchmark grades on
+  EC first (synonym-invariant).
+- **Auth refresh tokens** — 30-day refresh tokens + `/api/v1/auth/refresh`;
+  the Next.js proxy refreshes the access token transparently, so sessions no
+  longer die every hour.
+- **Pitch-grade benchmark suite** — 35 genomes (29 phage + 6 bacteria) vs Bakta
+  with Wilcoxon stats, Wilson CIs, outlier analysis, and a reviewer-proof
+  [methodology doc](BENCHMARK_METHODOLOGY.md). Deployment plan in
+  [DEPLOYMENT.md](DEPLOYMENT.md); phased [ROADMAP.md](ROADMAP.md).
+
+### Changed
+- **Diamond homology scan batched** — one call per genome instead of one per
+  gene (63× faster; a lambda scan drops 336 s → 5.3 s), making the homology
+  config viable in production.
+- Docker image now installs `.[api,annotation]` (pyrodigal) + the diamond
+  binary, and compose mounts a Swiss-Prot DB volume — the deployed container
+  runs the same strong config as the benchmark, not the weak offline fallback.
+
+### Fixed
+- **Celery fork-safety** — interpreters are built lazily per worker process
+  (post-fork), so pyhmmer/torch are no longer inherited across the prefork fork.
+- Motif scanner no longer scans raw nucleotides with amino-acid PROSITE
+  patterns (a false-positive class); it translates the CDS first.
+
+---
+
 ## [0.2.2] — 2026-05-09
 
 The "publishable" release. Same evidence-first core, dramatically better

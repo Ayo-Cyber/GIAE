@@ -19,25 +19,32 @@
 
 ---
 
-GIAE is a genome annotation engine that **shows its work**. Where Bakta and Prokka return labels, GIAE returns labels with the full evidence stack, a numerical confidence score, the reasoning chain that produced it, and the alternatives it considered.
+GIAE is a genome annotation engine that **shows its work**. Where Bakta and Prokka return labels, GIAE returns labels with the full evidence stack, a **calibrated** confidence score, the reasoning chain that produced it, and the alternatives it considered.
 
-It's also faster and more accurate than Bakta on the genomes we've benchmarked.
+On **gene finding**, GIAE is on par with Bakta — as it should be: both call genes with **pyrodigal (Prodigal)**. Parity there is table stakes. GIAE's edge is the layer on top: calibrated confidence you can threshold on, auditable provenance, honest abstention, and zero-config robustness (it auto-detects genetic code 4, where a default Bakta run does not).
 
 ```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│  Phage benchmark — same FASTA, same scoring, same overlap criterion    │
-├──────────────┬──────────────┬──────────────┬──────────────┬─────────────┤
-│   Genome     │   GIAE F1    │   Bakta F1   │     Δ        │   Verdict   │
-├──────────────┼──────────────┼──────────────┼──────────────┼─────────────┤
-│   phiX174    │   60.0 %     │   60.0 %     │     —        │   tied      │
-│   λ phage    │   79.2 %     │   72.6 %     │   +6.6 %     │   GIAE wins │
-│   T7         │   88.1 %     │   85.2 %     │   +2.9 %     │   GIAE wins │
-└──────────────┴──────────────┴──────────────┴──────────────┴─────────────┘
-GIAE config: pyrodigal + rescue + phage_mode (no UniProt/BLAST/InterPro).
-Bakta config: light db, --skip-* for missing tools, CDS pipeline active.
+┌──────────────────────────────────────────────────────────────────────────┐
+│  35-genome benchmark (29 phage + 6 bacteria) — same FASTA, RefSeq truth,  │
+│  reciprocal-overlap ≥ 0.5. Both tools call genes with pyrodigal.          │
+├────────────────────────────┬───────────────┬───────────────┬─────────────┤
+│  Metric                    │     GIAE      │     Bakta     │   Verdict   │
+├────────────────────────────┼───────────────┼───────────────┼─────────────┤
+│  Gene-finding F1 (mean)    │    0.850      │    0.827      │  tied *     │
+│  Phages (n=29)             │    0.832      │    0.838      │  tied       │
+│  Bacteria (n=6)            │    0.935      │    0.777      │  GIAE **    │
+│  Speed / phage (offline)   │   ~0.25 s     │   ~7.5 s      │  30× faster │
+└────────────────────────────┴───────────────┴───────────────┴─────────────┘
+ * Wilcoxon signed-rank p = 0.11 → statistically indistinguishable.
+** Bacteria gap is a genetic-code artifact: GIAE's pyrodigal meta-mode
+   auto-selects table 4 for Mycoplasma; the default Bakta run used table 11.
+   A configuration win, not an algorithmic one — see the methodology doc.
 ```
 
-[Reproduce these numbers →](https://github.com/Ayo-Cyber/GIAE/blob/main/post_assets/bakta_comparison.py)
+Confidence is genuinely calibrated: after isotonic recalibration (5-fold CV,
+out-of-sample), **ECE 0.30 → 0.004** — a reported probability means what it says.
+
+[Full methodology, caveats & "say this, not that" claims →](BENCHMARK_METHODOLOGY.md) · [Reproduce →](post_assets/benchmark_figure.py)
 
 ---
 
@@ -46,11 +53,12 @@ Bakta config: light db, --skip-* for missing tools, CDS pipeline active.
 | | Prokka / Bakta / RAST | **GIAE** |
 |---|---|---|
 | Output per gene | Label only | Label **+ evidence chain + confidence score + alternatives** |
-| Uncertainty | Hidden | Explicit, numeric, calibrated |
+| Uncertainty | Hidden | Explicit, numeric, **calibrated** (out-of-sample ECE 0.004) |
 | Conflicting evidence | Silently resolved | **Surfaced and reported** |
 | "hypothetical protein" | End of the line | Ranked as **research priority** with suggested experiments |
 | Reasoning audit | None | Full reasoning chain in every record |
-| Accuracy on phages | Baseline | **Matches or beats Bakta on all 3 reference genomes** |
+| Gene finding | Prodigal | **Prodigal too** — on par by construction (35-genome F1 tie) |
+| Functional IDs | Product name | Product name **+ GO/EC IDs** (synonym-invariant) |
 | Deployment | CLI only | CLI + **Python library + REST API + Docker stack** |
 
 ---
@@ -255,6 +263,13 @@ Every prediction carries a numeric score `[0.0, 1.0]` mapped to a named level:
 Scoring penalties and bonuses are explicit and documented:
 [architecture.md → Confidence model](https://Ayo-Cyber.github.io/GIAE/architecture/#confidence-model)
 
+For **homology-backed** calls, GIAE also reports a **calibrated probability of
+correctness** — the raw score mapped through an isotonic calibrator fit
+out-of-sample (5-fold CV) on the 35-genome benchmark. Raw scores are
+over-confident; the calibrated value is not (out-of-sample ECE 0.004), so
+"0.66" means the call is right about two-thirds of the time. See
+[BENCHMARK_METHODOLOGY.md](BENCHMARK_METHODOLOGY.md).
+
 ---
 
 ## What's in the box
@@ -273,7 +288,8 @@ Scoring penalties and bonuses are explicit and documented:
 | UniProt API client | `analysis/uniprot.py` | `--mode online` |
 | InterPro / EBI HMMER client | `analysis/interpro.py` | `--mode online` |
 | ESM-2 protein language model | `analysis/ai.py` | If `[ai]` extras installed |
-| COG / GO functional annotation | `analysis/functional_annotator.py` | Always on (~100 Pfam IDs bundled) |
+| COG / GO / EC functional annotation | `analysis/functional_annotator.py` | Always on (~100 Pfam IDs bundled) |
+| Confidence recalibration (isotonic) | `analysis/confidence_calibration.py` | On for homology-backed calls |
 | Product-name normaliser | `analysis/product_normalizer.py` | Always on |
 | HTML report generator | `output/html_report.py` | `--format html` |
 | REST API + worker queue | `giae_api/` | `giae serve` / `giae worker` |
@@ -289,10 +305,10 @@ Scoring penalties and bonuses are explicit and documented:
 | **Python library API** | [docs/python_api](https://Ayo-Cyber.github.io/GIAE/python_api/) |
 | **REST API reference** | [docs/rest_api](https://Ayo-Cyber.github.io/GIAE/rest_api/) |
 | **Architecture & confidence model** | [docs/architecture](https://Ayo-Cyber.github.io/GIAE/architecture/) |
-| **Benchmarks** (vs Bakta) | [docs/benchmarks](https://Ayo-Cyber.github.io/GIAE/benchmarks/) |
-| **Deployment** (Docker, scaling) | [docs/deployment](https://Ayo-Cyber.github.io/GIAE/deployment/) |
+| **Benchmark methodology & caveats** (authoritative) | [BENCHMARK_METHODOLOGY.md](BENCHMARK_METHODOLOGY.md) |
+| **Deployment plan & runbook** | [DEPLOYMENT.md](DEPLOYMENT.md) |
+| **Roadmap** (product · paper · tool) | [ROADMAP.md](ROADMAP.md) |
 | **Extending GIAE** (plugins) | [docs/extending](https://Ayo-Cyber.github.io/GIAE/extending/) |
-| **Roadmap** | [docs/roadmap](https://Ayo-Cyber.github.io/GIAE/roadmap/) |
 | **Contributing** | [CONTRIBUTING.md](https://github.com/Ayo-Cyber/GIAE/blob/main/CONTRIBUTING.md) |
 | **Hosted docs** | [Ayo-Cyber.github.io/GIAE/](https://Ayo-Cyber.github.io/GIAE/) |
 
@@ -302,13 +318,13 @@ Scoring penalties and bonuses are explicit and documented:
 
 GIAE is an evolving platform. The next horizon:
 
-- **Foldseek / AlphaFold structural homology** — `STRUCTURAL_HOMOLOGY` evidence to crack PhiX174-class cases where sequence-based methods plateau
-- **Bacterial genome scaling** — currently validated on phages; next target is 4–6 Mb bacterial genomes
-- **Translational coupling detection** — recover compact-phage overlapping genes that lack canonical SD signals
-- **Comparative-genomics mode** — diff two interpretations side-by-side
-- **Hosted SaaS** — see [PRODUCT_STRATEGY.md](https://github.com/Ayo-Cyber/GIAE/blob/main/PRODUCT_STRATEGY.md) for the broader vision
+- **Foldseek / AlphaFold structural homology** — `STRUCTURAL_HOMOLOGY` evidence to put calibrated, hedged function on the dark genes no homology tool annotates
+- **Full prediction-side GO/EC** — UniProt id-mapping enrichment so homology hits carry ontology IDs, not just names
+- **Larger, multi-tool benchmark** — 50+ genomes across phyla vs Bakta + Prokka + DFAST, with per-tool significance
+- **Hosted SaaS + phage safety screening** — see [PRODUCT_STRATEGY.md](https://github.com/Ayo-Cyber/GIAE/blob/main/PRODUCT_STRATEGY.md)
 
-[Detailed roadmap →](https://Ayo-Cyber.github.io/GIAE/roadmap/)
+Validated on 29 phage + 6 bacterial genomes (see the benchmark box above).
+[Full phased roadmap →](ROADMAP.md)
 
 ---
 
