@@ -1,11 +1,28 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth/auth-options";
+import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 // Paths that don't require a logged-in session
 const PUBLIC_PREFIXES = ["auth/", "health", "waitlist", "share/"];
 
 const API_URL = process.env.API_URL || "http://localhost:8000";
+
+// Refresh the backend access token if it's within this window of expiry, so a
+// proxied call never forwards a token that's about to (or already has) lapsed.
+const REFRESH_SKEW_MS = 60_000;
+
+async function refreshAccess(refreshToken: string): Promise<string | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) return null;
+    return (await res.json()).access_token as string;
+  } catch {
+    return null;
+  }
+}
 
 async function handler(
   req: NextRequest,
@@ -16,13 +33,22 @@ async function handler(
 
   let accessToken: string | undefined;
   if (!isPublic) {
-    const session = await getServerSession(authOptions);
-    if (!session?.user) {
+    // Read the raw JWT (has accessToken, accessTokenExpires, refreshToken).
+    // Refreshing here — not in the jwt callback — avoids the concurrent
+    // cookie-rewrite race that dropped the refresh token.
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+    if (!token) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
-    accessToken = (session as { accessToken?: string }).accessToken;
+    accessToken = token.accessToken as string | undefined;
+    const expires = (token.accessTokenExpires as number | undefined) ?? 0;
+    const refreshTok = token.refreshToken as string | undefined;
+    if ((!accessToken || Date.now() > expires - REFRESH_SKEW_MS) && refreshTok) {
+      const fresh = await refreshAccess(refreshTok);
+      if (fresh) accessToken = fresh;
+    }
     if (!accessToken) {
-      return Response.json({ error: "Session has no access token; sign in again." }, { status: 401 });
+      return Response.json({ error: "Session expired; sign in again." }, { status: 401 });
     }
   }
 

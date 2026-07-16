@@ -85,9 +85,14 @@ class LoginRequest(BaseModel):
 
 class TokenResponse(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str = "bearer"
     expires_in: int
     user: dict
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
 
 
 class WaitlistRequest(BaseModel):
@@ -175,6 +180,24 @@ def health_check():
 # ---------------------------------------------------------------------------
 # Auth
 # ---------------------------------------------------------------------------
+def _issue_tokens(user: models.User) -> TokenResponse:
+    """Build a TokenResponse (access + refresh) for a user. Single source of
+    truth so signup, login, and refresh stay in sync."""
+    access_token, expires_in = auth.create_access_token(user.id, user.email)
+    refresh_token, _ = auth.create_refresh_token(user.id, user.email)
+    return TokenResponse(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        expires_in=expires_in,
+        user={
+            "id": user.id,
+            "email": user.email,
+            "firstName": user.first_name,
+            "lastName": user.last_name,
+        },
+    )
+
+
 @app.post("/api/v1/auth/signup", status_code=201, response_model=TokenResponse)
 def signup(body: RegisterRequest, request: Request, db: Session = Depends(database.get_db)):
     ip = request.client.host if request.client else "unknown"
@@ -193,18 +216,8 @@ def signup(body: RegisterRequest, request: Request, db: Session = Depends(databa
     db.add(user)
     db.commit()
     db.refresh(user)
-    token, expires_in = auth.create_access_token(user.id, user.email)
     logger.info("user_signup", extra={"user_id": user.id, "email": email})
-    return TokenResponse(
-        access_token=token,
-        expires_in=expires_in,
-        user={
-            "id": user.id,
-            "email": user.email,
-            "firstName": user.first_name,
-            "lastName": user.last_name,
-        },
-    )
+    return _issue_tokens(user)
 
 
 # Kept as an alias so the existing Next.js signup page (which posts to /register)
@@ -223,18 +236,24 @@ def login(body: LoginRequest, request: Request, db: Session = Depends(database.g
     if not user or not user.is_active or not auth.verify_password(body.password, user.hashed_password):
         logger.warning("login_failed", extra={"email": email, "ip": ip})
         raise HTTPException(status_code=401, detail="Invalid credentials.")
-    token, expires_in = auth.create_access_token(user.id, user.email)
     logger.info("login_success", extra={"user_id": user.id, "email": email})
-    return TokenResponse(
-        access_token=token,
-        expires_in=expires_in,
-        user={
-            "id": user.id,
-            "email": user.email,
-            "firstName": user.first_name,
-            "lastName": user.last_name,
-        },
-    )
+    return _issue_tokens(user)
+
+
+@app.post("/api/v1/auth/refresh", response_model=TokenResponse)
+def refresh_token(body: RefreshRequest, request: Request, db: Session = Depends(database.get_db)):
+    """Exchange a valid refresh token for a fresh access token (and a rotated
+    refresh token). This is what keeps a session alive without re-login once the
+    short-lived access token expires."""
+    ip = request.client.host if request.client else "unknown"
+    _check_rate(f"refresh:{ip}", limit=60, window_secs=60)
+    payload = auth.decode_refresh_token(body.refresh_token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token.")
+    user = db.query(models.User).filter(models.User.id == payload["sub"]).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive.")
+    return _issue_tokens(user)
 
 
 @app.get("/api/v1/auth/me")

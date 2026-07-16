@@ -486,11 +486,11 @@ export default function JobPage() {
   }, [selected?.id, id]);
 
   useEffect(() => {
-    if (job?.status !== "COMPLETED") return;
+    if (isDemo || job?.status !== "COMPLETED") return;
     api.getJobHistory(id)
       .then((h) => setHistoryDiff({ previous: h.previous_genes, current: h.current_genes }))
       .catch(() => {});
-  }, [job?.status, id]);
+  }, [isDemo, job?.status, id]);
 
   const isRunning    = job?.status === "RUNNING" || job?.status === "PENDING";
   const isCancellable = job?.status === "PENDING"  || job?.status === "RUNNING";

@@ -27,6 +27,14 @@ from giae_api import worker as api_worker  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
+def _reset_rate_limit():
+    """Clear the in-memory rate-limit store before each test so the suite's
+    many signups/logins don't trip the per-IP limiter and 429 each other."""
+    api_main._rate_store.clear()
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _stub_celery_task(monkeypatch):
     """Replace the Celery task with a no-op so tests don't need Redis."""
     class _FakeTask:
@@ -77,7 +85,40 @@ def test_signup_returns_token_and_user(client):
     body = r.json()
     assert body["token_type"] == "bearer"
     assert body["access_token"]
+    assert body["refresh_token"]
     assert body["user"]["email"] == "alice@example.com"
+
+
+def test_refresh_returns_new_tokens(client):
+    r = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "refresh-me@example.com", "password": "correct-horse-battery"},
+    )
+    refresh = r.json()["refresh_token"]
+    rr = client.post("/api/v1/auth/refresh", json={"refresh_token": refresh})
+    assert rr.status_code == 200
+    body = rr.json()
+    assert body["access_token"] and body["refresh_token"]
+    # the new access token authenticates a protected route
+    me = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {body['access_token']}"})
+    assert me.status_code == 200
+    assert me.json()["email"] == "refresh-me@example.com"
+
+
+def test_refresh_rejects_access_token(client):
+    """An access token must not be usable as a refresh token."""
+    r = client.post(
+        "/api/v1/auth/signup",
+        json={"email": "no-swap@example.com", "password": "correct-horse-battery"},
+    )
+    access = r.json()["access_token"]
+    rr = client.post("/api/v1/auth/refresh", json={"refresh_token": access})
+    assert rr.status_code == 401
+
+
+def test_refresh_rejects_garbage(client):
+    rr = client.post("/api/v1/auth/refresh", json={"refresh_token": "not-a-jwt"})
+    assert rr.status_code == 401
 
 
 def test_signup_duplicate_email_409(client):

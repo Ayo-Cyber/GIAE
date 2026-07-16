@@ -36,6 +36,9 @@ if not JWT_SECRET:
 
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_TOKEN_TTL_MINUTES = int(os.getenv("JWT_ACCESS_TOKEN_TTL_MINUTES", "60"))
+# Refresh tokens are long-lived and exchanged for fresh access tokens at
+# /api/v1/auth/refresh, so a short access-token TTL no longer forces a re-login.
+JWT_REFRESH_TOKEN_TTL_DAYS = int(os.getenv("JWT_REFRESH_TOKEN_TTL_DAYS", "30"))
 
 API_KEY_PREFIX = "gia_"
 API_KEY_BYTES = 32  # 256-bit, base64url ≈ 43 chars
@@ -83,6 +86,33 @@ def decode_access_token(token: str) -> Optional[dict]:
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         if payload.get("type") != "access":
+            return None
+        return payload
+    except JWTError:
+        return None
+
+
+def create_refresh_token(user_id: str, email: str) -> tuple[str, int]:
+    """Long-lived token exchanged for new access tokens. Returns (token, ttl_s)."""
+    expires_in = JWT_REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": user_id,
+        "email": email,
+        "iat": now,
+        "exp": now + timedelta(seconds=expires_in),
+        "type": "refresh",
+    }
+    token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return token, expires_in
+
+
+def decode_refresh_token(token: str) -> Optional[dict]:
+    """Validate a refresh token. Returns the payload or None if invalid/expired
+    or not actually a refresh token (an access token can't be used to refresh)."""
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        if payload.get("type") != "refresh":
             return None
         return payload
     except JWTError:

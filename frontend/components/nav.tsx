@@ -21,7 +21,10 @@ function useSessionExpiry() {
   const [msLeft, setMsLeft] = useState<number | null>(null);
 
   useEffect(() => {
-    const expires = session?.accessTokenExpires;
+    // Track the real SESSION lifetime (NextAuth `expires`, ~30 days), NOT the
+    // short-lived access token. The access token expiring is normal — the API
+    // proxy refreshes it transparently — so it must not trigger a sign-out.
+    const expires = session?.expires ? Date.parse(session.expires) : null;
     if (!expires) return;
     const tick = () => {
       const left = expires - Date.now();
@@ -29,9 +32,9 @@ function useSessionExpiry() {
       if (left <= 0) signOut({ callbackUrl: "/login?expired=1" });
     };
     tick();
-    const id = setInterval(tick, 30_000);
+    const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
-  }, [session?.accessTokenExpires, router]);
+  }, [session?.expires, router]);
 
   return msLeft;
 }
