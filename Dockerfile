@@ -22,9 +22,12 @@ COPY pyproject.toml README.md ./
 COPY src ./src
 COPY data ./data
 
+# NOTE: install the `annotation` extra too — it pulls in pyrodigal (Prodigal),
+# GIAE's gene finder. Without it the engine silently falls back to a naive
+# six-frame ORF scanner and the benchmark's F1 numbers no longer hold.
 RUN pip install --upgrade pip wheel \
     && pip wheel --wheel-dir /wheels \
-        ".[api]" \
+        ".[api,annotation]" \
         "python-jose[cryptography]>=3.3.0" \
         "passlib[bcrypt]>=1.7.4" \
         "bcrypt<4.0" \
@@ -39,9 +42,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONPATH=/app/src
 
+# diamond-aligner provides /usr/bin/diamond for the homology plugin (Swiss-Prot
+# search → calibrated confidence + GO/EC). The DB itself is mounted at runtime
+# (see DEPLOYMENT.md §2), not baked into the image.
 RUN apt-get update && apt-get install -y --no-install-recommends \
         libpq5 \
         curl \
+        diamond-aligner \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system --gid 1000 giae \
     && useradd  --system --uid 1000 --gid giae --shell /bin/bash --home /app giae
@@ -54,7 +61,7 @@ COPY src ./src
 COPY data ./data
 
 RUN pip install --no-index --find-links /wheels \
-        "giae[api]" \
+        "giae[api,annotation]" \
         "python-jose[cryptography]" \
         "passlib[bcrypt]" \
         "bcrypt<4.0" \

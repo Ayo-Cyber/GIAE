@@ -33,7 +33,7 @@ Goal: make the deployed product as good as the benchmark (the good config only r
 
 - [ ] **(P)** Auth refresh tokens — end the 401 session expiry
 - [x] **(P)** Ship the homology config to the deployed worker — Diamond now defaults ON in the worker (subprocess, fork-safe); homology annotation + calibration fire in prod once the Swiss-Prot DB is deployed to `~/.giae/diamond/`
-- [ ] **(P)** GO/EC ID output — synonym-invariant & machine-readable (also fixes product-name benchmarking)
+- [x] **(P)** GO/EC ID output — EC parsed + emitted, clickable GO/EC chips (QuickGO/ExPASy) in the report, benchmark grades on EC first (synonym-invariant). Full prediction-side EC coverage needs a UniProt idmapping enrichment (follow-up)
 - [x] **(P)** Surface calibrated reliability in the report — `CalibratedReliability` shows empirical P(correct) with the raw score marked on the same scale (the shrinkage made visible), reliability ramp + plain-language guidance for researchers
 - [ ] **(P)** Surface abstention explicitly in the UI ("no confident call")
 - [ ] **(S)** Expand benchmark to 50+ genomes across phyla (powers the significance test past n=6 bacteria)
