@@ -62,16 +62,31 @@ The engine's quality depends on three things the image lacks. Add them:
 3. **Swiss-Prot diamond DB** (~280 MB). Do **not** bake it into the image —
    mount it as a volume so the image stays small and the DB is swappable:
    ```yaml
-   # add to api + worker services in docker-compose.yml
+   # add to api + worker services in docker-compose.yml. The container's HOME
+   # is /app, so the engine looks for the DB under /app/.giae/diamond/.
    volumes:
-     - giae_db:/home/giae/.giae/diamond
+     - giae_db:/app/.giae
    ```
    Build it once into the named volume (one-off job or an init container):
    ```bash
+   # inside a container that mounts the volume at /app/.giae:
    giae db download swissprot-diamond           # small (E. coli) — smoke test
    # or full Swiss-Prot (recommended, 575k proteins):
    curl -o sprot.fasta.gz https://ftp.uniprot.org/.../uniprot_sprot.fasta.gz
-   gunzip -c sprot.fasta.gz | diamond makedb --db /home/giae/.giae/diamond/swissprot
+   gunzip -c sprot.fasta.gz | diamond makedb --db /app/.giae/diamond/swissprot
+   ```
+   The engine resolves the DB at `/app/.giae/diamond/swissprot.dmnd`. **The
+   worker warms its interpreter at startup, so build the DB into the volume
+   *before* first boot (or restart the worker after) — otherwise it registers
+   diamond as unavailable and silently runs the offline config.**
+
+   **Volume ownership:** the container runs as uid 1000 (`giae`), and the same
+   `/app/.giae` volume also holds the engine's SQLite cache (`cache.db`). If you
+   populate the volume from a root container, `chown -R 1000:1000` it afterwards
+   — otherwise the worker can't write its cache and every job fails with
+   "unable to open database file":
+   ```bash
+   docker run --rm -v <project>_giae_db:/d alpine chown -R 1000:1000 /d
    ```
    The calibration mapping (`data/calibration/calibration_mapping.json`) **is**
    already bundled in the image, so calibrated confidence lights up as soon as

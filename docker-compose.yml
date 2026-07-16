@@ -54,7 +54,7 @@ services:
     volumes:
       - uploads_data:/app/uploads
       - reports_data:/app/public_reports
-      - giae_db:/home/giae/.giae          # diamond Swiss-Prot DB (see DEPLOYMENT.md §2)
+      - giae_db:/app/.giae          # diamond Swiss-Prot DB (see DEPLOYMENT.md §2)
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,7 +83,7 @@ services:
     volumes:
       - uploads_data:/app/uploads
       - reports_data:/app/public_reports
-      - giae_db:/home/giae/.giae          # diamond Swiss-Prot DB (see DEPLOYMENT.md §2)
+      - giae_db:/app/.giae          # diamond Swiss-Prot DB (see DEPLOYMENT.md §2)
     depends_on:
       postgres:
         condition: service_healthy
