@@ -14,6 +14,18 @@ export const demoJob: Job = {
   dark_count: 3,
   processing_time_seconds: 138,
   created_at: "2026-05-20T09:00:00Z",
+  safety: {
+    verdict: "caution",
+    recommendation:
+      "Caution — lysogeny machinery detected (temperate lifestyle). Therapeutic phages are generally strictly lytic; verify lifestyle experimentally.",
+    lysogenic: true,
+    counts: { lysogeny: 2, amr: 0, virulence: 0 },
+    screened_genes: 12,
+    flags: [
+      { category: "lysogeny", severity: "warning", gene_id: "demo-gene-int", gene_name: "int", product: "Tyrosine recombinase integrase", signal: "integrase", source: "HMMER / Pfam" },
+      { category: "lysogeny", severity: "warning", gene_id: "demo-gene-ciii", gene_name: "cIII", product: "Regulatory protein CIII", signal: "CI repressor", source: "PROSITE" },
+    ],
+  },
   genes: [
     {
       id: "demo-gene-j",

@@ -70,6 +70,7 @@ class Job(Base):
     dark_count = Column(Integer, nullable=True)
     processing_time_seconds = Column(Integer, nullable=True)
     genes_json = Column(Text, nullable=True)
+    safety_json = Column(Text, nullable=True)  # phage safety screen (lysogeny/AMR/virulence)
     previous_genes_json = Column(Text, nullable=True)  # snapshot before last re-run
     celery_task_id = Column(String(128), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)

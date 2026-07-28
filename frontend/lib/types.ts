@@ -55,10 +55,30 @@ export interface GeneRow {
   domains?: GeneDomain[];
 }
 
+export interface SafetyFlag {
+  category: "lysogeny" | "amr" | "virulence";
+  severity: "warning" | "critical";
+  gene_id: string;
+  gene_name: string;
+  product: string;
+  signal: string;
+  source: string;
+}
+
+export interface Safety {
+  verdict: "not_recommended" | "caution" | "no_flags";
+  recommendation: string;
+  lysogenic: boolean;
+  counts: { lysogeny: number; amr: number; virulence: number };
+  screened_genes: number;
+  flags: SafetyFlag[];
+}
+
 export interface Job {
   job_id: string;
   filename: string;
   status: JobStatus;
+  safety?: Safety | null;
   report_url: string | null;
   error_message: string | null;
   total_genes: number | null;

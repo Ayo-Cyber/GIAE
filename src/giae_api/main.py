@@ -465,6 +465,7 @@ def get_job_status(
         raise HTTPException(status_code=403, detail="Forbidden")
 
     genes = _json.loads(job.genes_json) if job.genes_json else []
+    safety = _json.loads(job.safety_json) if getattr(job, "safety_json", None) else None
 
     return {
         "job_id": job.id,
@@ -478,6 +479,7 @@ def get_job_status(
         "dark_count": job.dark_count,
         "processing_time_seconds": job.processing_time_seconds,
         "genes": genes,
+        "safety": safety,
     }
 
 

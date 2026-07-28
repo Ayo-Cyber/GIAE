@@ -968,6 +968,56 @@ export default function JobPage() {
                 })()}
               </div>
 
+              {/* Phage safety screen */}
+              {job.safety && (() => {
+                const sf = job.safety;
+                const V = {
+                  not_recommended: { c: "#ef4444", bg: "rgba(239,68,68,0.08)", bd: "rgba(239,68,68,0.28)", label: "Not recommended" },
+                  caution:         { c: "#f59e0b", bg: "rgba(245,158,11,0.08)", bd: "rgba(245,158,11,0.28)", label: "Caution" },
+                  no_flags:        { c: "#34d399", bg: "rgba(52,211,153,0.07)", bd: "rgba(52,211,153,0.24)", label: "No red flags" },
+                }[sf.verdict] ?? { c: "#818cf8", bg: "rgba(129,140,248,0.07)", bd: "rgba(129,140,248,0.24)", label: sf.verdict };
+                const catLabel: Record<string, string> = { lysogeny: "lysogeny", amr: "AMR", virulence: "virulence/toxin" };
+                return (
+                  <div className="shrink-0 border-b border-white/5 px-5 py-3" style={{ background: V.bg }}>
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-1 rounded-md font-bold"
+                        style={{ color: V.c, background: "rgba(0,0,0,0.15)", border: `1px solid ${V.bd}` }}>
+                        Phage safety · {V.label}
+                      </span>
+                      {(["lysogeny", "amr", "virulence"] as const).map((cat) =>
+                        sf.counts[cat] > 0 ? (
+                          <span key={cat} className="text-[11px] font-mono px-2 py-0.5 rounded-full"
+                            style={{ color: V.c, border: `1px solid ${V.bd}` }}>
+                            {sf.counts[cat]} {catLabel[cat]}
+                          </span>
+                        ) : null
+                      )}
+                      <span className="text-xs text-gray-400 flex-1 min-w-[240px]">{sf.recommendation}</span>
+                    </div>
+                    {sf.flags.length > 0 && (
+                      <details className="mt-2">
+                        <summary className="text-[11px] cursor-pointer select-none" style={{ color: V.c }}>
+                          {sf.flags.length} flagged {sf.flags.length === 1 ? "gene" : "genes"} — show
+                        </summary>
+                        <div className="mt-2 flex flex-col gap-1">
+                          {sf.flags.map((f, i) => (
+                            <div key={i} className="flex items-center gap-2 text-[11px] font-mono">
+                              <span className="px-1.5 py-0.5 rounded" style={{ color: f.severity === "critical" ? "#ef4444" : "#f59e0b", background: "rgba(0,0,0,0.15)" }}>
+                                {catLabel[f.category]}
+                              </span>
+                              <span className="text-gray-300">{f.gene_name}</span>
+                              <span className="text-gray-500">{f.signal}</span>
+                              <span className="text-gray-600 truncate">· {f.product}</span>
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-gray-600 mt-2">Signature screen — flags candidates for expert review, not a validated assay. Absence of a flag is not proof of safety.</p>
+                      </details>
+                    )}
+                  </div>
+                );
+              })()}
+
               {/* History diff banner */}
               {historyDiff && (
                 <div className="shrink-0 border-b border-white/5 px-5 py-2 bg-indigo-500/5 flex items-center gap-3">

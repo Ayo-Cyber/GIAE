@@ -239,6 +239,28 @@ def process_genome_task(job_id: str, file_path: str, filename: str, phage_mode: 
         dark_count = sum(1 for r in summary.results if r.interpretation is None)
         genes_json = _serialize_genes(summary.results, genome)
 
+        # 4b. Phage safety screen (lysogeny / AMR / virulence) — the therapeutic
+        # safety gate ordinary annotation doesn't surface.
+        safety_json = None
+        try:
+            from giae.analysis.safety import SafetyScreener
+            report = SafetyScreener().screen_summary(summary, genome)
+            safety_json = json.dumps({
+                "verdict": report.verdict,
+                "recommendation": report.recommendation,
+                "lysogenic": report.lysogenic,
+                "counts": report.counts(),
+                "screened_genes": report.screened_genes,
+                "flags": [
+                    {"category": f.category, "severity": f.severity,
+                     "gene_id": f.gene_id, "gene_name": f.gene_name,
+                     "product": f.product, "signal": f.signal, "source": f.source}
+                    for f in report.flags
+                ],
+            })
+        except Exception:  # safety screen must never fail the job
+            pass
+
         job.status = JobStatus.COMPLETED.value
         job.report_url = f"/reports/{job_id}.html"
         job.total_genes = summary.total_genes
@@ -247,6 +269,7 @@ def process_genome_task(job_id: str, file_path: str, filename: str, phage_mode: 
         job.dark_count = dark_count
         job.processing_time_seconds = int(summary.processing_time_seconds)
         job.genes_json = genes_json
+        job.safety_json = safety_json
         db.commit()
 
     except Exception as e:

@@ -59,7 +59,10 @@ CREATE TABLE IF NOT EXISTS jobs (
     dark_count               INTEGER,
     processing_time_seconds  INTEGER,
     genes_json               TEXT,
+    safety_json              TEXT,
+    previous_genes_json      TEXT,
     celery_task_id           VARCHAR(128),
+    completed_at             TIMESTAMPTZ,
     created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
