@@ -197,3 +197,6 @@ ui_mockup.html
 
 # Internal / confidential docs
 PRODUCT_STRATEGY.md
+
+# Redis runtime artifact
+dump.rdb
