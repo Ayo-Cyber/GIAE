@@ -22,11 +22,10 @@ ROOT = Path(__file__).resolve().parent.parent
 CSV  = ROOT / "post_assets" / "benchmark_figure_results.csv"
 OUT  = ROOT / "post_assets"
 
-PHAGE_NAMES = {
-    "80alpha","A118","Felix01","G4","HK022","HK97","MS2","Mu","N4","P22","P22_434",
-    "PRD1","SP01","SP6","SPP1","T3","T4","T7","crAssphage","gh-1","lambda_phage",
-    "phage_186","phage_21","phage_P1","phage_P2","phi105","phi29","phiNM1","phiX174",
-}
+# Classify phage vs bacteria dynamically from the genome directories so the
+# split stays correct as the benchmark set grows.
+PHAGE_NAMES = {p.stem for p in (ROOT / "case_studies").glob("*.gb")}
+BACT_NAMES = {p.stem for p in (ROOT / "benchmark_genomes").glob("*.gb")}
 
 
 def load() -> list[dict]:
@@ -159,6 +158,36 @@ def stats_report(rows: list[dict]) -> None:
     ties  = sum(1 for d in diffs if abs(d) <= 0.01)
     loses = sum(1 for d in diffs if d < -0.01)
 
+    # Prodigal baseline (gene-finding only) — three-way significance. Quantifies
+    # what GIAE's phage-aware rescue adds over vanilla Prodigal, and situates
+    # both GIAE and Bakta against the shared predictor.
+    prod_rows = [r for r in rows if r.get("prodigal_f1")]
+    prodigal_block: list[str] = []
+    if prod_rows:
+        pr = [float(r["prodigal_f1"]) for r in prod_rows]
+        gi = [float(r["giae_f1"]) for r in prod_rows]
+        bk = [float(r.get("bakta_f1") or 0) for r in prod_rows]
+        mean_pr = sum(pr) / len(pr)
+        prodigal_block = [
+            "",
+            f"Prodigal baseline (n={len(prod_rows)}, gene-finding only)",
+            "-" * 60,
+            f"  Mean F1 — Prodigal {mean_pr:.3f} | GIAE {sum(gi)/len(gi):.3f} | Bakta {sum(bk)/len(bk):.3f}",
+        ]
+        try:
+            from scipy.stats import wilcoxon as _w
+            def _p(a, b):
+                try:
+                    return f"p={_w(a, b, alternative='two-sided')[1]:.4f}"
+                except Exception:
+                    return "n/a"
+            prodigal_block += [
+                f"  GIAE vs Prodigal   : {_p(gi, pr)}  (does phage rescue help?)",
+                f"  Bakta vs Prodigal  : {_p(bk, pr)}",
+            ]
+        except ImportError:
+            pass
+
     def subset_f1(rs, key):
         vals = [float(r[key]) for r in rs]
         return sum(vals)/len(vals) if vals else 0.0
@@ -186,8 +215,9 @@ def stats_report(rows: list[dict]) -> None:
         f"Wilcoxon signed-rank (bact.)  : {bact_wilc}",
         "",
         "INTERPRETATION: p>0.05 means GIAE ≈ Bakta (cannot reject null).",
-        "  For a 30× faster tool with auditable evidence chains, 'not worse'",
-        "  is a strong position. Target >50 genomes for definitive significance.",
+        "  For a faster tool with auditable evidence chains, 'not worse' is a",
+        "  strong position.",
+        *prodigal_block,
         "",
         "Outliers (|delta| > 0.08)",
         "-" * 60,

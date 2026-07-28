@@ -43,6 +43,29 @@ GENOMES = [
     ("Pseudomonas_aeruginosa_PAO1", "NC_002516.2", 5700, "large"),
     ("Mycobacterium_tuberculosis_H37Rv", "NC_000962.3", 4000, "large"),
     ("Salmonella_Typhimurium_LT2",  "NC_003197.2", 4600, "large"),
+    # ── extra bacteria for phylogenetic breadth (across phyla) ──
+    ("Helicobacter_pylori_26695",    "NC_000915.1", 1600, "large"),  # Epsilonproteobacteria
+    ("Streptococcus_pneumoniae_R6",  "NC_003098.1", 2000, "large"),  # Firmicutes
+    ("Thermus_thermophilus_HB8",     "NC_006461.1", 2200, "large"),  # Deinococcus-Thermus
+    ("Synechocystis_sp_PCC6803",     "NC_000911.1", 3600, "large"),  # Cyanobacteria
+]
+
+# Extra well-characterised phage genomes (RefSeq, embedded sequence) to push the
+# gene-finding benchmark past n=50 for statistical power. Fetched into
+# case_studies/ alongside the existing phage set.
+PHAGES_EXTRA = [
+    ("phage_T5",     "NC_005859.1"),
+    ("phage_T1",     "NC_005833.1"),
+    ("phage_N15",    "NC_001901.1"),
+    ("phage_Sf6",    "NC_005344.1"),
+    ("phage_ES18",   "NC_006949.1"),
+    ("phage_epsilon15", "NC_004775.1"),
+    ("phage_K1E",    "NC_007637.1"),
+    ("phage_K1F",    "NC_007456.1"),
+    ("phage_P27",    "NC_003356.1"),
+    ("phage_vB_EcoM", "NC_019488.1"),
+    ("phage_Bcep22", "NC_005262.1"),
+    ("phage_D3",     "NC_002484.1"),
 ]
 
 
@@ -55,6 +78,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--all", action="store_true", help="include large genomes too")
     ap.add_argument("--tiers", default="", help="comma list: small,medium,large (overrides --all)")
+    ap.add_argument("--phages", action="store_true", help="also fetch PHAGES_EXTRA into case_studies/")
     args = ap.parse_args()
 
     if args.tiers:
@@ -87,6 +111,28 @@ def main() -> int:
         ok += 1
         time.sleep(0.4)  # be polite to NCBI
     print(f"Done: {ok}/{len(targets)} available in {OUT_DIR}")
+
+    # Extra phages -> case_studies/ (for n>=50 gene-finding power)
+    if args.phages:
+        case_dir = OUT_DIR.parent / "case_studies"
+        case_dir.mkdir(exist_ok=True)
+        print(f"Fetching {len(PHAGES_EXTRA)} extra phages -> {case_dir}")
+        pok = 0
+        for name, acc in PHAGES_EXTRA:
+            dest = case_dir / f"{name}.gb"
+            if dest.exists() and dest.stat().st_size > 1000:
+                print(f"  skip {name} ({acc}) — present"); pok += 1; continue
+            print(f"  fetch {name} ({acc}) …", flush=True)
+            try:
+                text = fetch(acc)
+            except Exception as e:  # noqa: BLE001
+                print(f"    ERROR: {e}", file=sys.stderr); continue
+            if "ORIGIN" not in text:
+                print(f"    WARN: no ORIGIN in {acc} — skipping", file=sys.stderr); continue
+            dest.write_text(text)
+            print(f"    saved {dest.name} ({len(text)//1024} KB)"); pok += 1
+            time.sleep(0.4)
+        print(f"Extra phages: {pok}/{len(PHAGES_EXTRA)} available in {case_dir}")
     return 0
 
 

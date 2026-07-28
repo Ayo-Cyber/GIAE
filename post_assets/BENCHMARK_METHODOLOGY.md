@@ -8,14 +8,20 @@ important — what **cannot**.
 ## TL;DR (the claims that survive scrutiny)
 
 1. **Gene finding: GIAE is on par with Bakta — by construction, not by novelty.**
-   Both tools call genes with **pyrodigal (Prodigal)**. Near-identical F1
-   (GIAE 0.850 vs Bakta 0.827 over 35 genomes, Wilcoxon p = 0.11, n.s.) is the
-   *expected* result of wrapping the same predictor. Do **not** claim "better
-   gene finding."
-2. **GIAE's genuine engineering contributions** are (a) phage-aware nested /
-   short-ORF rescue that recovers overlapping genes standard Prodigal drops,
-   (b) an auditable evidence + reasoning layer, and (c) a **calibrated
-   confidence score**.
+   All three tools call genes with **pyrodigal (Prodigal)**. Over **52 genomes**
+   (41 phages + 11 bacteria across ~7 phyla): mean F1 GIAE **0.871**, Bakta
+   **0.850**, raw Prodigal **0.878**. GIAE vs Bakta Wilcoxon **p = 0.051**
+   (borderline — GIAE trends better but ≈ Bakta). The tight cluster is the
+   *expected* result of a shared predictor. Do **not** claim "better gene
+   finding."
+2. **A three-tool comparison sharpens the point.** GIAE is statistically
+   indistinguishable from raw Prodigal (p = 0.36) — it *preserves* Prodigal-level
+   gene finding. **Bakta is significantly *worse* than raw Prodigal (p = 0.011)**
+   — its db-light post-filtering degrades gene finding (chiefly the Mycoplasma
+   over-prediction). So GIAE's value is not a better caller; it's the layer on
+   top: (a) phage-aware nested/short-ORF rescue, (b) an auditable evidence +
+   reasoning layer, (c) a **calibrated confidence score**, and (d) zero-config
+   robustness (auto genetic-code selection).
 3. **Confidence is a genuine — if modest — ranking signal** (AUC 0.59 raw /
    0.64 synonym-adjusted). HIGH-confidence functional calls are correct ≥ 61 %
    of the time (a lower bound; see §4), significantly more than Moderate/Low
@@ -132,11 +138,18 @@ grading.
 
 ## 6. Statistical rigor & limitations
 
-- **Gene-finding significance**: Wilcoxon signed-rank on paired F1, p = 0.11
-  (all 35), not significant → "statistically equivalent," honestly stated.
-- **Underpowered subsets**: only 6 bacteria (2 skipped for selenocysteine `U`,
-  1 phage skipped as a CON record with no embedded sequence). Bacteria-only
-  Wilcoxon is not meaningful at n = 6.
+- **Gene-finding significance (n = 52)**: Wilcoxon signed-rank on paired F1,
+  GIAE vs Bakta p = 0.051 (borderline, n.s. at α = 0.05); GIAE vs raw Prodigal
+  p = 0.36 (indistinguishable); Bakta vs raw Prodigal p = 0.011 (Bakta
+  significantly worse). Win/tie/loss GIAE-vs-Bakta: 20 / 22 / 10.
+- **Three tools, one predictor**: raw pyrodigal is included as a baseline
+  (`--prodigal`) precisely because GIAE and Bakta both wrap it. It shows the
+  db-light post-processing in Bakta *costs* gene-finding F1, while GIAE's rescue
+  is F1-neutral vs vanilla Prodigal (it trades a little precision for recall on
+  nested-gene phages). Prokka/DFAST were not run (require a bioconda env).
+- **Subsets**: 41 phages + 11 bacteria (6 of 58 fetched genomes skipped —
+  CON records with no embedded sequence, or selenocysteine `U`). Bacteria-only
+  Wilcoxon (n = 11) is still lightly powered.
 - **Lenient matching**: reciprocal overlap ≥ 0.5 counts a gene as found even if
   boundaries differ; it does not require exact stop-codon (frame) agreement.
   This inflates *both* tools equally, so the *comparison* is fair, but absolute

@@ -1,27 +1,33 @@
 ============================================================
 GIAE vs Bakta — Benchmark Summary
 ============================================================
-Genomes evaluated : 35
-  Phages          : 29
-  Bacteria        : 6
+Genomes evaluated : 52
+  Phages          : 41
+  Bacteria        : 11
 
 Gene-finding F1 (vs RefSeq, reciprocal overlap >= 0.5)
 ------------------------------------------------------------
 Metric                             GIAE    Bakta
-Mean F1                           0.850    0.827
-Median F1                         0.903    0.889
-Std Dev                           0.156    0.162
-Phages mean F1                    0.832    0.838
-Bacteria mean F1                  0.935    0.777
+Mean F1                           0.871    0.850
+Median F1                         0.912    0.899
+Std Dev                           0.134    0.143
+Phages mean F1                    0.853    0.849
+Bacteria mean F1                  0.939    0.854
 
-Win/Tie/Loss (±0.01 threshold): 14 / 14 / 7
-Wilcoxon signed-rank (all)    : W=144.0, p=0.1119 (not significant at α=0.05)
-Wilcoxon signed-rank (phages) : W p=0.2237 (not significant)
-Wilcoxon signed-rank (bact.)  : W p=1.0000 (not significant)
+Win/Tie/Loss (±0.01 threshold): 20 / 22 / 10
+Wilcoxon signed-rank (all)    : W=311.5, p=0.0511 (not significant at α=0.05)
+Wilcoxon signed-rank (phages) : W p=0.0588 (not significant)
+Wilcoxon signed-rank (bact.)  : W p=0.5139 (not significant)
 
 INTERPRETATION: p>0.05 means GIAE ≈ Bakta (cannot reject null).
-  For a 30× faster tool with auditable evidence chains, 'not worse'
-  is a strong position. Target >50 genomes for definitive significance.
+  For a faster tool with auditable evidence chains, 'not worse' is a
+  strong position.
+
+Prodigal baseline (n=52, gene-finding only)
+------------------------------------------------------------
+  Mean F1 — Prodigal 0.878 | GIAE 0.871 | Bakta 0.850
+  GIAE vs Prodigal   : p=0.3615  (does phage rescue help?)
+  Bakta vs Prodigal  : p=0.0115
 
 Outliers (|delta| > 0.08)
 ------------------------------------------------------------
@@ -36,21 +42,22 @@ Outliers (|delta| > 0.08)
   phiNM1                              GIAE=0.148 Bakta=0.360 delta=-0.212
     → Both tools struggle (GIAE TP=2/14, Bakta TP=9/14). phiNM1 has
   heavily overlapping/frameshifted gene structure outside standard ORF model.
+  phage_vB_EcoM                       GIAE=0.867 Bakta=0.660 delta=+0.207
   phage_186                           GIAE=0.903 Bakta=0.791 delta=+0.112
     → GIAE finds 10 more genes than Bakta (~103 vs ~93); possible
   Bakta db-light under-coverage for Pseudomonas phage sequences.
 
 Mean runtime (seconds)
 ------------------------------------------------------------
-  Phages  — GIAE: 0.25s  Bakta: 7.57s
-  Bacteria— GIAE: 17.57s  Bakta: 16.10s
+  Phages  — GIAE: 0.25s  Bakta: 7.33s
+  Bacteria— GIAE: 17.84s  Bakta: 15.04s
 
 Annotation rate (fraction of coord-matched genes receiving informative label)
 ------------------------------------------------------------
-  GIAE  phages  : 16.9%
-  Bakta phages  : 64.5%
-  GIAE  bacteria: 24.0%
-  Bakta bacteria: 62.7%
+  GIAE  phages  : 15.3%
+  Bakta phages  : 65.3%
+  GIAE  bacteria: 23.0%
+  Bakta bacteria: 70.4%
 
 Honest narrative
 ------------------------------------------------------------

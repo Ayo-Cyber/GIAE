@@ -220,6 +220,22 @@ def giae_features(gb: Path, phage_mode: bool = False) -> list[Feature]:
     return out
 
 
+def prodigal_features(gb: Path) -> list[Feature]:
+    """Raw pyrodigal (Prodigal) gene prediction — the shared baseline that both
+    GIAE and Bakta build on. Quantifies what GIAE's phage-aware rescue adds over
+    vanilla Prodigal. Gene-finding only (no functional annotation)."""
+    import pyrodigal
+    g = parser.parse(gb)
+    gf = pyrodigal.GeneFinder(meta=True)
+    out = []
+    for gene in gf.find_genes(g.sequence.encode()):
+        start = gene.begin - 1          # 0-based inclusive
+        end = gene.end                  # exclusive
+        strand = 1 if gene.strand == 1 else -1
+        out.append((start, end, strand, None))
+    return out
+
+
 def bakta_features(gb: Path) -> list[Feature]:
     g = parser.parse(gb)
     with tempfile.TemporaryDirectory() as tmp:
@@ -311,6 +327,8 @@ def main() -> int:
     ap.add_argument("--genomes", nargs="*", help="explicit .gb paths")
     ap.add_argument("--set", choices=["phages", "bacteria", "all"], default="phages")
     ap.add_argument("--no-bakta", action="store_true")
+    ap.add_argument("--prodigal", action="store_true",
+                    help="also score raw pyrodigal (gene-finding baseline)")
     ap.add_argument("--no-phage-mode", action="store_true",
                     help="disable phage_mode for case_studies genomes")
     args = ap.parse_args()
@@ -330,6 +348,7 @@ def main() -> int:
         "giae_annotate_rate", "giae_time_s",
         "bakta_p", "bakta_r", "bakta_f1", "bakta_func_cov", "bakta_func_prec",
         "bakta_annotate_rate", "bakta_time_s",
+        "prodigal_p", "prodigal_r", "prodigal_f1", "prodigal_time_s",
     ]
     if OUT_CSV.exists():
         with OUT_CSV.open(newline="") as f:
@@ -386,6 +405,18 @@ def main() -> int:
                 f"annotate={bs.annotate_rate:.0%} ({row['bakta_time_s']}s)",
                 flush=True,
             )
+        if args.prodigal:
+            t2 = time.time()
+            try:
+                ps = score(prodigal_features(gb), truth)
+                row.update(
+                    prodigal_p=f"{ps.precision:.3f}", prodigal_r=f"{ps.recall:.3f}",
+                    prodigal_f1=f"{ps.f1:.3f}", prodigal_time_s=round(time.time() - t2, 1),
+                )
+                print(f"   Prodigal P={ps.precision:.2f} R={ps.recall:.2f} F1={ps.f1:.2f} "
+                      f"({row['prodigal_time_s']}s)", flush=True)
+            except Exception as exc:  # noqa: BLE001
+                print(f"   Prodigal failed: {exc}", file=sys.stderr)
         rows.append(row)
         with OUT_CSV.open("w", newline="") as f:
             w = csv.DictWriter(f, fieldnames=fields)
