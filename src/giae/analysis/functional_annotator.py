@@ -154,6 +154,24 @@ class FunctionalAnnotator:
         if ec:
             interpretation.metadata["ec_number"] = ec
 
+        # 1c. Homology-derived GO/EC IDs. Diamond/BLAST hits carry Swiss-Prot
+        # EC + GO on their raw_data (see DiamondPlugin enrichment). Take them
+        # from the highest-confidence hit that has them — this is the main
+        # source of synonym-invariant IDs when homology search is active.
+        best_ec, best_go = None, None
+        for ev in sorted(evidence, key=lambda e: getattr(e, "confidence", 0.0) or 0.0, reverse=True):
+            rd = getattr(ev, "raw_data", None) or {}
+            if best_ec is None and rd.get("ec_number"):
+                best_ec = rd["ec_number"]
+            if best_go is None and rd.get("go_terms"):
+                best_go = list(rd["go_terms"])
+            if best_ec and best_go:
+                break
+        if best_ec and "ec_number" not in interpretation.metadata:
+            interpretation.metadata["ec_number"] = best_ec
+        if best_go:
+            interpretation.metadata["go_terms"] = best_go
+
         # 2. Pfam-based COG / GO lookup
         pfam_id = self._extract_pfam_id(evidence)
         if pfam_id and pfam_id in self.pfam_table:

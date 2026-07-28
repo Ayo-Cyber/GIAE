@@ -7,6 +7,7 @@ Build DB: giae db download swissprot-diamond
 
 from __future__ import annotations
 
+import gzip
 import logging
 import shutil
 import subprocess
@@ -18,6 +19,63 @@ from giae.models.evidence import Evidence, EvidenceProvenance, EvidenceType
 from giae.models.gene import Gene
 
 logger = logging.getLogger(__name__)
+
+
+# ── Swiss-Prot accession -> (EC, [GO]) enrichment ────────────────────────────
+# Built by post_assets/build_swissprot_ec_go.py. Loaded once per process; a
+# hit's accession is looked up to attach synonym-invariant GO/EC IDs to the
+# homology evidence. Absent file -> enrichment simply off (empty map).
+_EC_GO_MAP: Optional[dict] = None
+
+
+def _find_ec_go_map() -> Optional[Path]:
+    try:
+        import importlib.resources
+        res = importlib.resources.files("giae") / "data" / "functional" / "swissprot_ec_go.tsv.gz"
+        with importlib.resources.as_file(res) as p:
+            if p.exists():
+                return Path(p)
+    except Exception:  # noqa: BLE001
+        pass
+    for base in (Path(__file__).resolve().parents[3] / "data" / "functional",
+                 Path.cwd() / "data" / "functional"):
+        cand = base / "swissprot_ec_go.tsv.gz"
+        if cand.exists():
+            return cand
+    return None
+
+
+def _ec_go_map() -> dict:
+    global _EC_GO_MAP
+    if _EC_GO_MAP is None:
+        _EC_GO_MAP = {}
+        path = _find_ec_go_map()
+        if path:
+            try:
+                with gzip.open(path, "rt") as fh:
+                    for line in fh:
+                        parts = line.rstrip("\n").split("\t")
+                        if not parts or not parts[0]:
+                            continue
+                        acc = parts[0]
+                        ec = parts[1] if len(parts) > 1 and parts[1] else None
+                        gos = parts[2].split("|") if len(parts) > 2 and parts[2] else []
+                        _EC_GO_MAP[acc] = (ec, gos)
+                logger.info("Loaded Swiss-Prot EC/GO map: %d accessions from %s",
+                            len(_EC_GO_MAP), path)
+            except Exception as e:  # noqa: BLE001
+                logger.warning("Failed to load EC/GO map from %s: %s", path, e)
+    return _EC_GO_MAP
+
+
+def _accession_from_sseqid(sseqid: str) -> Optional[str]:
+    """sp|P03709|FI_LAMBD -> P03709 ; bare accession -> itself."""
+    if "|" in sseqid:
+        parts = sseqid.split("|")
+        if len(parts) >= 2 and parts[0].lower() in ("sp", "tr"):
+            return parts[1]
+        return parts[0]
+    return sseqid or None
 
 
 class DiamondPlugin(AnalysisPlugin):
@@ -130,17 +188,26 @@ class DiamondPlugin(AnalysisPlugin):
             return None
         if align_len < 30:
             return None
+        raw = {
+            "evalue": evalue,
+            "identity": pident,
+            "hit_id": sseqid,
+            "align_len": align_len,
+        }
+        # Attach synonym-invariant GO/EC IDs from the Swiss-Prot map (if loaded).
+        acc = _accession_from_sseqid(sseqid)
+        if acc:
+            ec, gos = _ec_go_map().get(acc, (None, None))
+            if ec:
+                raw["ec_number"] = ec
+            if gos:
+                raw["go_terms"] = gos
         return Evidence(
             gene_id=gene_id,
             evidence_type=EvidenceType.BLAST_HOMOLOGY,
             description=stitle or sseqid,
             confidence=min(pident, 1.0),
-            raw_data={
-                "evalue": evalue,
-                "identity": pident,
-                "hit_id": sseqid,
-                "align_len": align_len,
-            },
+            raw_data=raw,
             provenance=EvidenceProvenance(
                 tool_name="diamond",
                 tool_version="local",
