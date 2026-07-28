@@ -32,6 +32,9 @@ AMINO_ACID_WEIGHTS: dict[str, float] = {
     "W": 204.2,
     "Y": 181.2,
     "V": 117.1,
+    # Non-standard residues encoded by recoded stop codons — real, not errors.
+    "U": 168.1,   # selenocysteine (Sec, 21st aa; UGA readthrough)
+    "O": 255.3,   # pyrrolysine   (Pyl, 22nd aa; UAG readthrough)
 }
 
 
@@ -73,8 +76,12 @@ class Protein:
         # Normalize sequence to uppercase
         self.sequence = self.sequence.upper()
 
-        # Validate sequence contains only valid amino acids
-        valid_aa = set(AMINO_ACID_WEIGHTS.keys()) | {"X", "*"}  # X=unknown, *=stop
+        # Validate sequence contains only recognised amino-acid letters. Beyond
+        # the 20 standard residues this accepts: X (unknown), * (stop), the
+        # 21st/22nd residues U (selenocysteine) and O (pyrrolysine), and the
+        # IUPAC ambiguity codes B (Asx), Z (Glx), J (Leu/Ile). Real genomes carry
+        # these — a selenoprotein must not fail the whole genome.
+        valid_aa = set(AMINO_ACID_WEIGHTS.keys()) | {"X", "*", "B", "Z", "J"}
         invalid = set(self.sequence) - valid_aa
         if invalid:
             raise ValueError(f"Invalid amino acids in sequence: {invalid}")
