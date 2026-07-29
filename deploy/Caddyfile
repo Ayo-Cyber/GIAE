@@ -1,0 +1,15 @@
+# GIAE HTTPS reverse proxy (Caddy) — automatic Let's Encrypt TLS.
+# Only the frontend is exposed publicly; it reaches the API over the internal
+# compose network, so the API/Postgres/Redis stay unpublished.
+#
+# Install:  sudo apt install -y caddy   (or the official Caddy repo)
+# Edit the domain below, then:  sudo caddy run --config deploy/Caddyfile
+# (or copy to /etc/caddy/Caddyfile and: sudo systemctl restart caddy)
+
+app.your-domain.com {
+    reverse_proxy localhost:3000
+    encode gzip
+    request_body {
+        max_size 60MB          # genome uploads (proxy caps at 50 MB upstream)
+    }
+}
